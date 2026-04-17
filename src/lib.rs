@@ -4,9 +4,11 @@
 //! and computing usage/cost summaries. API, CLI and Tray are downstream
 //! consumers and must not parse JSONL themselves.
 
+pub mod aggregate;
 pub mod model;
 pub mod parser;
 pub mod pricing;
 
+pub use aggregate::build_snapshot;
 pub use model::{ModelId, ModelUsage, ProjectUsage, SessionState, Snapshot, Summary, UsageEvent};
 pub use pricing::{ComputedCost, ModelPricing, PricingTable};
