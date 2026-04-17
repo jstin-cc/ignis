@@ -34,8 +34,8 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 - [x] `src/pricing.rs` + `src/pricing.json` (Lookup, Datum-Suffix-Fallback, Warnings).
 - [x] `src/aggregate.rs` — Rolling-Windows (today / week / month) + active-session.
 - [x] `src/scanner.rs` — Full-Scan + Position-Tracking (Byte-Offset + FileIdentity via NTFS-FFI).
-- [ ] `src/config.rs` — Pfade, Auth-Token.
-- [ ] `examples/scan.rs` — Dev-CLI: Full-Scan → JSON-Dump.
+- [x] `src/config.rs` — Pfade, Auth-Token, JSON-Persistenz.
+- [x] `examples/scan.rs` — Dev-CLI: Full-Scan → JSON-Dump (verifiziert: 38 Files, 2131 Events).
 - [ ] CLI-Subcommands: `winusage daily`, `winusage monthly`, `winusage session`.
 - [ ] HTTP-API: `/health`, `/v1/summary`, `/v1/sessions`.
 - [ ] Tray-App Basis-Panel (Tauri 2 + React 18.3).

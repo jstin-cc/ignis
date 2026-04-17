@@ -7,56 +7,38 @@ Der **eine** konkrete nächste Schritt. Bei Kontextverlust: erste Datei, die gel
 
 ## Jetzt
 
-**`src/config.rs` + `examples/scan.rs` implementieren.**
+**CLI-Subcommands implementieren: `winusage daily`, `winusage monthly`, `winusage session`.**
 
-### 1. `src/config.rs`
+Diese werden als eigenes Binary `src/bin/winusage.rs` mit `clap` angelegt.
 
-Lädt Laufzeit-Konfiguration — Pfade und Auth-Token.
+### Schritte
 
-```rust
-pub struct Config {
-    /// Root-Verzeichnis der Claude-Logs, z.B. %USERPROFILE%\.claude\projects
-    pub claude_projects_dir: PathBuf,
-    /// Bearer-Token für HTTP-API (zufällig generiert, in config-Datei gespeichert)
-    pub api_token: String,
-}
+1. `clap = { version = "4", features = ["derive"] }` in `[dependencies]` (auch für spätere API und Tray nützlich).
 
-impl Config {
-    /// Lädt aus `%APPDATA%\winusage\config.toml` oder legt Defaults an.
-    pub fn load() -> Result<Self, ConfigError>;
-}
-```
+2. `src/bin/winusage.rs` — Clap-CLI:
+   ```
+   winusage daily     → today-Summary als Tabelle (stdout)
+   winusage monthly   → this_month-Summary
+   winusage session   → aktive Session, oder "no active session"
+   winusage scan      → alias für cargo run --example scan (JSON-Dump, dev-freundlich)
+   ```
 
-- Kein extra Crate nötig — einfaches TOML-ähnliches Format via `serde_json` oder manuell.
-  Alternativ: `toml = "0.8"` hinzufügen (prüfen ob passt).
-- `claude_projects_dir` default: `%USERPROFILE%\.claude\projects`
-- `api_token` default: zufälliger 32-Byte-Hex-String (einmalig generiert, danach aus Datei gelesen).
-- Fehlender `%USERPROFILE%`-Envvar → `ConfigError`.
+3. Ausgabe-Format: einfache, lesbare Tabelle (kein Farb-Crate nötig — nur ASCII-Tabellen).
+   Beispiel:
+   ```
+   Model                  Input      Output     Cost
+   claude-sonnet-4-6      1.2M tok   120k tok   $3.61
+   ──────────────────────────────────────────────────
+   Total                                         $3.61
+   ```
 
-### 2. `examples/scan.rs`
+4. Binary in `Cargo.toml`:
+   ```toml
+   [[bin]]
+   name = "winusage"
+   path = "src/bin/winusage.rs"
+   ```
 
-Dev-CLI für schnelle Verifikation:
-
-```
-cargo run --example scan
-```
-
-Gibt JSON-Dump auf stdout aus:
-
-```json
-{
-  "scanned_files": 12,
-  "total_events": 87,
-  "today_cost_usd": "1.23",
-  "pricing_warnings": []
-}
-```
-
-Verwendet `scan_all(config.claude_projects_dir)` + `build_snapshot()` + `PricingTable`.
-
-### Tests
-
-- `Config::load()` mit `WINUSAGE_PROJECTS_DIR` env-override (statt hardcodiertem Pfad).
-- `Config` → fehlender Envvar → sinnvoller Fehler.
+5. Tests: Mindestens `cargo run --bin winusage -- daily` muss exit 0 zurückgeben.
 
 Danach: HTTP-API (`src/api.rs`) mit Axum.
