@@ -7,31 +7,56 @@ Der **eine** konkrete nächste Schritt. Bei Kontextverlust: erste Datei, die gel
 
 ## Jetzt
 
-**`src/scanner.rs` implementieren.**
+**`src/config.rs` + `examples/scan.rs` implementieren.**
 
-Full-Scan + Position-Tracking + optionaler `notify`-Watcher.
+### 1. `src/config.rs`
 
-1. **Datentypen** (`src/scanner.rs`):
-   - `FileIdentity { inode: u64, size: u64 }` — zur Erkennung von Rotationen/Neuanlage.
-   - `FilePosition { path: PathBuf, identity: FileIdentity, byte_offset: u64 }` — pro JSONL-File.
-   - `ScanResult { events: Vec<UsageEvent>, positions: Vec<FilePosition>, errors: Vec<ScanError> }`.
+Lädt Laufzeit-Konfiguration — Pfade und Auth-Token.
 
-2. **`scan_all(root: &Path) -> ScanResult`**:
-   - Findet alle `%USERPROFILE%\.claude\projects\**\*.jsonl` (via `walkdir` oder `glob`).
-   - Liest jede Datei ab Offset 0, parst Zeilen via `parser::parse_line()`.
-   - Erfasst Byte-Offsets für jede Datei.
-   - Korrupte Zeilen: `ScanError` sammeln, nicht abbrechen.
+```rust
+pub struct Config {
+    /// Root-Verzeichnis der Claude-Logs, z.B. %USERPROFILE%\.claude\projects
+    pub claude_projects_dir: PathBuf,
+    /// Bearer-Token für HTTP-API (zufällig generiert, in config-Datei gespeichert)
+    pub api_token: String,
+}
 
-3. **`scan_delta(positions: &[FilePosition]) -> ScanResult`**:
-   - Liest jede Datei nur ab gespeichertem `byte_offset`.
-   - Prüft `FileIdentity` — bei Rotation (neue Inode) → Full-Scan dieser Datei.
+impl Config {
+    /// Lädt aus `%APPDATA%\winusage\config.toml` oder legt Defaults an.
+    pub fn load() -> Result<Self, ConfigError>;
+}
+```
 
-4. **Dependency**: `walkdir = "2"` in `Cargo.toml` eintragen.
-   `notify`-Watcher: **deferred** (kommt mit `scanner::watch()`).
+- Kein extra Crate nötig — einfaches TOML-ähnliches Format via `serde_json` oder manuell.
+  Alternativ: `toml = "0.8"` hinzufügen (prüfen ob passt).
+- `claude_projects_dir` default: `%USERPROFILE%\.claude\projects`
+- `api_token` default: zufälliger 32-Byte-Hex-String (einmalig generiert, danach aus Datei gelesen).
+- Fehlender `%USERPROFILE%`-Envvar → `ConfigError`.
 
-5. **Tests**:
-   - Full-Scan gegen `fixtures/happy-path.jsonl` → 2 Events erwartet.
-   - Delta-Scan (Offset nach erstem Event) → 1 Event erwartet.
-   - Rotation-Erkennung (identity geändert) → Full-Scan-Fallback.
+### 2. `examples/scan.rs`
 
-Danach: `src/config.rs` + `examples/scan.rs`.
+Dev-CLI für schnelle Verifikation:
+
+```
+cargo run --example scan
+```
+
+Gibt JSON-Dump auf stdout aus:
+
+```json
+{
+  "scanned_files": 12,
+  "total_events": 87,
+  "today_cost_usd": "1.23",
+  "pricing_warnings": []
+}
+```
+
+Verwendet `scan_all(config.claude_projects_dir)` + `build_snapshot()` + `PricingTable`.
+
+### Tests
+
+- `Config::load()` mit `WINUSAGE_PROJECTS_DIR` env-override (statt hardcodiertem Pfad).
+- `Config` → fehlender Envvar → sinnvoller Fehler.
+
+Danach: HTTP-API (`src/api.rs`) mit Axum.

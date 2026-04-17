@@ -33,7 +33,7 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 - [x] CI-Workflow `.github/workflows/ci.yml` — Windows-Runner, fmt + clippy + test.
 - [x] `src/pricing.rs` + `src/pricing.json` (Lookup, Datum-Suffix-Fallback, Warnings).
 - [x] `src/aggregate.rs` — Rolling-Windows (today / week / month) + active-session.
-- [ ] `src/scanner.rs` — Full-Scan + Position-Tracking + `notify`-Watcher.
+- [x] `src/scanner.rs` — Full-Scan + Position-Tracking (Byte-Offset + FileIdentity via NTFS-FFI).
 - [ ] `src/config.rs` — Pfade, Auth-Token.
 - [ ] `examples/scan.rs` — Dev-CLI: Full-Scan → JSON-Dump.
 - [ ] CLI-Subcommands: `winusage daily`, `winusage monthly`, `winusage session`.
