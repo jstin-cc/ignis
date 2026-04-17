@@ -25,3 +25,4 @@ walkdir = "2"
 
 [dev-dependencies]
 pretty_assertions = "1"
+anyhow = "1"

@@ -5,11 +5,14 @@
 //! consumers and must not parse JSONL themselves.
 
 pub mod aggregate;
+pub mod config;
 pub mod model;
 pub mod parser;
 pub mod pricing;
 pub mod scanner;
 
 pub use aggregate::build_snapshot;
+pub use config::{Config, ConfigError};
 pub use model::{ModelId, ModelUsage, ProjectUsage, SessionState, Snapshot, Summary, UsageEvent};
 pub use pricing::{ComputedCost, ModelPricing, PricingTable};
+pub use scanner::{scan_all, scan_delta, FilePosition, ScanError, ScanResult};
