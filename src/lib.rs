@@ -8,6 +8,7 @@ pub mod aggregate;
 pub mod model;
 pub mod parser;
 pub mod pricing;
+pub mod scanner;
 
 pub use aggregate::build_snapshot;
 pub use model::{ModelId, ModelUsage, ProjectUsage, SessionState, Snapshot, Summary, UsageEvent};
