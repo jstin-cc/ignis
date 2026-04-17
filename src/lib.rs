@@ -6,5 +6,7 @@
 
 pub mod model;
 pub mod parser;
+pub mod pricing;
 
 pub use model::{ModelId, ModelUsage, ProjectUsage, SessionState, Snapshot, Summary, UsageEvent};
+pub use pricing::{ComputedCost, ModelPricing, PricingTable};
