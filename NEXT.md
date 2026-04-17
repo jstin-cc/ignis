@@ -7,22 +7,31 @@ Der **eine** konkrete nächste Schritt. Bei Kontextverlust: erste Datei, die gel
 
 ## Jetzt
 
-**`src/pricing.rs` + `src/pricing.json` implementieren.**
+**`src/scanner.rs` implementieren.**
 
-1. `src/pricing.json` mit aktuellen Anthropic-Preisen anlegen (Format: `docs/pricing.md` §2).
-   Preise aus der offiziellen Preisliste für:
-   - `claude-opus-4-7`, `claude-opus-4-6`
-   - `claude-sonnet-4-6`
-   - `claude-haiku-4-5`, `claude-haiku-4-5-20251001`
-2. `src/pricing.rs` mit `PricingTable`:
-   - `include_str!("pricing.json")` → bei Startup einmalig deserialisieren.
-   - `lookup(model: &ModelId) -> Option<ModelPricing>`: exakt → Datum-Suffix-Strip → None.
-   - `compute_cost(event: &UsageEvent) -> (Decimal, Option<ModelId>)`: Token × Preis;
-     `Some(model)` wenn unbekannt (für `pricing_warnings`).
-3. Unit-Tests in `pricing.rs`:
-   - Exakter Match.
-   - Datum-Suffix-Fallback (z.B. `claude-haiku-4-5-20251001` → `claude-haiku-4-5`).
-   - Unbekanntes Modell → `None`, Warning-Pfad.
-   - Kostenkalkulation für eine fixture-ähnliche Event-Konstante.
+Full-Scan + Position-Tracking + optionaler `notify`-Watcher.
 
-Danach: `src/aggregate.rs` (Rolling-Windows → `Snapshot` bauen).
+1. **Datentypen** (`src/scanner.rs`):
+   - `FileIdentity { inode: u64, size: u64 }` — zur Erkennung von Rotationen/Neuanlage.
+   - `FilePosition { path: PathBuf, identity: FileIdentity, byte_offset: u64 }` — pro JSONL-File.
+   - `ScanResult { events: Vec<UsageEvent>, positions: Vec<FilePosition>, errors: Vec<ScanError> }`.
+
+2. **`scan_all(root: &Path) -> ScanResult`**:
+   - Findet alle `%USERPROFILE%\.claude\projects\**\*.jsonl` (via `walkdir` oder `glob`).
+   - Liest jede Datei ab Offset 0, parst Zeilen via `parser::parse_line()`.
+   - Erfasst Byte-Offsets für jede Datei.
+   - Korrupte Zeilen: `ScanError` sammeln, nicht abbrechen.
+
+3. **`scan_delta(positions: &[FilePosition]) -> ScanResult`**:
+   - Liest jede Datei nur ab gespeichertem `byte_offset`.
+   - Prüft `FileIdentity` — bei Rotation (neue Inode) → Full-Scan dieser Datei.
+
+4. **Dependency**: `walkdir = "2"` in `Cargo.toml` eintragen.
+   `notify`-Watcher: **deferred** (kommt mit `scanner::watch()`).
+
+5. **Tests**:
+   - Full-Scan gegen `fixtures/happy-path.jsonl` → 2 Events erwartet.
+   - Delta-Scan (Offset nach erstem Event) → 1 Event erwartet.
+   - Rotation-Erkennung (identity geändert) → Full-Scan-Fallback.
+
+Danach: `src/config.rs` + `examples/scan.rs`.

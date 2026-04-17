@@ -31,8 +31,8 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 - [x] `src/parser.rs` — `parse_line()` mit 6 Unit-Tests (happy-path, synthetic-skip,
       sidechain, user-line-skip, malformed JSON, no-usage-skip).
 - [x] CI-Workflow `.github/workflows/ci.yml` — Windows-Runner, fmt + clippy + test.
-- [ ] `src/pricing.rs` + `src/pricing.json` (Lookup, Datum-Suffix-Fallback, Warnings).
-- [ ] `src/aggregate.rs` — Rolling-Windows (today / week / month) + active-session.
+- [x] `src/pricing.rs` + `src/pricing.json` (Lookup, Datum-Suffix-Fallback, Warnings).
+- [x] `src/aggregate.rs` — Rolling-Windows (today / week / month) + active-session.
 - [ ] `src/scanner.rs` — Full-Scan + Position-Tracking + `notify`-Watcher.
 - [ ] `src/config.rs` — Pfade, Auth-Token.
 - [ ] `examples/scan.rs` — Dev-CLI: Full-Scan → JSON-Dump.
