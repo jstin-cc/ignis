@@ -3,5 +3,8 @@
 //! This crate is the single source of truth for reading Claude Code JSONL logs
 //! and computing usage/cost summaries. API, CLI and Tray are downstream
 //! consumers and must not parse JSONL themselves.
-//!
-//! Phase 0 skeleton — modules land in Phase 1.
+
+pub mod model;
+pub mod parser;
+
+pub use model::{ModelId, ModelUsage, ProjectUsage, SessionState, Snapshot, Summary, UsageEvent};
