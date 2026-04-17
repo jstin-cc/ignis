@@ -1,0 +1,21 @@
+# Normalize line endings. Windows devs keep CRLF locally if they want
+# (core.autocrlf), but the repository is canonical LF.
+
+* text=auto eol=lf
+
+# Binary-ish / test-fixture files must stay byte-exact LF.
+*.jsonl  text eol=lf
+*.json   text eol=lf
+*.rs     text eol=lf
+*.toml   text eol=lf
+*.md     text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+
+# Explicit binary (no diff, no text conversion).
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.ico    binary
+*.woff   binary
+*.woff2  binary

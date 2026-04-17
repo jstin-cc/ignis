@@ -1,0 +1,54 @@
+# Rust
+/target/
+**/*.rs.bk
+Cargo.lock.bak
+
+# Node / Vite / Tauri
+node_modules/
+dist/
+dist-ssr/
+.vite/
+apps/tray-ui/node_modules/
+apps/tray-ui/dist/
+src-tauri/target/
+
+# Tauri build artifacts
+**/src-tauri/WixTools/
+**/src-tauri/target/
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# IDE / Editor
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.iml
+*.swp
+*.swo
+.cursor/
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local environment
+.env
+.env.local
+.env.*.local
+
+# winusage runtime data (must never be committed)
+/winusage-data/
+pricing.local.json
+auth-token.txt
+
+# Claude Code per-user settings (permissions etc.) — must stay local
+.claude/settings.local.json
