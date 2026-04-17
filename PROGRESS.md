@@ -7,7 +7,7 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 
 ---
 
-## Phase 0 — Scaffolding & Entscheidungen
+## Phase 0 — Scaffolding & Entscheidungen ✅
 
 - [x] Prompt-Review — 10 offene Punkte vom Nutzer beantwortet (siehe `DECISIONS.md`).
 - [x] Toolchain verifiziert:
@@ -18,25 +18,43 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
   - gh **2.89.0**, authenticated as `jstin-cc`
   - _Tauri-CLI: deferred — wird installiert wenn `apps/tray-ui/` begonnen wird._
   - _MSVC Build Tools: präsent (Teil der stable-msvc-Toolchain)._
-- [~] Projekt-Skelett + Pflicht-Dokumente
-- [ ] JSONL-Format empirisch untersucht → `docs/jsonl-format.md`
-- [ ] Finales Datenmodell → `docs/architecture.md` (inkl. Position-Tracking-Design)
-- [ ] API-Schema → `docs/api.md`
-- [ ] Design-System → `docs/design-system.md`
-- [ ] Agenten-Definitionen (`lead_engineer`, `implementer`, `qa_docs`)
-- [ ] Git-Init + Initial-Commit + `gh repo create` + Push
+- [x] Projekt-Skelett + Pflicht-Dokumente (CLAUDE.md, PROGRESS.md, NEXT.md,
+      DECISIONS.md, CHANGELOG.md).
+- [x] JSONL-Format empirisch untersucht → `docs/jsonl-format.md` (38 Files, 13 MB
+      Sample), 3 anonymisierte Fixtures in `fixtures/`.
+- [x] Finales Datenmodell → `docs/architecture.md` (inkl. Position-Tracking-Design
+      ADR-011).
+- [x] API-Schema → `docs/api.md` (`/health`, `/v1/summary`, `/v1/sessions`).
+- [x] Design-System → `docs/design-system.md`.
+- [x] Pricing-Format → `docs/pricing.md` (ADR-004).
+- [x] Agenten-Definitionen: `lead_engineer`, `implementer`, `qa_docs` unter
+      `.claude/agents/`.
+- [x] Git-Init, `.gitignore`, `.gitattributes` (LF-Normalisierung), Initial-Commit,
+      privates GitHub-Repo `jstin-cc/winusage`, Push auf `main`.
+
+**Phase 0 abgeschlossen am 2026-04-17.** Repo: https://github.com/jstin-cc/winusage.
+
+---
 
 ## Phase 1 — MVP Kern (`v0.1.0`)
 
-- [ ] CI-Minimal-Workflow (`cargo fmt --check && clippy -D warnings && test`) — laut ADR-007
-      ab Phase 1.
-- [ ] `winusage-core`: JSONL-Scanner mit `notify`, Position-Tracking pro File.
-- [ ] Pricing-Engine (embedded Default, Warning bei unbekanntem Modell).
-- [ ] Aggregation: today, week, month, active session.
-- [ ] CLI-Subcommands: `daily`, `monthly`, `session`.
-- [ ] HTTP-API: `/health`, `/v1/summary`, `/v1/sessions` (Bearer-Token-Auth, 127.0.0.1-Bind,
-      Origin-Check).
-- [ ] Tray-App Basis-Panel (Tauri 2 + React 18.3).
+- [ ] CI-Minimal-Workflow `.github/workflows/ci.yml` — `cargo fmt --check && clippy
+      -D warnings && cargo test` (Windows-Runner). Laut ADR-007 ab Phase 1.
+- [ ] `winusage-core`:
+  - [ ] `model.rs` — `UsageEvent`, `Snapshot`, `SessionState`, `ModelId`, `ModelUsage`.
+  - [ ] `parser.rs` — `parse_line(&str) -> Result<Option<UsageEvent>>`; Fixtures
+        decken happy-path, synthetic-error und sidechain ab.
+  - [ ] `pricing.rs` — `PricingTable` mit `include_str!("pricing.json")`, Datum-Suffix-
+        Fallback, Warnings.
+  - [ ] `scanner.rs` — Full-Scan + Position-Tracking (byte-offset + file-id) + `notify`-
+        Watcher, Δ-Scan-Algorithmus laut `docs/architecture.md` §4.
+  - [ ] `aggregate.rs` — Rolling-Windows (today / week / month) + active-session.
+  - [ ] `config.rs` — Pfade, Auth-Token-Handling.
+  - [ ] `examples/scan.rs` liefert ausführbare Dev-CLI: Full-Scan + Dump.
+- [ ] CLI-Subcommands: `winusage daily`, `winusage monthly`, `winusage session`.
+- [ ] HTTP-API: `/health`, `/v1/summary`, `/v1/sessions` auf `127.0.0.1:7337`,
+      Bearer-Token-Auth, Origin-Check.
+- [ ] Tray-App Basis-Panel (Tauri 2 + React 18.3) — Layout aus `docs/design-system.md`.
 - [ ] Installer (MSI via Tauri Bundler).
 - [ ] Release-Tag `v0.1.0-mvp`.
 

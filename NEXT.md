@@ -7,27 +7,43 @@ Der **eine** konkrete nächste Schritt. Bei Kontextverlust: erste Datei, die gel
 
 ## Jetzt
 
-**Phase 0 fortsetzen: JSONL-Format empirisch untersuchen.**
+**Phase 1 starten: `winusage-core::parser` + `model` implementieren.**
 
-Konkret:
+Gate: Nutzer muss die Phase-0-Doku (`CLAUDE.md`, `DECISIONS.md`, `docs/*.md`) einmal
+abnehmen. Falls das noch offen ist, erst dort klären, dann fortfahren.
 
-1. Auflisten, welche Dateien unter `%USERPROFILE%\.claude\projects\` liegen.
-2. Eine repräsentative, nicht zu kleine JSONL-Datei auswählen.
-3. Zeilentypen (Assistant-Messages, Tool-Uses, Meta-Events) inventarisieren.
-4. Token-Usage-Felder identifizieren (input / output / cache_creation / cache_read).
-5. Schema in `docs/jsonl-format.md` dokumentieren — inkl. Quirks (fehlende Felder,
-   variable Reihenfolgen, Stream-Chunks).
-6. 2–3 **anonymisierte** Sample-Lines in `fixtures/` ablegen (Pfade/Projektnamen
-   scrubben).
+Konkrete Erstaufgabe (genau in dieser Reihenfolge, jeweils kleiner, eigener Commit):
 
-Blockiert: `docs/architecture.md` kann erst danach final geschrieben werden — das
-Datenmodell hängt am tatsächlichen Schema.
+1. **Dependencies nach `Cargo.toml` aufnehmen** (Phase-1-Minimum):
+   - `serde = { version = "1", features = ["derive"] }`
+   - `serde_json = "1"`
+   - `chrono = { version = "0.4", features = ["serde"] }`
+   - `rust_decimal = { version = "1", features = ["serde"] }`
+   - `rust_decimal_macros = "1"`
+   - `thiserror = "1"`
+   - `dev-dependencies`: `pretty_assertions = "1"`
+2. **`src/model.rs`** mit den Typen aus `docs/architecture.md` §3. Keine Logik — nur
+   Typen, `Default`-Impls, kleine Konstruktoren. Public reexport in `src/lib.rs`.
+3. **`src/parser.rs`** — `parse_line` deserialisiert nur die notwendigen Felder einer
+   `assistant`-Zeile in `UsageEvent`. Nicht-assistant-Zeilen → `Ok(None)`. Synthetic
+   oder `isApiErrorMessage` → `Ok(None)`. Fehlerhafte JSON → `Err(ParseError)` (Scanner
+   entscheidet über Skip).
+4. **Unit-Tests** für `parser.rs` mit `fixtures/happy-path.jsonl`, `error-synthetic.jsonl`,
+   `sidechain.jsonl`. Asserts: Token-Zahlen, Modell-IDs, `is_sidechain`-Flag.
+5. **CI-Minimal-Workflow** `.github/workflows/ci.yml` (laut ADR-007) — Windows-Runner,
+   drei Steps: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`,
+   `cargo test`.
+
+Commit-Rhythmus: ein Commit pro Punkt 1–5. `PROGRESS.md` im selben Commit aktualisieren.
+Push nach jedem Commit.
 
 ## Danach
 
-- `docs/architecture.md` (inkl. Position-Tracking-Design pro File).
-- `docs/api.md` (Schema für `/v1/summary`, `/v1/sessions`, `/health`).
-- `docs/design-system.md` (Farbpalette aus `INITIAL_PROMPT.md` übertragen).
-- 3 Agent-Definitionen in `.claude/agents/`.
-- Git-Init + Initial-Commit + `gh repo create winusage --private --source=. --push`.
-- `PROGRESS.md`/`NEXT.md` final auf Phase 1 ausrichten.
+- `src/pricing.rs` + `src/pricing.json` (Platzhalter-Werte, bis reale Preisliste beim
+  Release gepflegt wird).
+- `src/aggregate.rs` + Integration-Test mit vollständiger Mini-Session.
+- `src/scanner.rs` mit Position-Tracking + `notify`-Watcher.
+- `examples/scan.rs` als Dev-CLI (liest `%USERPROFILE%\.claude\projects\`, gibt Snapshot
+  als JSON auf stdout aus).
+- Erst dann: `winusage-cli`-Subcommands beginnen (voraussichtlich Workspace-Split-
+  Trigger laut ADR-001).
