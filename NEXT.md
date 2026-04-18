@@ -7,38 +7,21 @@ Der **eine** konkrete nächste Schritt. Bei Kontextverlust: erste Datei, die gel
 
 ## Jetzt
 
-**CLI-Subcommands implementieren: `winusage daily`, `winusage monthly`, `winusage session`.**
-
-Diese werden als eigenes Binary `src/bin/winusage.rs` mit `clap` angelegt.
+**Phase 2 starten: `winusage watch` Live-TUI mit ratatui.**
 
 ### Schritte
 
-1. `clap = { version = "4", features = ["derive"] }` in `[dependencies]` (auch für spätere API und Tray nützlich).
+1. Dependencies: `ratatui`, `crossterm` in `[dependencies]`.
 
-2. `src/bin/winusage.rs` — Clap-CLI:
-   ```
-   winusage daily     → today-Summary als Tabelle (stdout)
-   winusage monthly   → this_month-Summary
-   winusage session   → aktive Session, oder "no active session"
-   winusage scan      → alias für cargo run --example scan (JSON-Dump, dev-freundlich)
-   ```
+2. `src/bin/winusage-watch.rs` — ratatui TUI:
+   - Layout wie in `docs/design-system.md` §6 beschrieben
+   - Panels: Today, Session, By Model, Burn Rate (Platzhalter)
+   - Live-Refresh alle 5 Sekunden via Scanner-Watch-Thread
+   - Keys: `q` quit, `r` force-refresh, `d` daily, `m` monthly
 
-3. Ausgabe-Format: einfache, lesbare Tabelle (kein Farb-Crate nötig — nur ASCII-Tabellen).
-   Beispiel:
-   ```
-   Model                  Input      Output     Cost
-   claude-sonnet-4-6      1.2M tok   120k tok   $3.61
-   ──────────────────────────────────────────────────
-   Total                                         $3.61
-   ```
+3. TUI nutzt `Scanner::start_watching()` (notify crate) für Push-Updates.
 
-4. Binary in `Cargo.toml`:
-   ```toml
-   [[bin]]
-   name = "winusage"
-   path = "src/bin/winusage.rs"
-   ```
+4. ANSI-TrueColor mit Hex-Werten aus `docs/design-system.md` §1.
+   Fallback: 8-Farben bei `NO_COLOR` oder kein TrueColor-TTY.
 
-5. Tests: Mindestens `cargo run --bin winusage -- daily` muss exit 0 zurückgeben.
-
-Danach: HTTP-API (`src/api.rs`) mit Axum.
+Danach: 5-Stunden-Billing-Windows / Session-Blocks (ADR-010).
