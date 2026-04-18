@@ -1,0 +1,49 @@
+{
+  "productName": "WinUsage",
+  "version": "0.1.0",
+  "identifier": "cc.jstin.winusage",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "main",
+        "title": "WinUsage",
+        "width": 360,
+        "height": 520,
+        "minWidth": 360,
+        "minHeight": 520,
+        "maxWidth": 360,
+        "maxHeight": 520,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "visible": false,
+        "resizable": false,
+        "url": "/"
+      }
+    ],
+    "trayIcon": {
+      "id": "winusage-tray",
+      "iconPath": "icons/icon.ico",
+      "iconAsTemplate": false,
+      "menuOnLeftClick": false
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["msi", "nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

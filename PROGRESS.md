@@ -38,7 +38,7 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 - [x] `examples/scan.rs` — Dev-CLI: Full-Scan → JSON-Dump (verifiziert: 38 Files, 2131 Events).
 - [x] CLI-Subcommands: `winusage daily`, `winusage monthly`, `winusage session`, `winusage scan`.
 - [x] HTTP-API: `/health`, `/v1/summary`, `/v1/sessions`.
-- [ ] Tray-App Basis-Panel (Tauri 2 + React 18.3).
+- [x] Tray-App Basis-Panel (Tauri 2 + React 18.3).
 - [ ] Installer (MSI via Tauri Bundler).
 - [ ] Release-Tag `v0.1.0-mvp`.
 

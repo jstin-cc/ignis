@@ -1,0 +1,15 @@
+[package]
+name = "winusage-tray"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+description = "WinUsage system-tray host (Tauri 2)."
+license = "UNLICENSED"
+publish = false
+
+# See also: https://tauri.app/v2/references/cargo-features/
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-ico"] }
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
