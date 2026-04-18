@@ -39,8 +39,10 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 - [x] CLI-Subcommands: `winusage daily`, `winusage monthly`, `winusage session`, `winusage scan`.
 - [x] HTTP-API: `/health`, `/v1/summary`, `/v1/sessions`.
 - [x] Tray-App Basis-Panel (Tauri 2 + React 18.3).
-- [ ] Installer (MSI via Tauri Bundler).
-- [ ] Release-Tag `v0.1.0-mvp`.
+- [x] Installer (MSI via Tauri Bundler) — konfiguriert in `tray/src-tauri/tauri.conf.json` (targets: msi + nsis); Build läuft via `tauri build` auf Windows.
+- [x] Release-Tag `v0.1.0-mvp`.
+
+**Phase 1 abgeschlossen am 2026-04-18.**
 
 ## Phase 2 — Live & smart (`v0.2.0`)
 
