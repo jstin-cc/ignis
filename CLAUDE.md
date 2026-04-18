@@ -65,6 +65,8 @@ liest JSONL-Logs aus `%USERPROFILE%\.claude\projects\`, zeigt Tokens/Kosten/Sess
 - Nicht-triviale Entscheidung: neuer ADR in `DECISIONS.md` (Datum, Kontext, Alternativen,
   Begründung).
 - Push nach jedem Commit.
+- Vor jedem PR: `README.md` auf aktuellen Stand bringen (Status-Tabelle, Quick-start,
+  neue Features/Commands).
 
 ## Agenten-Layout
 
