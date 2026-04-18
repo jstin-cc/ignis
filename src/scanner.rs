@@ -303,9 +303,12 @@ mod tests {
         let r1 = scan_all(dir.path());
         assert_eq!(r1.events.len(), 1);
 
-        // Simulate rotation: delete and recreate with different content.
-        std::fs::remove_file(&path).unwrap();
-        std::fs::write(&path, format!("{LINE_A}\n{LINE_B}\n")).unwrap();
+        // Simulate rotation: write a replacement file then rename over the original.
+        // Using rename guarantees the new file has a different inode (even on Linux,
+        // where delete+create at the same path often reuses the inode immediately).
+        let tmp = dir.file("session.jsonl.tmp");
+        std::fs::write(&tmp, format!("{LINE_A}\n{LINE_B}\n")).unwrap();
+        std::fs::rename(&tmp, &path).unwrap();
 
         // Delta with old positions pointing past EOF of the old file.
         let r2 = scan_delta(&r1.positions);
