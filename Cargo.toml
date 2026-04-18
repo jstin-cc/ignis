@@ -15,6 +15,10 @@ path = "src/lib.rs"
 name = "winusage"
 path = "src/bin/winusage.rs"
 
+[[bin]]
+name = "winusage-api"
+path = "src/bin/winusage-api.rs"
+
 [[example]]
 name = "scan"
 path = "examples/scan.rs"
@@ -28,6 +32,9 @@ thiserror = "1"
 walkdir = "2"
 clap = { version = "4", features = ["derive"] }
 anyhow = "1"
+axum = "0.8"
+tokio = { version = "1", features = ["full"] }
+tower = "0.5"
 
 [dev-dependencies]
 pretty_assertions = "1"

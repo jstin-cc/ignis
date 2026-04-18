@@ -5,6 +5,7 @@
 //! consumers and must not parse JSONL themselves.
 
 pub mod aggregate;
+pub mod api;
 pub mod config;
 pub mod model;
 pub mod parser;
