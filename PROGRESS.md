@@ -36,7 +36,7 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 - [x] `src/scanner.rs` — Full-Scan + Position-Tracking (Byte-Offset + FileIdentity via NTFS-FFI).
 - [x] `src/config.rs` — Pfade, Auth-Token, JSON-Persistenz.
 - [x] `examples/scan.rs` — Dev-CLI: Full-Scan → JSON-Dump (verifiziert: 38 Files, 2131 Events).
-- [ ] CLI-Subcommands: `winusage daily`, `winusage monthly`, `winusage session`.
+- [x] CLI-Subcommands: `winusage daily`, `winusage monthly`, `winusage session`, `winusage scan`.
 - [ ] HTTP-API: `/health`, `/v1/summary`, `/v1/sessions`.
 - [ ] Tray-App Basis-Panel (Tauri 2 + React 18.3).
 - [ ] Installer (MSI via Tauri Bundler).

@@ -11,6 +11,10 @@ publish = false
 name = "winusage_core"
 path = "src/lib.rs"
 
+[[bin]]
+name = "winusage"
+path = "src/bin/winusage.rs"
+
 [[example]]
 name = "scan"
 path = "examples/scan.rs"
@@ -22,7 +26,8 @@ chrono = { version = "0.4", features = ["serde"] }
 rust_decimal = { version = "1", features = ["serde-with-str"] }
 thiserror = "1"
 walkdir = "2"
+clap = { version = "4", features = ["derive"] }
+anyhow = "1"
 
 [dev-dependencies]
 pretty_assertions = "1"
-anyhow = "1"
