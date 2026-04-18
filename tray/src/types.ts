@@ -1,0 +1,72 @@
+// API response types for the WinUsage HTTP API (docs/api.md).
+// Cost amounts are strings (serialized rust_decimal::Decimal) — never parse as float.
+
+export interface ModelUsage {
+  model: string;
+  input_tokens: number;
+  output_tokens: number;
+  cache_read_tokens: number;
+  cache_creation_tokens: number;
+  cost_usd: string;
+  event_count: number;
+}
+
+export interface ProjectUsage {
+  project_path: string;
+  total_tokens: number;
+  total_cost_usd: string;
+  session_count: number;
+}
+
+export interface ActiveSession {
+  session_id: string;
+  project_path: string;
+  git_branch: string | null;
+  first_seen: string;
+  last_seen: string;
+  event_count: number;
+  total_cost_usd: string;
+}
+
+export interface SummaryResponse {
+  range: string;
+  taken_at: string;
+  total_cost_usd: string;
+  total_tokens: number;
+  event_count: number;
+  by_model: ModelUsage[];
+  by_project: ProjectUsage[];
+  active_session: ActiveSession | null;
+  pricing_warnings: string[];
+}
+
+export interface SessionModelUsage {
+  model: string;
+  cost_usd: string;
+  tokens: number;
+}
+
+export interface Session {
+  session_id: string;
+  project_path: string;
+  git_branch: string | null;
+  first_seen: string;
+  last_seen: string;
+  is_active: boolean;
+  event_count: number;
+  total_cost_usd: string;
+  by_model: SessionModelUsage[];
+}
+
+export interface SessionsResponse {
+  taken_at: string;
+  sessions: Session[];
+}
+
+export interface UsageData {
+  today: SummaryResponse | null;
+  month: SummaryResponse | null;
+  activeSession: Session | null;
+  loading: boolean;
+  error: string | null;
+}
