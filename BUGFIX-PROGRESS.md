@@ -37,7 +37,7 @@ Reihenfolge der Fixes (Empfehlung aus Review):
   - Fix-Skizze: kurzfristig Label auf „events" ändern. Mittelfristig API
     um `session_count` pro Range erweitern.
 
-- [ ] **#4 Cache-Tokens werden in Aggregation doppelt gezählt**
+- [x] **#4 Cache-Tokens werden in Aggregation doppelt gezählt**
   - Symptom: `cache_creation_tokens` im API-Output zu hoch, sobald ein Event
     sowohl Top-Level `cache_creation_input_tokens` als auch verschachtelte
     `ephemeral_5m/1h` liefert.
@@ -211,3 +211,4 @@ Reihenfolge der Fixes (Empfehlung aus Review):
 2026-04-20 · #25 · Tray-Icon: default_window_icon() statt 1×1-Pixel · a628cc2
 2026-04-20 · #2  · TodayPanel/MonthPanel: 'sessions' → 'events' · a856a85
 2026-04-20 · #1  · ProjectUsage.session_count via HashSet-Tracking befüllt · 1a65fd8
+2026-04-20 · #4  · Cache-Tokens: nur cache_creation_tokens (kein Doppel-Counting) · c1a20bf
