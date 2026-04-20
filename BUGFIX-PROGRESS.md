@@ -49,7 +49,7 @@ Reihenfolge der Fixes (Empfehlung aus Review):
   - Fix-Skizze: nur `ev.cache_creation_tokens` summieren oder nur
     `(ephemeral_5m + ephemeral_1h)` — exakt **eine** Quelle.
 
-- [ ] **#6 Invalide/fehlende Timestamps werden zu `Utc::now()`**
+- [x] **#6 Invalide/fehlende Timestamps werden zu `Utc::now()`**
   - Symptom: Kaputte Zeile mit `timestamp: null` oder Müll wandert mit
     aktueller Zeit in „today / week / month / active session" → fälschlich
     aktive Session, Burn-Rate verfälscht.
@@ -212,3 +212,4 @@ Reihenfolge der Fixes (Empfehlung aus Review):
 2026-04-20 · #2  · TodayPanel/MonthPanel: 'sessions' → 'events' · a856a85
 2026-04-20 · #1  · ProjectUsage.session_count via HashSet-Tracking befüllt · 1a65fd8
 2026-04-20 · #4  · Cache-Tokens: nur cache_creation_tokens (kein Doppel-Counting) · c1a20bf
+2026-04-20 · #6  · parser: invalide Timestamps → Ok(None) statt Utc::now() · 257fed2
