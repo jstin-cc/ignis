@@ -21,4 +21,4 @@ pub use model::{
 };
 pub use pricing::{ComputedCost, ModelPricing, PricingTable};
 pub use provider::{ClaudeCodeProvider, Provider};
-pub use scanner::{scan_all, scan_delta, FilePosition, ScanError, ScanResult};
+pub use scanner::{scan_all, scan_delta, scan_incremental, FilePosition, ScanError, ScanResult};

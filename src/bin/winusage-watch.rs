@@ -20,7 +20,10 @@ use ratatui::{
     Frame, Terminal,
 };
 use rust_decimal::Decimal;
-use winusage_core::{build_snapshot, scan_all, Config, PricingTable, Snapshot, Summary};
+use winusage_core::{
+    build_snapshot, scan_all, scan_incremental, Config, FilePosition, PricingTable, Snapshot,
+    Summary, UsageEvent,
+};
 
 const BLOCK_HOURS: i64 = 5;
 
@@ -74,6 +77,8 @@ enum View {
 
 struct App {
     snap: Snapshot,
+    all_events: Vec<UsageEvent>,
+    positions: Vec<FilePosition>,
     config: Config,
     pricing: PricingTable,
     view: View,
@@ -87,6 +92,8 @@ impl App {
         let snap = build_snapshot(&scan.events, &pricing, Utc::now());
         App {
             error_count: scan.errors.len(),
+            all_events: scan.events,
+            positions: scan.positions,
             snap,
             config,
             pricing,
@@ -96,9 +103,17 @@ impl App {
     }
 
     fn refresh(&mut self) {
-        let scan = scan_all(&self.config.claude_projects_dir);
-        self.error_count = scan.errors.len();
-        self.snap = build_snapshot(&scan.events, &self.pricing, Utc::now());
+        let delta = scan_incremental(&self.config.claude_projects_dir, &self.positions);
+        self.error_count = delta.errors.len();
+
+        // Merge updated positions (replace entries for scanned files, add new ones).
+        let updated: std::collections::HashSet<&std::path::Path> =
+            delta.positions.iter().map(|p| p.path.as_path()).collect();
+        self.positions.retain(|p| !updated.contains(p.path.as_path()));
+        self.positions.extend(delta.positions);
+
+        self.all_events.extend(delta.events);
+        self.snap = build_snapshot(&self.all_events, &self.pricing, Utc::now());
     }
 }
 
