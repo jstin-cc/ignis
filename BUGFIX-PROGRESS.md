@@ -20,7 +20,7 @@ Reihenfolge der Fixes (Empfehlung aus Review):
 
 ## P0 — echte Defekte / Programm liefert falsche Werte
 
-- [ ] **#1 `ProjectUsage.session_count` ist konstant 0**
+- [x] **#1 `ProjectUsage.session_count` ist konstant 0**
   - Symptom: `/v1/summary` → jedes `by_project[].session_count == 0`.
   - Datei: `src/aggregate.rs:201-207` (`accumulate_summary`).
   - Ursache: `proj.session_count` wird nirgends erhöht.
@@ -210,3 +210,4 @@ Reihenfolge der Fixes (Empfehlung aus Review):
 2026-04-20 · #26 · pricing.json PLACEHOLDER-Note entfernt, Datum aktualisiert · 6afb557
 2026-04-20 · #25 · Tray-Icon: default_window_icon() statt 1×1-Pixel · a628cc2
 2026-04-20 · #2  · TodayPanel/MonthPanel: 'sessions' → 'events' · a856a85
+2026-04-20 · #1  · ProjectUsage.session_count via HashSet-Tracking befüllt · 1a65fd8
