@@ -70,22 +70,27 @@ struct StoredConfig {
 }
 
 fn config_file_path() -> Result<PathBuf, ConfigError> {
-    let base = std::env::var("APPDATA")
-        .or_else(|_| std::env::var("HOME").map(|h| format!("{h}/.config")))
-        .map_err(|e| ConfigError::EnvVar {
-            var: "APPDATA",
-            source: e,
-        })?;
-    Ok(PathBuf::from(base).join("winusage").join("config.json"))
+    // On Windows APPDATA is the canonical config root; fall back to ~/.config on Unix.
+    if let Ok(appdata) = std::env::var("APPDATA") {
+        return Ok(PathBuf::from(appdata).join("winusage").join("config.json"));
+    }
+    let home = std::env::var("HOME").map_err(|e| ConfigError::EnvVar {
+        var: "HOME",
+        source: e,
+    })?;
+    Ok(PathBuf::from(format!("{home}/.config"))
+        .join("winusage")
+        .join("config.json"))
 }
 
 fn home_projects_dir() -> Result<PathBuf, ConfigError> {
-    let home = std::env::var("USERPROFILE")
-        .or_else(|_| std::env::var("HOME"))
-        .map_err(|e| ConfigError::EnvVar {
-            var: "USERPROFILE",
-            source: e,
-        })?;
+    if let Ok(profile) = std::env::var("USERPROFILE") {
+        return Ok(PathBuf::from(profile).join(".claude").join("projects"));
+    }
+    let home = std::env::var("HOME").map_err(|e| ConfigError::EnvVar {
+        var: "HOME",
+        source: e,
+    })?;
     Ok(PathBuf::from(home).join(".claude").join("projects"))
 }
 
@@ -122,18 +127,22 @@ fn save_file(cfg: &Config, path: &Path) -> Result<(), ConfigError> {
     })
 }
 
-/// Generate a pseudo-random 32-hex-char token from time + process ID.
-/// Sufficient for local-only 127.0.0.1 authentication in MVP.
+/// Generate a cryptographically random 32-hex-char token via the OS CSPRNG.
 fn generate_token() -> String {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    let nanos = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .subsec_nanos() as u64;
-    let pid = std::process::id() as u64;
-    let a = nanos.wrapping_mul(0x9e3779b97f4a7c15).wrapping_add(pid);
-    let b = a.wrapping_mul(0x6c62272e07bb0142) ^ pid.wrapping_mul(0x517cc1b727220a95);
-    format!("{a:016x}{b:016x}")
+    let mut bytes = [0u8; 16];
+    getrandom::getrandom(&mut bytes).unwrap_or_else(|_| {
+        // Extremely unlikely fallback: mix time + PID into bytes.
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .subsec_nanos() as u64;
+        let pid = std::process::id() as u64;
+        let a = nanos.wrapping_mul(0x9e3779b97f4a7c15).wrapping_add(pid);
+        let b = a ^ pid.wrapping_mul(0x517cc1b727220a95);
+        bytes[..8].copy_from_slice(&a.to_le_bytes());
+        bytes[8..].copy_from_slice(&b.to_le_bytes());
+    });
+    bytes.iter().map(|b| format!("{b:02x}")).collect()
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
