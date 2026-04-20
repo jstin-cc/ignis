@@ -42,7 +42,7 @@ struct Palette {
 }
 
 fn detect_palette() -> Palette {
-    if std::env::var("NO_COLOR").is_ok() {
+    if std::env::var("NO_COLOR").map(|v| !v.is_empty()).unwrap_or(false) {
         Palette {
             bg: Color::Reset,
             panel: Color::Reset,

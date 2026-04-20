@@ -2,6 +2,8 @@ use anyhow::Context;
 use chrono::Utc;
 use clap::{Parser, Subcommand, ValueEnum};
 use rust_decimal::Decimal;
+use std::io::{self, Write};
+use std::path::Path;
 use winusage_core::{build_snapshot, scan_all, Config, ModelUsage, PricingTable, Summary};
 
 #[derive(Parser)]
@@ -42,6 +44,9 @@ enum Command {
         /// Time period to export.
         #[arg(short, long, value_enum, default_value = "month")]
         period: ExportPeriod,
+        /// Write output to FILE instead of stdout.
+        #[arg(short = 'o', long)]
+        output: Option<std::path::PathBuf>,
     },
 }
 
@@ -62,15 +67,19 @@ fn main() -> anyhow::Result<()> {
         Command::Monthly => print_summary("This Month", &snap.this_month),
         Command::Session => print_session(&snap),
         Command::Scan => print_scan_json(&scan, &snap)?,
-        Command::Export { format, period } => {
+        Command::Export {
+            format,
+            period,
+            output,
+        } => {
             let (label, summary) = match period {
                 ExportPeriod::Today => ("today", &snap.today),
                 ExportPeriod::Week => ("week", &snap.this_week),
                 ExportPeriod::Month => ("month", &snap.this_month),
             };
             match format {
-                ExportFormat::Json => export_json(label, summary)?,
-                ExportFormat::Csv => export_csv(label, summary)?,
+                ExportFormat::Json => export_json(label, summary, output.as_deref())?,
+                ExportFormat::Csv => export_csv(label, summary, output.as_deref())?,
             }
         }
     }
@@ -198,7 +207,18 @@ fn summary_output_total(summary: &Summary) -> u64 {
         .sum()
 }
 
-fn export_json(period: &str, summary: &Summary) -> anyhow::Result<()> {
+fn open_output(path: Option<&Path>) -> anyhow::Result<Box<dyn Write>> {
+    match path {
+        Some(p) => {
+            let f = std::fs::File::create(p)
+                .with_context(|| format!("failed to create output file '{}'", p.display()))?;
+            Ok(Box::new(f))
+        }
+        None => Ok(Box::new(io::stdout())),
+    }
+}
+
+fn export_json(period: &str, summary: &Summary, output: Option<&Path>) -> anyhow::Result<()> {
     let by_model: Vec<_> = summary
         .by_model
         .iter()
@@ -232,19 +252,22 @@ fn export_json(period: &str, summary: &Summary) -> anyhow::Result<()> {
         "by_model":        by_model,
         "by_project":      by_project,
     });
-    println!("{}", serde_json::to_string_pretty(&out)?);
+    let mut w = open_output(output)?;
+    writeln!(w, "{}", serde_json::to_string_pretty(&out)?)?;
     Ok(())
 }
 
-fn export_csv(period: &str, summary: &Summary) -> anyhow::Result<()> {
-    println!("period,model,input_tokens,output_tokens,cost_usd");
+fn export_csv(period: &str, summary: &Summary, output: Option<&Path>) -> anyhow::Result<()> {
+    let mut w = open_output(output)?;
+    writeln!(w, "period,model,input_tokens,output_tokens,cost_usd")?;
     let mut rows: Vec<_> = summary.by_model.iter().collect();
     rows.sort_by_key(|(id, _)| id.0.as_str());
     for (id, u) in rows {
-        println!(
+        writeln!(
+            w,
             "{},{},{},{},{}",
             period, id.0, u.input_tokens, u.output_tokens, u.cost_usd
-        );
+        )?;
     }
     Ok(())
 }
