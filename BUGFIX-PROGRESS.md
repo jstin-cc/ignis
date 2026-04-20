@@ -76,7 +76,7 @@ Reihenfolge der Fixes (Empfehlung aus Review):
   - Fix-Skizze: NaN-Werte vor `Math.max` herausfiltern; `cellColor` defensiv
     auf 0 setzen, wenn Eingabe NaN.
 
-- [ ] **#3 Tray sendet keinen Bearer-Token → 401 mit Default-Config**
+- [x] **#3 Tray sendet keinen Bearer-Token → 401 mit Default-Config**
   - Symptom: Tray ist mit Default-Config (Token wird beim ersten Start
     erzeugt) komplett kaputt — alle Fetches scheitern mit 401.
   - Datei: `tray/src/useUsageData.ts:15-37`, `hooks/useUpdater.ts`.
@@ -105,7 +105,7 @@ Reihenfolge der Fixes (Empfehlung aus Review):
 
 ## P1 — Architektur-/Robustheits-Probleme
 
-- [ ] **#10 `winusage-api` re-scannt nach Boot nie wieder**
+- [x] **#10 `winusage-api` re-scannt nach Boot nie wieder**
   - Symptom: Server zeigt nach Stunden weiterhin Boot-Stand;
     `snapshot_age_ms` in `/health` wird permanent größer.
   - Datei: `src/bin/winusage-api.rs:13-30`.
@@ -215,3 +215,5 @@ Reihenfolge der Fixes (Empfehlung aus Review):
 2026-04-20 · #6  · parser: invalide Timestamps → Ok(None) statt Utc::now() · 257fed2
 2026-04-20 · #7  · truncate(): char_indices().nth() statt Byte-Slice-Panic · be5ddc7
 2026-04-20 · #9  · HeatmapPanel: NaN-Filter vor Math.max, cellColor isFinite-Guard · 4d9347e
+2026-04-20 · #10 · winusage-api: notify + 30s-Tick Background-Rescan (PricingTable Clone) · 8321503
+2026-04-20 · #3  · Tray: get_api_token Tauri-Command + Bearer-Header in useUsageData · 84a0fb6

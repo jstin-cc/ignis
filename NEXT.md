@@ -11,7 +11,7 @@ Der **eine** konkrete nächste Schritt. Bei Kontextverlust: erste Datei, die gel
 
 Weiter mit der vereinbarten Reihenfolge:
 
-- **#3 + #10** — Tray Bearer-Token + `winusage-api` Re-Scan-Loop
+- ~~**#3 + #10**~~ — erledigt
 - **#5 + #11** — TUI Position-Tracking (`scan_delta`) + `file_identity`-Race
 - **#16** — erst ADR vorlegen, dann Code (Sidechain-Events)
 - **P1 restlich** (#12, #13, #14, #15, #17, #18)
