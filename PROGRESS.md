@@ -67,4 +67,7 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 - [x] Provider-Plugin-Trait — `src/provider.rs`, `ClaudeCodeProvider`, ADR-012; 57 Tests.
 - [x] Export: CSV, JSON — `winusage export --format <csv|json> --period <today|week|month>`.
 - [x] Heatmap im Tray — `GET /v1/heatmap`; `HeatmapDay`; 84-Tage-Grid (7×n CSS, Terrakotta-Intensität).
-- [ ] Auto-Update via Tauri Updater.
+- [x] Auto-Update via Tauri Updater — `tauri-plugin-updater`; `check_for_update`-Command;
+      Settings-Panel-Button; Platzhalter-Endpoint; App-Icons generiert.
+
+**Phase 3 abgeschlossen am 2026-04-20.**

@@ -7,6 +7,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.0] — 2026-04-20
+
+### Added
+
+- `winusage export --format <csv|json> --period <today|week|month>` — maschinenlesbare Ausgabe aus der CLI
+- `src/provider.rs` — `Provider`-Trait + `ClaudeCodeProvider` als Erweiterungspunkt für künftige Datenquellen (ADR-012)
+- `GET /v1/heatmap` — 84-Tage-Tageskostenübersicht als JSON-Array
+- Tray `HeatmapPanel` — 7×n CSS-Grid (12 Wochen), relative Terrakotta-Farbintensität, Montag-Ausrichtung
+- Tray Auto-Update — `tauri-plugin-updater`; `check_for_update`-Command; "Updates prüfen"-Button im Settings-Panel; GitHub-Releases-Endpunkt als Platzhalter (Pubkey vor echtem Rollout ersetzen)
+- App-Icons (Terrakotta, alle Plattformgrößen via `tauri icon`)
+
+### Fixed
+
+- `Image::from_rgba` → `Image::new_owned` (API-Änderung in Tauri 2)
+
+### Notes
+
+- 57 Tests, `cargo clippy --all-targets -- -D warnings` clean, `cargo fmt --check` clean.
+- Auto-Update-Endpunkt (`plugins.updater.pubkey` + `endpoints` in `tauri.conf.json`) muss vor echten Releases mit realem Minisign-Keypair belegt werden.
+
 ## [0.2.0] — 2026-04-20
 
 ### Added
@@ -58,7 +78,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Initial repository scaffolding (Phase 0): documentation, architecture decisions,
   single-crate Rust layout with `winusage-core` lib + `examples/scan.rs`.
 
-[Unreleased]: https://github.com/jstin-cc/winusage/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/jstin-cc/winusage/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/jstin-cc/winusage/compare/v0.2.0...v1.0.0
 [0.2.0]: https://github.com/jstin-cc/winusage/compare/v0.1.0-mvp...v0.2.0
 [0.1.0-mvp]: https://github.com/jstin-cc/winusage/compare/v0.0.1...v0.1.0-mvp
 [0.0.1]: https://github.com/jstin-cc/winusage/releases/tag/v0.0.1
