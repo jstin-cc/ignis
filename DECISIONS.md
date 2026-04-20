@@ -192,3 +192,25 @@ Nummerierung aufsteigend. Status: `Accepted` · `Superseded` · `Rejected` · `P
 - **Folgen:** Position-Map wird In-Memory gehalten (konsistent mit ADR-002). Bei Startup
   wird die Map aus einem Full-Scan rekonstruiert; persistente Position-Maps sind optional
   später (neuer ADR, falls Startup-Zeiten problematisch werden).
+
+## ADR-012 — Sidechain-Events einschließen, aber separat ausweisen
+
+- **Datum:** 2026-04-20
+- **Status:** Accepted
+- **Kontext:** Sub-Agent-Calls (Claude Code, das intern einen weiteren Agenten startet)
+  erzeugen JSONL-Events mit `isSidechain: true`. Diese fließen bisher ungefiltert in alle
+  Summaries, ohne als Sidechain kenntlich zu sein. User sieht höhere Kosten als erwartet.
+- **Alternativen:**
+  - (A) **Ausschließen** — nur Main-Thread-Events in Summaries. Bildet reale Billing-Kosten
+        nicht ab (Anthropic berechnet alle Events).
+  - (B) **Einschließen + separat ausweisen** — `Summary` bekommt `sidechain_cost_usd` und
+        `sidechain_event_count`. Totals bleiben vollständig, aber der Sidechain-Anteil ist
+        explizit sichtbar.
+  - (C) Status quo — Bug bleibt bestehen.
+- **Entscheidung:** (B).
+- **Begründung:** (A) verdeckt reale Kosten und divergiert vom tatsächlichen Billing. (B)
+  gibt dem User die volle Wahrheit plus Kontext. Wenn gewünscht, kann die UI den
+  Sidechain-Anteil hervorheben oder ausblenden — ohne Datenverlust.
+- **Folgen:** `Summary.sidechain_cost_usd` und `sidechain_event_count` werden in
+  `accumulate_summary` befüllt und im API-Response `/v1/summary` als neue Felder
+  serialisiert. Tray kann optional `(inkl. $X sub-agent)` darstellen.

@@ -176,6 +176,8 @@ struct SummaryResponse {
     total_cost_usd: String,
     total_tokens: u64,
     event_count: u64,
+    sidechain_cost_usd: String,
+    sidechain_event_count: u64,
     by_model: Vec<ModelUsageDto>,
     by_project: Vec<ProjectUsageDto>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -303,6 +305,8 @@ async fn summary_handler(
         total_cost_usd: summary.total_cost_usd.to_string(),
         total_tokens: summary.total_tokens,
         event_count: summary.event_count,
+        sidechain_cost_usd: summary.sidechain_cost_usd.to_string(),
+        sidechain_event_count: summary.sidechain_event_count,
         by_model,
         by_project,
         active_session,

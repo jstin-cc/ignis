@@ -84,6 +84,10 @@ pub struct Summary {
     pub total_cost_usd: Decimal,
     pub total_tokens: u64,
     pub event_count: u64,
+    /// Subset of `total_cost_usd` attributable to sidechain (sub-agent) calls.
+    pub sidechain_cost_usd: Decimal,
+    /// Number of events that are sidechain (sub-agent) calls.
+    pub sidechain_event_count: u64,
     pub by_model: BTreeMap<ModelId, ModelUsage>,
     pub by_project: BTreeMap<PathBuf, ProjectUsage>,
 }

@@ -232,6 +232,10 @@ fn accumulate_summary(summary: &mut Summary, ev: &UsageEvent, cost: Decimal) {
     summary.total_cost_usd += cost;
     summary.total_tokens += tokens;
     summary.event_count += 1;
+    if ev.is_sidechain {
+        summary.sidechain_cost_usd += cost;
+        summary.sidechain_event_count += 1;
+    }
     accumulate_model(&mut summary.by_model, ev, cost);
 
     let proj = summary
