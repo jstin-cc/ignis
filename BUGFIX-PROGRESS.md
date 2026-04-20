@@ -58,7 +58,7 @@ Reihenfolge der Fixes (Empfehlung aus Review):
   - Fix-Skizze: `Ok(None)` zurückgeben, wenn `timestamp` fehlt/unparsbar
     (graceful degradation, keine Fake-Daten).
 
-- [ ] **#7 `truncate(&str, max)` paniert bei Non-ASCII**
+- [x] **#7 `truncate(&str, max)` paniert bei Non-ASCII**
   - Symptom: `winusage daily/monthly` und `winusage-watch` panicken, sobald
     ein Modell-Name oder Pfad ein Multi-Byte-Zeichen enthält und
     `s.len() > max`. Beispiel: `D:\projekte\müller\…`.
@@ -213,3 +213,4 @@ Reihenfolge der Fixes (Empfehlung aus Review):
 2026-04-20 · #1  · ProjectUsage.session_count via HashSet-Tracking befüllt · 1a65fd8
 2026-04-20 · #4  · Cache-Tokens: nur cache_creation_tokens (kein Doppel-Counting) · c1a20bf
 2026-04-20 · #6  · parser: invalide Timestamps → Ok(None) statt Utc::now() · 257fed2
+2026-04-20 · #7  · truncate(): char_indices().nth() statt Byte-Slice-Panic · be5ddc7

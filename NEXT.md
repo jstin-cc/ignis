@@ -7,14 +7,19 @@ Der **eine** konkrete nächste Schritt. Bei Kontextverlust: erste Datei, die gel
 
 ## Jetzt
 
-**v1.0.0 ist getaggt. Alle drei Phasen sind abgeschlossen.**
+**Bugfix-Session vom 2026-04-20 — pausiert nach P0-Quick-Wins.**
 
-Mögliche nächste Schritte (kein fester Plan, Priorität nach Bedarf):
+Noch offen aus der heutigen Session (P0-Reihenfolge laut BUGFIX-PROGRESS.md):
 
-- **Pricing-Update** — `src/pricing.json` mit aktuellen Preisen refreshen.
-- **Echter Update-Kanal** — Minisign-Keypair generieren, `tauri.conf.json` und
-  GitHub-Release-Workflow einrichten (`latest.json` im Release-Artifact).
-- **Provider-Implementierung** — zweiter konkreter Provider (Cursor, Codex) sobald
-  JSONL-Format bekannt; `Provider`-Trait ist bereit (ADR-012).
-- **Light-Mode** — `prefers-color-scheme: light` CSS-Variablen ergänzen (v0.3+).
-- **Export-Erweiterungen** — `winusage export --output <file>` für Dateiausgabe.
+- **#9** `HeatmapPanel` — `Math.max([NaN])`-Absicherung (TypeScript, ~5 min)
+
+Danach weiter mit der vereinbarten Reihenfolge:
+
+- **#3 + #10** — Tray Bearer-Token + `winusage-api` Re-Scan-Loop
+- **#5 + #11** — TUI Position-Tracking (`scan_delta`) + `file_identity`-Race
+- **#16** — erst ADR vorlegen, dann Code (Sidechain-Events)
+- **P1 restlich** (#12, #13, #14, #15, #17, #18)
+- **P2** nach Bedarf
+
+Heute erledigte Fixes: #26, #25, #2, #1, #4, #6, #7 (alle committed, noch nicht gepusht).
+Push erfolgt am Sitzungsende oder beim nächsten Start.
