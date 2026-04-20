@@ -52,14 +52,15 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 - [x] 5-Stunden-Billing-Windows — `SessionBlock`, `billing_blocks()`, `active_block_at()`;
       Burn-Rate-Panel: Fortschrittsbalken, $/h, verbleibende Zeit, Block-Start-Uhrzeit;
       8 neue Tests (54 gesamt, alle grün).
-- [ ] 5-Stunden-Billing-Windows / Session-Blocks (ADR-010).
-- [ ] Burn-Rate + Projektionen.
+- [x] 5-Stunden-Billing-Windows / Session-Blocks (ADR-010).
+- [x] Burn-Rate + Projektionen.
 - [x] Tray: BlockPanel — Fortschrittsbalken (CSS, kein Recharts), $/h Burn Rate,
       verbleibende Zeit; API: ActiveBlockDto + percent_elapsed in /v1/summary.
 - [x] Tray: ProjectsPanel — Top-5-Projekte mit Mini-Balken + Kosten (kein Recharts, reine CSS).
 - [x] Notifications bei Limit-Schwellen — `useBlockNotifications` feuert bei 80% + 100%;
       `tauri-plugin-notification`; Capabilities-Datei; Fallback außerhalb Tauri.
-- [ ] Auto-Start bei Windows-Login (optional).
+- [x] Auto-Start bei Windows-Login — `tauri-plugin-autostart`; Tauri-Commands
+      `get/set_autostart_enabled`; `useAutoStart`-Hook; Settings-Panel via ⚙-Button.
 
 ## Phase 3 — Plugin-ready (`v1.0.0`)
 

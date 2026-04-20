@@ -7,31 +7,21 @@ Der **eine** konkrete nächste Schritt. Bei Kontextverlust: erste Datei, die gel
 
 ## Jetzt
 
-**Phase 2: Auto-Start bei Windows-Login (optional via Tray-Einstellungen).**
+**Phase 2 abschließen: Release-Tag `v0.2.0` setzen.**
 
 ### Kontext
 
-Die Tray-App soll optional beim Windows-Login automatisch starten. Tauri 2 bietet
-`tauri-plugin-autostart` dafür. Der Nutzer soll Auto-Start im Tray ein-/ausschalten
-können (Settings-Button ⚙ in der Header-Leiste).
+Alle Phase-2-Features sind implementiert:
+- `winusage watch` Live-TUI
+- 5-Stunden-Billing-Windows + Burn-Rate
+- Tray: BlockPanel, ProjectsPanel, Notifications, Auto-Start
 
 ### Schritte
 
-1. **`tray/src-tauri/Cargo.toml`** — `tauri-plugin-autostart = "2"` hinzufügen.
+1. **`CHANGELOG.md`** — Eintrag für `v0.2.0` schreiben (alle Phase-2-Features auflisten).
+2. **`tray/src-tauri/tauri.conf.json`** — `version` auf `"0.2.0"` setzen.
+3. **`Cargo.toml`** (Root) — `version` auf `"0.2.0"` setzen.
+4. Commit: `chore: bump version to v0.2.0`.
+5. Git-Tag: `git tag v0.2.0 && git push --tags`.
 
-2. **`tray/src-tauri/src/main.rs`** — Plugin registrieren:
-   `.plugin(tauri_plugin_autostart::init(MacosLauncher::LaunchAgent, None))`
-   Tauri-Command `toggle_autostart` → `enable()` / `disable()` / `is_enabled()` wrappen.
-
-3. **`tray/src-tauri/capabilities/default.json`** — `"autostart:allow-enable"`,
-   `"autostart:allow-disable"`, `"autostart:allow-is-enabled"` hinzufügen.
-
-4. **`tray/src/hooks/useAutoStart.ts`** — Hook:
-   - `isEnabled: boolean` State
-   - `toggle()` Funktion (ruft Tauri-Command auf)
-   - Initialer Zustand beim Mount abfragen
-
-5. **`tray/src/App.tsx`** — Settings-Button (⚙) öffnet ein kleines Inline-Panel
-   mit Auto-Start-Toggle (Checkbox oder Button).
-
-Danach: Phase 2 abschließen, v0.2.0 Tag setzen.
+Danach: Phase 3 planen (Provider-Plugin-Trait, CSV/JSON-Export, Heatmap).
