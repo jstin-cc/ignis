@@ -486,9 +486,8 @@ fn fmt_duration(secs: i64) -> String {
 }
 
 fn truncate(s: &str, max: usize) -> &str {
-    if s.len() <= max {
-        s
-    } else {
-        &s[..max]
+    match s.char_indices().nth(max) {
+        Some((i, _)) => &s[..i],
+        None => s,
     }
 }
