@@ -7,29 +7,28 @@ Der **eine** konkrete nächste Schritt. Bei Kontextverlust: erste Datei, die gel
 
 ## Jetzt
 
-**Phase 3, Schritt 3: Heatmap im Tray.**
+**Phase 3, Schritt 4: Auto-Update via Tauri Updater — dann v1.0.0.**
 
 ### Kontext
 
-Eine Aktivitäts-Heatmap zeigt die täglichen Kosten der letzten 12 Wochen als
-7×12-CSS-Grid (Spalten = Wochen, Zeilen = Wochentage Mo–So). Farbtiefe entspricht
-der Tagesausgabe (leer → leichtes Terrakotta → volles Terrakotta).
+`tauri-plugin-updater` prüft beim Start gegen einen Endpunkt, ob eine neuere Version
+verfügbar ist, und lädt das Update im Hintergrund herunter.
+
+Weil kein öffentlicher Server vorhanden ist, reicht für v1.0.0 eine minimale
+Implementierung: Plugin einbinden, Command `check_update` anlegen, im UI einen
+"Nach Updates suchen"-Button im Settings-Panel ergänzen.
 
 ### Schritte
 
-1. **`src/api.rs`** — `GET /v1/heatmap` Endpoint: gibt Array von
-   `{ date: "YYYY-MM-DD", cost_usd: "0.00" }` für die letzten 84 Tage zurück.
-   Neue Funktion `daily_costs(events, pricing, since)` in `aggregate.rs`.
+1. **`tray/src-tauri/Cargo.toml`** — `tauri-plugin-updater = "2"` hinzufügen.
+2. **`tray/src-tauri/capabilities/default.json`** — `"updater:default"` ergänzen.
+3. **`tray/src-tauri/src/main.rs`** — Plugin registrieren; Command `check_for_update`
+   — ruft `app.updater()?.check().await` auf, gibt `{ available: bool, version: String }`
+   zurück.
+4. **`tray/src/hooks/useUpdater.ts`** — Hook: `checkForUpdate()` Funktion,
+   `updateInfo: { available: bool, version: string } | null` State.
+5. **`tray/src/App.tsx`** — Settings-Panel: Button "Updates prüfen" + Statuszeile.
+6. **`tray/src-tauri/tauri.conf.json`** — `updater.endpoints` auf Platzhalter setzen
+   (z.B. `https://github.com/jstin-cc/winusage/releases/latest/download/latest.json`).
 
-2. **`tray/src/types.ts`** — `HeatmapDay`-Interface + `fetchHeatmap()`-Funktion
-   in `useUsageData.ts`.
-
-3. **`tray/src/components/HeatmapPanel.tsx`** — 7×12 CSS-Grid (kein Recharts),
-   Tooltip-Titel mit Datum + Kosten (`title`-Attribut reicht).
-
-4. **`tray/src/App.tsx`** — `HeatmapPanel` zwischen ProjectsPanel und Footer einbauen.
-
-### Danach
-
-- Auto-Update via Tauri Updater (Phase 3 Abschluss)
-- v1.0.0 Tag vorbereiten
+Danach: CHANGELOG v1.0.0 schreiben, Tag setzen.

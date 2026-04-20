@@ -66,5 +66,5 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 
 - [x] Provider-Plugin-Trait — `src/provider.rs`, `ClaudeCodeProvider`, ADR-012; 57 Tests.
 - [x] Export: CSV, JSON — `winusage export --format <csv|json> --period <today|week|month>`.
-- [ ] Heatmap im Tray.
+- [x] Heatmap im Tray — `GET /v1/heatmap`; `HeatmapDay`; 84-Tage-Grid (7×n CSS, Terrakotta-Intensität).
 - [ ] Auto-Update via Tauri Updater.
