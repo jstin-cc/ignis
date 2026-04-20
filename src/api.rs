@@ -168,6 +168,8 @@ struct SummaryResponse {
     by_project: Vec<ProjectUsageDto>,
     #[serde(skip_serializing_if = "Option::is_none")]
     active_session: Option<ActiveSessionDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    active_block: Option<ActiveBlockDto>,
     pricing_warnings: Vec<String>,
 }
 
@@ -199,6 +201,17 @@ struct ActiveSessionDto {
     last_seen: DateTime<Utc>,
     event_count: u64,
     total_cost_usd: String,
+}
+
+#[derive(Serialize)]
+struct ActiveBlockDto {
+    start: DateTime<Utc>,
+    end: DateTime<Utc>,
+    cost_usd: String,
+    token_count: u64,
+    event_count: u64,
+    /// 0–100: fraction of the 5-hour window that has elapsed.
+    percent_elapsed: u8,
 }
 
 async fn summary_handler(
@@ -252,6 +265,20 @@ async fn summary_handler(
         total_cost_usd: s.total_cost_usd.to_string(),
     });
 
+    let active_block = snap.active_block.as_ref().map(|b| {
+        let total_secs = (b.end - b.start).num_seconds().max(1);
+        let elapsed_secs = (snap.taken_at - b.start).num_seconds().clamp(0, total_secs);
+        let percent_elapsed = ((elapsed_secs as f64 / total_secs as f64) * 100.0) as u8;
+        ActiveBlockDto {
+            start: b.start,
+            end: b.end,
+            cost_usd: b.cost_usd.to_string(),
+            token_count: b.token_count,
+            event_count: b.event_count,
+            percent_elapsed,
+        }
+    });
+
     let pricing_warnings = snap
         .pricing_warnings
         .iter()
@@ -267,6 +294,7 @@ async fn summary_handler(
         by_model,
         by_project,
         active_session,
+        active_block,
         pricing_warnings,
     })
     .into_response()

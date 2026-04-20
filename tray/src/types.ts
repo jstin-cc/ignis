@@ -28,6 +28,16 @@ export interface ActiveSession {
   total_cost_usd: string;
 }
 
+export interface ActiveBlock {
+  start: string;
+  end: string;
+  cost_usd: string;
+  token_count: number;
+  event_count: number;
+  /** 0–100: fraction of the 5-hour window elapsed */
+  percent_elapsed: number;
+}
+
 export interface SummaryResponse {
   range: string;
   taken_at: string;
@@ -37,6 +47,7 @@ export interface SummaryResponse {
   by_model: ModelUsage[];
   by_project: ProjectUsage[];
   active_session: ActiveSession | null;
+  active_block: ActiveBlock | null;
   pricing_warnings: string[];
 }
 
@@ -67,6 +78,7 @@ export interface UsageData {
   today: SummaryResponse | null;
   month: SummaryResponse | null;
   activeSession: Session | null;
+  activeBlock: ActiveBlock | null;
   loading: boolean;
   error: string | null;
 }

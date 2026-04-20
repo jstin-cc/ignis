@@ -54,6 +54,8 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
       8 neue Tests (54 gesamt, alle grün).
 - [ ] 5-Stunden-Billing-Windows / Session-Blocks (ADR-010).
 - [ ] Burn-Rate + Projektionen.
+- [x] Tray: BlockPanel — Fortschrittsbalken (CSS, kein Recharts), $/h Burn Rate,
+      verbleibende Zeit; API: ActiveBlockDto + percent_elapsed in /v1/summary.
 - [ ] Tray: Per-Projekt-Breakdown + Chart (Recharts).
 - [ ] Notifications bei Limit-Schwellen.
 - [ ] Auto-Start bei Windows-Login (optional).

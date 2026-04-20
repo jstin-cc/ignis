@@ -1,11 +1,12 @@
 import { useUsageData } from "./useUsageData";
 import { TodayPanel } from "./components/TodayPanel";
 import { MonthPanel } from "./components/MonthPanel";
+import { BlockPanel } from "./components/BlockPanel";
 import { ActiveSessionPanel } from "./components/ActiveSessionPanel";
 import { Footer } from "./components/Footer";
 
 export function App() {
-  const { today, month, activeSession, error } = useUsageData();
+  const { today, month, activeSession, activeBlock, error } = useUsageData();
 
   function handleOpenDashboard() {
     // Phase 2: open a full dashboard window via Tauri IPC.
@@ -43,6 +44,8 @@ export function App() {
       <TodayPanel data={today} />
       <hr className="section-divider" />
       <MonthPanel data={month} />
+      <hr className="section-divider" />
+      <BlockPanel block={activeBlock} />
       <hr className="section-divider" />
       <ActiveSessionPanel session={activeSession} />
       <Footer onOpenDashboard={handleOpenDashboard} />

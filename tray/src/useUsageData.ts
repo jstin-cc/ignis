@@ -4,6 +4,7 @@ import type {
   SummaryResponse,
   SessionsResponse,
   Session,
+  ActiveBlock,
 } from "./types";
 
 const API_BASE = "http://127.0.0.1:7337";
@@ -31,6 +32,7 @@ export function useUsageData(): UsageData {
     today: null,
     month: null,
     activeSession: null,
+    activeBlock: null,
     loading: true,
     error: null,
   });
@@ -42,7 +44,8 @@ export function useUsageData(): UsageData {
         fetchSummary("month"),
         fetchActiveSessions(),
       ]);
-      setData({ today, month, activeSession, loading: false, error: null });
+      const activeBlock: ActiveBlock | null = today.active_block ?? null;
+      setData({ today, month, activeSession, activeBlock, loading: false, error: null });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       setData((prev) => ({ ...prev, loading: false, error: message }));

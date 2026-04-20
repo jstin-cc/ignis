@@ -7,27 +7,24 @@ Der **eine** konkrete nächste Schritt. Bei Kontextverlust: erste Datei, die gel
 
 ## Jetzt
 
-**Phase 2: Tray-App — Per-Projekt-Breakdown + Burn-Rate-Block (Recharts).**
+**Phase 2: Tray-App — Per-Projekt-Breakdown.**
 
 ### Kontext
 
-Die Tray-App (`tray/`) zeigt bislang Today / This Month / Active Session (aus Phase 1).
-Phase 2 ergänzt:
-- Den aktiven Billing-Block als Fortschrittsbalken (analog zum TUI-Panel)
-- Einen Per-Projekt-Breakdown (Kosten sortiert nach Projekt)
+`Summary.by_project` enthält bereits Kosten und Token pro Projekt-Pfad. Die Tray-App
+zeigt das noch nicht. Eine neue Sektion soll die Top-Projekte nach Kosten anzeigen.
 
 ### Schritte
 
-1. **HTTP-API erweitern** (`src/api.rs`): `/v1/summary`-Response um `active_block`
-   erweitern (start, end, cost_usd, token_count, percent_elapsed).
+1. **`tray/src/components/ProjectsPanel.tsx`** — neue Komponente:
+   - Label: "PROJECTS (TODAY)"
+   - Liste: Projektname (aus `projectName()`), Kosten rechts ausgerichtet
+   - Maximal 5 Einträge, absteigend nach `total_cost_usd` sortiert
+   - Kein Chart für MVP — pure Textliste
 
-2. **`tray/src/types.ts`** — `ActiveBlock`-Interface hinzufügen.
+2. **`tray/src/App.tsx`** — `ProjectsPanel` zwischen `BlockPanel` und
+   `ActiveSessionPanel` einbinden, mit Trennlinie.
 
-3. **`tray/src/components/BlockPanel.tsx`** — neues Panel:
-   - Fortschrittsbalken (CSS-Gradient, kein Recharts) mit `--accent-muted` bis 75%,
-     dann `--accent`, dann `--warning` ab 90%.
-   - Kosten + $/h + verbleibende Zeit.
+3. Nur rendern wenn `today.by_project.length > 0`.
 
-4. **`tray/src/App.tsx`** — BlockPanel oberhalb des Footer-Bereichs einbinden.
-
-Danach: Per-Projekt-Breakdown + Recharts-Chart.
+Danach: Notification-Schwellen (Limit-Warning bei 80% / 100% des Blocks).
