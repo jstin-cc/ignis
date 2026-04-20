@@ -1,8 +1,8 @@
 use crate::model::{
-    ModelId, ModelUsage, SessionBlock, SessionState, Snapshot, Summary, UsageEvent,
+    HeatmapDay, ModelId, ModelUsage, SessionBlock, SessionState, Snapshot, Summary, UsageEvent,
 };
 use crate::pricing::PricingTable;
-use chrono::{DateTime, Datelike, Duration, Local, TimeZone, Utc};
+use chrono::{DateTime, Datelike, Duration, Local, NaiveDate, TimeZone, Utc};
 use rust_decimal::Decimal;
 use std::collections::{BTreeMap, HashMap, HashSet};
 
@@ -11,6 +11,9 @@ const ACTIVE_THRESHOLD_SECS: i64 = 300;
 
 /// Duration of one Claude Code billing window.
 const BILLING_BLOCK_HOURS: i64 = 5;
+
+/// Number of days covered by the activity heatmap (12 weeks).
+const HEATMAP_DAYS: i64 = 84;
 
 /// Build a complete [`Snapshot`] from a flat list of usage events.
 ///
@@ -81,6 +84,8 @@ pub fn build_snapshot(
 
     let blocks = billing_blocks(events, pricing);
     let active_block = active_block_at(&blocks, now);
+    let today_local = now.with_timezone(&Local).date_naive();
+    let heatmap = daily_costs(events, pricing, today_local);
 
     Snapshot {
         taken_at: now,
@@ -91,7 +96,39 @@ pub fn build_snapshot(
         sessions: sessions_vec,
         active_block,
         pricing_warnings,
+        heatmap,
     }
+}
+
+/// Aggregate per-day costs for the 84-day heatmap window ending on `today_local`.
+///
+/// Returns exactly [`HEATMAP_DAYS`] entries in chronological order, including
+/// zero-cost days so the caller can fill the grid without date arithmetic.
+pub fn daily_costs(
+    events: &[UsageEvent],
+    pricing: &PricingTable,
+    today_local: NaiveDate,
+) -> Vec<HeatmapDay> {
+    let start = today_local - Duration::days(HEATMAP_DAYS - 1);
+    let mut by_date: BTreeMap<NaiveDate, Decimal> = BTreeMap::new();
+
+    for ev in events {
+        let date = ev.timestamp.with_timezone(&Local).date_naive();
+        if date < start || date > today_local {
+            continue;
+        }
+        *by_date.entry(date).or_default() += pricing.compute_cost(ev).cost_usd;
+    }
+
+    (0..HEATMAP_DAYS)
+        .map(|i| {
+            let date = start + Duration::days(i);
+            HeatmapDay {
+                date,
+                cost_usd: by_date.get(&date).copied().unwrap_or_default(),
+            }
+        })
+        .collect()
 }
 
 /// Group events into 5-hour billing windows.

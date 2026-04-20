@@ -6,11 +6,12 @@ import { TodayPanel } from "./components/TodayPanel";
 import { MonthPanel } from "./components/MonthPanel";
 import { BlockPanel } from "./components/BlockPanel";
 import { ProjectsPanel } from "./components/ProjectsPanel";
+import { HeatmapPanel } from "./components/HeatmapPanel";
 import { ActiveSessionPanel } from "./components/ActiveSessionPanel";
 import { Footer } from "./components/Footer";
 
 export function App() {
-  const { today, month, activeSession, activeBlock, error } = useUsageData();
+  const { today, month, activeSession, activeBlock, heatmap, error } = useUsageData();
   useBlockNotifications(activeBlock);
   const { isEnabled, toggle } = useAutoStart();
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -71,6 +72,12 @@ export function App() {
           <ProjectsPanel data={today} />
         </>
       ) : null}
+      {heatmap.length > 0 && (
+        <>
+          <hr className="section-divider" />
+          <HeatmapPanel days={heatmap} />
+        </>
+      )}
       <hr className="section-divider" />
       <ActiveSessionPanel session={activeSession} />
       <Footer onOpenDashboard={handleOpenDashboard} />

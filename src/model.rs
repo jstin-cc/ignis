@@ -88,6 +88,13 @@ pub struct Summary {
     pub by_project: BTreeMap<PathBuf, ProjectUsage>,
 }
 
+/// Aggregated cost for a single calendar day — used for the activity heatmap.
+#[derive(Clone, Debug)]
+pub struct HeatmapDay {
+    pub date: chrono::NaiveDate,
+    pub cost_usd: Decimal,
+}
+
 /// One 5-hour billing window inferred from event timestamps.
 ///
 /// Claude Code bills in rolling 5-hour windows. A new block starts with the first
@@ -122,4 +129,6 @@ pub struct Snapshot {
     pub active_block: Option<SessionBlock>,
     /// Model IDs present in events but absent from the pricing table.
     pub pricing_warnings: Vec<ModelId>,
+    /// Daily cost aggregates for the last 84 days (activity heatmap).
+    pub heatmap: Vec<HeatmapDay>,
 }

@@ -5,6 +5,7 @@ import type {
   SessionsResponse,
   Session,
   ActiveBlock,
+  HeatmapDay,
 } from "./types";
 
 const API_BASE = "http://127.0.0.1:7337";
@@ -27,25 +28,35 @@ async function fetchActiveSessions(): Promise<Session | null> {
   return body.sessions[0] ?? null;
 }
 
+async function fetchHeatmap(): Promise<HeatmapDay[]> {
+  const resp = await fetch(`${API_BASE}/v1/heatmap`);
+  if (!resp.ok) {
+    throw new Error(`heatmap returned ${resp.status}`);
+  }
+  return resp.json() as Promise<HeatmapDay[]>;
+}
+
 export function useUsageData(): UsageData {
   const [data, setData] = useState<UsageData>({
     today: null,
     month: null,
     activeSession: null,
     activeBlock: null,
+    heatmap: [],
     loading: true,
     error: null,
   });
 
   const refresh = useCallback(async () => {
     try {
-      const [today, month, activeSession] = await Promise.all([
+      const [today, month, activeSession, heatmap] = await Promise.all([
         fetchSummary("today"),
         fetchSummary("month"),
         fetchActiveSessions(),
+        fetchHeatmap(),
       ]);
       const activeBlock: ActiveBlock | null = today.active_block ?? null;
-      setData({ today, month, activeSession, activeBlock, loading: false, error: null });
+      setData({ today, month, activeSession, activeBlock, heatmap, loading: false, error: null });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       setData((prev) => ({ ...prev, loading: false, error: message }));

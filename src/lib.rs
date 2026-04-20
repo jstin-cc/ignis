@@ -13,10 +13,11 @@ pub mod pricing;
 pub mod provider;
 pub mod scanner;
 
-pub use aggregate::{active_block_at, billing_blocks, build_snapshot};
+pub use aggregate::{active_block_at, billing_blocks, build_snapshot, daily_costs};
 pub use config::{Config, ConfigError};
 pub use model::{
-    ModelId, ModelUsage, ProjectUsage, SessionBlock, SessionState, Snapshot, Summary, UsageEvent,
+    HeatmapDay, ModelId, ModelUsage, ProjectUsage, SessionBlock, SessionState, Snapshot, Summary,
+    UsageEvent,
 };
 pub use pricing::{ComputedCost, ModelPricing, PricingTable};
 pub use provider::{ClaudeCodeProvider, Provider};

@@ -52,6 +52,7 @@ pub fn router(state: ApiState) -> Router {
         .route("/health", get(health_handler))
         .route("/v1/summary", get(summary_handler))
         .route("/v1/sessions", get(sessions_handler))
+        .route("/v1/heatmap", get(heatmap_handler))
         .fallback(not_found_handler)
         .with_state(state)
 }
@@ -396,6 +397,33 @@ async fn not_found_handler() -> Response {
     error_response(StatusCode::NOT_FOUND, "not_found", "Unknown path.")
 }
 
+// ── /v1/heatmap ───────────────────────────────────────────────────────────────
+
+#[derive(Serialize)]
+struct HeatmapDayDto {
+    date: String,
+    cost_usd: String,
+}
+
+async fn heatmap_handler(headers: HeaderMap, State(state): State<ApiState>) -> Response {
+    if let Err(e) = check_auth(&headers, &state.api_token) {
+        return *e;
+    }
+    if let Err(e) = check_origin(&headers) {
+        return *e;
+    }
+    let snap = state.read_snapshot();
+    let days: Vec<HeatmapDayDto> = snap
+        .heatmap
+        .iter()
+        .map(|d| HeatmapDayDto {
+            date: d.date.format("%Y-%m-%d").to_string(),
+            cost_usd: d.cost_usd.to_string(),
+        })
+        .collect();
+    Json(days).into_response()
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 fn model_usage_dtos(map: &std::collections::BTreeMap<ModelId, ModelUsage>) -> Vec<ModelUsageDto> {
@@ -433,6 +461,7 @@ mod tests {
             sessions: vec![],
             active_block: None,
             pricing_warnings: vec![],
+            heatmap: vec![],
         }
     }
 
@@ -598,6 +627,7 @@ mod tests {
             sessions: vec![],
             active_block: None,
             pricing_warnings: vec![ModelId::from("claude-unknown-99")],
+            heatmap: vec![],
         };
         state.update_snapshot(new_snap);
 
@@ -628,6 +658,7 @@ mod tests {
             sessions: vec![],
             active_block: None,
             pricing_warnings: vec![],
+            heatmap: vec![],
         };
         state.update_snapshot(snap);
         let app = router(state);

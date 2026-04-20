@@ -74,11 +74,17 @@ export interface SessionsResponse {
   sessions: Session[];
 }
 
+export interface HeatmapDay {
+  date: string;
+  cost_usd: string;
+}
+
 export interface UsageData {
   today: SummaryResponse | null;
   month: SummaryResponse | null;
   activeSession: Session | null;
   activeBlock: ActiveBlock | null;
+  heatmap: HeatmapDay[];
   loading: boolean;
   error: string | null;
 }
