@@ -19,6 +19,10 @@ path = "src/bin/winusage.rs"
 name = "winusage-api"
 path = "src/bin/winusage-api.rs"
 
+[[bin]]
+name = "winusage-watch"
+path = "src/bin/winusage-watch.rs"
+
 [[example]]
 name = "scan"
 path = "examples/scan.rs"
@@ -35,6 +39,9 @@ anyhow = "1"
 axum = "0.8"
 tokio = { version = "1", features = ["full"] }
 tower = "0.5"
+ratatui = "0.29"
+crossterm = "0.28"
+notify = "6"
 
 [dev-dependencies]
 pretty_assertions = "1"

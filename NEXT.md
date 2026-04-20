@@ -7,21 +7,31 @@ Der **eine** konkrete nächste Schritt. Bei Kontextverlust: erste Datei, die gel
 
 ## Jetzt
 
-**Phase 2 starten: `winusage watch` Live-TUI mit ratatui.**
+**Phase 2: 5-Stunden-Billing-Windows / Session-Blocks (ADR-010).**
+
+### Kontext
+
+Claude Code rechnet in 5-Stunden-Blöcken ab (Rolling Window). Ein neuer Block beginnt
+5 Stunden nach dem ersten Event des laufenden Blocks. Das ist für die Burn-Rate-Anzeige
+und Limit-Warnungen notwendig.
 
 ### Schritte
 
-1. Dependencies: `ratatui`, `crossterm` in `[dependencies]`.
+1. **ADR-010 ausarbeiten** (sofern noch nicht geschehen) — Definitionen:
+   - Block-Start: Timestamp des ersten Events nach einer Pause > 5 h (oder Programm-Start).
+   - Block-Ende: Block-Start + 5 h.
+   - Aktiver Block: der Block, dessen Fenster `Utc::now()` enthält.
 
-2. `src/bin/winusage-watch.rs` — ratatui TUI:
-   - Layout wie in `docs/design-system.md` §6 beschrieben
-   - Panels: Today, Session, By Model, Burn Rate (Platzhalter)
-   - Live-Refresh alle 5 Sekunden via Scanner-Watch-Thread
-   - Keys: `q` quit, `r` force-refresh, `d` daily, `m` monthly
+2. **`src/aggregate.rs` erweitern**:
+   - `SessionBlock { start: DateTime<Utc>, cost_usd: Decimal, token_count: u64 }`
+   - `billing_blocks(events: &[UsageEvent]) -> Vec<SessionBlock>` — gruppiert Events
+     in 5-h-Fenster.
+   - `active_block(blocks: &[SessionBlock], now: DateTime<Utc>) -> Option<&SessionBlock>`
+   - `Snapshot` um `active_block: Option<SessionBlock>` erweitern.
 
-3. TUI nutzt `Scanner::start_watching()` (notify crate) für Push-Updates.
+3. **`winusage watch` — Burn-Rate-Panel befüllen** (`src/bin/winusage-watch.rs`):
+   - Aktuellen Block-Fortschritt als Balken: `elapsed / 5h`.
+   - Token/Kosten-Summe im aktuellen Block.
+   - Einfache Burn-Rate: `cost_usd / elapsed_hours` → `$/h`.
 
-4. ANSI-TrueColor mit Hex-Werten aus `docs/design-system.md` §1.
-   Fallback: 8-Farben bei `NO_COLOR` oder kein TrueColor-TTY.
-
-Danach: 5-Stunden-Billing-Windows / Session-Blocks (ADR-010).
+4. Tests in `src/aggregate.rs` für `billing_blocks()`.
