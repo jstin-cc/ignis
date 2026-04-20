@@ -1,0 +1,9 @@
+{
+  "identifier": "default",
+  "description": "WinUsage default capabilities",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "notification:default"
+  ]
+}

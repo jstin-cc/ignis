@@ -57,7 +57,8 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 - [x] Tray: BlockPanel — Fortschrittsbalken (CSS, kein Recharts), $/h Burn Rate,
       verbleibende Zeit; API: ActiveBlockDto + percent_elapsed in /v1/summary.
 - [x] Tray: ProjectsPanel — Top-5-Projekte mit Mini-Balken + Kosten (kein Recharts, reine CSS).
-- [ ] Notifications bei Limit-Schwellen.
+- [x] Notifications bei Limit-Schwellen — `useBlockNotifications` feuert bei 80% + 100%;
+      `tauri-plugin-notification`; Capabilities-Datei; Fallback außerhalb Tauri.
 - [ ] Auto-Start bei Windows-Login (optional).
 
 ## Phase 3 — Plugin-ready (`v1.0.0`)

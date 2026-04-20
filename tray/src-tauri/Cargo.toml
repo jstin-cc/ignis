@@ -10,6 +10,7 @@ publish = false
 # See also: https://tauri.app/v2/references/cargo-features/
 [dependencies]
 tauri = { version = "2", features = ["tray-icon", "image-ico"] }
+tauri-plugin-notification = "2"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

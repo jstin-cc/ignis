@@ -1,4 +1,5 @@
 import { useUsageData } from "./useUsageData";
+import { useBlockNotifications } from "./hooks/useBlockNotifications";
 import { TodayPanel } from "./components/TodayPanel";
 import { MonthPanel } from "./components/MonthPanel";
 import { BlockPanel } from "./components/BlockPanel";
@@ -8,6 +9,7 @@ import { Footer } from "./components/Footer";
 
 export function App() {
   const { today, month, activeSession, activeBlock, error } = useUsageData();
+  useBlockNotifications(activeBlock);
 
   function handleOpenDashboard() {
     // Phase 2: open a full dashboard window via Tauri IPC.

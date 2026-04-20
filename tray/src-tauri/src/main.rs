@@ -28,6 +28,7 @@ fn toggle_panel<R: Runtime>(app: &tauri::AppHandle<R>) {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_notification::init())
         .setup(|app| {
             // Build the right-click context menu.
             let quit_item = MenuItemBuilder::with_id("quit", "Quit WinUsage").build(app)?;

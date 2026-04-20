@@ -7,28 +7,31 @@ Der **eine** konkrete nächste Schritt. Bei Kontextverlust: erste Datei, die gel
 
 ## Jetzt
 
-**Phase 2: Notifications bei Limit-Schwellen.**
+**Phase 2: Auto-Start bei Windows-Login (optional via Tray-Einstellungen).**
 
 ### Kontext
 
-Der aktive Block hat `percent_elapsed`. Wenn 80% oder 100% erreicht werden, soll eine
-Windows-Benachrichtigung ausgelöst werden. Tauri 2 stellt `tauri-plugin-notification`
-bereit.
+Die Tray-App soll optional beim Windows-Login automatisch starten. Tauri 2 bietet
+`tauri-plugin-autostart` dafür. Der Nutzer soll Auto-Start im Tray ein-/ausschalten
+können (Settings-Button ⚙ in der Header-Leiste).
 
 ### Schritte
 
-1. **`tray/src-tauri/Cargo.toml`** — `tauri-plugin-notification` hinzufügen.
+1. **`tray/src-tauri/Cargo.toml`** — `tauri-plugin-autostart = "2"` hinzufügen.
 
 2. **`tray/src-tauri/src/main.rs`** — Plugin registrieren:
-   `tauri::Builder::default().plugin(tauri_plugin_notification::init())`
+   `.plugin(tauri_plugin_autostart::init(MacosLauncher::LaunchAgent, None))`
+   Tauri-Command `toggle_autostart` → `enable()` / `disable()` / `is_enabled()` wrappen.
 
-3. **`tray/src/hooks/useBlockNotifications.ts`** — neuer Hook:
-   - Speichert welche Schwellen (80%, 100%) für den aktuellen Block bereits gefeuert wurden
-     (via `useRef` — kein Re-Render nötig).
-   - Wenn `percent_elapsed >= 80` und noch nicht gemeldet → Notification.
-   - Wenn `percent_elapsed >= 100` / Block abgelaufen → Notification.
-   - Beim Block-Wechsel (neue `start`-Zeit) → fired-Set zurücksetzen.
+3. **`tray/src-tauri/capabilities/default.json`** — `"autostart:allow-enable"`,
+   `"autostart:allow-disable"`, `"autostart:allow-is-enabled"` hinzufügen.
 
-4. **`tray/src/App.tsx`** — `useBlockNotifications(activeBlock)` aufrufen.
+4. **`tray/src/hooks/useAutoStart.ts`** — Hook:
+   - `isEnabled: boolean` State
+   - `toggle()` Funktion (ruft Tauri-Command auf)
+   - Initialer Zustand beim Mount abfragen
 
-Danach: Auto-Start bei Windows-Login (optional, Tauri `autostart`-Plugin).
+5. **`tray/src/App.tsx`** — Settings-Button (⚙) öffnet ein kleines Inline-Panel
+   mit Auto-Start-Toggle (Checkbox oder Button).
+
+Danach: Phase 2 abschließen, v0.2.0 Tag setzen.
