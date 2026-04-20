@@ -15,7 +15,7 @@ export function TodayPanel({ data }: TodayPanelProps) {
       <span style={styles.meta} className="tabular">
         {data
           ? `${formatTokens(data.total_tokens)} · ${data.event_count} events`
-          : "loading…"}
+          : "—"}
       </span>
     </section>
   );

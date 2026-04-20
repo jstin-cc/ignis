@@ -49,6 +49,8 @@ export interface SummaryResponse {
   active_session: ActiveSession | null;
   active_block: ActiveBlock | null;
   pricing_warnings: string[];
+  sidechain_cost_usd: string;
+  sidechain_event_count: number;
 }
 
 export interface SessionModelUsage {
