@@ -149,6 +149,33 @@ Nummerierung aufsteigend. Status: `Accepted` · `Superseded` · `Rejected` · `P
   `docs/jsonl-format.md` dokumentieren, wie Sessions/Blocks aus dem JSONL ableitbar sind.
 - **Folgen:** Das Feature ist in `PROGRESS.md` unter Phase 2 geparkt.
 
+## ADR-012 — Provider-Trait als Erweiterungspunkt für künftige Datenquellen
+
+- **Datum:** 2026-04-20
+- **Status:** Accepted
+- **Kontext:** Phase 3 sieht Vorbereitung für Cursor, Codex und andere KI-Code-Editoren
+  vor. Diese Editoren schreiben ggf. Nutzungslogs in einem anderen Format oder an einem
+  anderen Pfad. Ohne Abstraktion müsste `scanner.rs` und `parser.rs` direkt angepasst
+  oder dupliziert werden.
+- **Alternativen:**
+  - (A) **Feature-Flags** — je Provider ein Compile-Flag. Einfach, aber nicht erweiterbar
+        ohne Quellcode-Änderungen.
+  - (B) **`Provider`-Trait** — ein Objekt kapselt `data_root()`, `parse_line()` und ein
+        optionales `collect()`-Override. Provider werden zur Laufzeit registriert und
+        können aggregiert werden (Multi-Provider-Snapshot).
+  - (C) Config-File-Ansatz — externe TOML-Konfiguration beschreibt Pfade und Format.
+        Sehr flexibel, aber Over-Engineering für Phase 3.
+- **Entscheidung:** (B). Trait in `src/provider.rs`; `ClaudeCodeProvider` als
+  Referenz-Implementierung; bestehende `scan_all`-API bleibt unverändert.
+- **Begründung:** Ein Trait gibt klare Grenzen vor, ist zero-cost im normalen Fall und
+  lässt sich in Tests mock-en. `ClaudeCodeProvider` ist die einzige Implementierung bis
+  ein zweiter Provider konkret entsteht — verhindert aber, dass dann die ganze Architektur
+  umgebaut werden muss.
+- **Folgen:** `src/provider.rs` wird aus `lib.rs` re-exportiert. Scanner und Aggregation
+  bleiben unverändert; sie arbeiten weiterhin direkt mit `UsageEvent`-Vektoren.
+  Multi-Provider-Fusion (Summe über mehrere `collect()`-Ergebnisse) wird erst dann
+  implementiert, wenn ein zweiter Provider real existiert (neuer ADR).
+
 ## ADR-011 — Position-Tracking pro File als Design-Anforderung
 
 - **Datum:** 2026-04-17

@@ -10,6 +10,7 @@ pub mod config;
 pub mod model;
 pub mod parser;
 pub mod pricing;
+pub mod provider;
 pub mod scanner;
 
 pub use aggregate::{active_block_at, billing_blocks, build_snapshot};
@@ -18,4 +19,5 @@ pub use model::{
     ModelId, ModelUsage, ProjectUsage, SessionBlock, SessionState, Snapshot, Summary, UsageEvent,
 };
 pub use pricing::{ComputedCost, ModelPricing, PricingTable};
+pub use provider::{ClaudeCodeProvider, Provider};
 pub use scanner::{scan_all, scan_delta, FilePosition, ScanError, ScanResult};
