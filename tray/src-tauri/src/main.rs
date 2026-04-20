@@ -8,7 +8,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use tauri::{
-    image::Image,
     menu::{MenuBuilder, MenuItemBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Manager, Runtime,
@@ -51,10 +50,7 @@ struct UpdateCheckResult {
 
 #[tauri::command]
 async fn check_for_update(app: tauri::AppHandle) -> Result<UpdateCheckResult, String> {
-    let updater = app
-        .updater_builder()
-        .build()
-        .map_err(|e| e.to_string())?;
+    let updater = app.updater_builder().build().map_err(|e| e.to_string())?;
     match updater.check().await.map_err(|e| e.to_string())? {
         Some(update) => Ok(UpdateCheckResult {
             available: true,
@@ -85,10 +81,13 @@ fn main() {
             let quit_item = MenuItemBuilder::with_id("quit", "Quit WinUsage").build(app)?;
             let menu = MenuBuilder::new(app).items(&[&quit_item]).build()?;
 
-            // Tray icon — uses a 1×1 transparent placeholder; replace with a real
-            // ICO asset once the icon is available (tauri.conf.json `icon` field).
+            let icon = app
+                .default_window_icon()
+                .cloned()
+                .ok_or("no app icon configured")?;
+
             let _tray = TrayIconBuilder::new()
-                .icon(Image::new_owned(vec![0u8, 0, 0, 0], 1, 1))
+                .icon(icon)
                 .menu(&menu)
                 .tooltip("WinUsage")
                 .on_tray_icon_event(|tray, event| {
