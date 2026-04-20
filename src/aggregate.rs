@@ -219,8 +219,9 @@ fn accumulate_model(map: &mut BTreeMap<ModelId, ModelUsage>, ev: &UsageEvent, co
     entry.input_tokens += ev.input_tokens;
     entry.output_tokens += ev.output_tokens;
     entry.cache_read_tokens += ev.cache_read_tokens;
-    entry.cache_creation_tokens +=
-        ev.cache_creation_tokens + ev.cache_creation_ephemeral_5m + ev.cache_creation_ephemeral_1h;
+    // cache_creation_tokens ist das Top-Level-Summenfeld (= ephemeral_5m + ephemeral_1h).
+    // Nur dieses zählen — ephemerals sind keine additive dritte Quelle.
+    entry.cache_creation_tokens += ev.cache_creation_tokens;
     entry.cost_usd += cost;
     entry.event_count += 1;
 }
