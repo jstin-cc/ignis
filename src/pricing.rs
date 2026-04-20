@@ -34,6 +34,7 @@ pub enum PricingError {
 }
 
 /// Pricing table loaded from the embedded `pricing.json`.
+#[derive(Clone)]
 pub struct PricingTable {
     models: HashMap<String, ModelPricing>,
 }
