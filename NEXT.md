@@ -7,15 +7,13 @@ Der **eine** konkrete nächste Schritt. Bei Kontextverlust: erste Datei, die gel
 
 ## Jetzt
 
-**Bugfix-Session vom 2026-04-20 — pausiert nach P0-Quick-Wins.**
+**Bugfix-Session vom 2026-04-20 — vollständig abgeschlossen.**
 
-Weiter mit der vereinbarten Reihenfolge:
+Alle 26 Bugs aus BUGFIX-PROGRESS.md sind erledigt ([x]).
 
-- ~~**#3 + #10**~~ — erledigt
-- **#5 + #11** — TUI Position-Tracking (`scan_delta`) + `file_identity`-Race
-- **#16** — erst ADR vorlegen, dann Code (Sidechain-Events)
-- **P1 restlich** (#12, #13, #14, #15, #17, #18)
-- **P2** nach Bedarf
+Mögliche nächste Schritte:
 
-Heute erledigte Fixes: #26, #25, #2, #1, #4, #6, #7 (alle committed, noch nicht gepusht).
-Push erfolgt am Sitzungsende oder beim nächsten Start.
+- **PROGRESS.md** aktualisieren (Phase 3 / Post-v1.0-Stand dokumentieren)
+- **README.md** auf aktuellen Feature-Stand bringen
+- **CHANGELOG.md** für v1.0.0 nachpflegen
+- Nächste Feature-Phase planen (Provider-Support, Light-Mode, …)
