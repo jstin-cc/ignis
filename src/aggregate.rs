@@ -30,6 +30,11 @@ pub fn build_snapshot(
     let mut this_month = Summary::default();
     let mut unpriced: HashSet<ModelId> = HashSet::new();
 
+    // Track unique session IDs per project per window to compute session_count.
+    let mut today_proj_sessions: HashMap<std::path::PathBuf, HashSet<String>> = HashMap::new();
+    let mut week_proj_sessions: HashMap<std::path::PathBuf, HashSet<String>> = HashMap::new();
+    let mut month_proj_sessions: HashMap<std::path::PathBuf, HashSet<String>> = HashMap::new();
+
     for ev in events {
         let computed = pricing.compute_cost(ev);
         if computed.unpriced {
@@ -62,12 +67,41 @@ pub fn build_snapshot(
 
         if windows.in_today(ev.timestamp) {
             accumulate_summary(&mut today, ev, cost);
+            today_proj_sessions
+                .entry(ev.project_path.clone())
+                .or_default()
+                .insert(ev.session_id.clone());
         }
         if windows.in_week(ev.timestamp) {
             accumulate_summary(&mut this_week, ev, cost);
+            week_proj_sessions
+                .entry(ev.project_path.clone())
+                .or_default()
+                .insert(ev.session_id.clone());
         }
         if windows.in_month(ev.timestamp) {
             accumulate_summary(&mut this_month, ev, cost);
+            month_proj_sessions
+                .entry(ev.project_path.clone())
+                .or_default()
+                .insert(ev.session_id.clone());
+        }
+    }
+
+    // Back-fill session_count from the tracked sets.
+    for (path, ids) in &today_proj_sessions {
+        if let Some(proj) = today.by_project.get_mut(path) {
+            proj.session_count = ids.len() as u64;
+        }
+    }
+    for (path, ids) in &week_proj_sessions {
+        if let Some(proj) = this_week.by_project.get_mut(path) {
+            proj.session_count = ids.len() as u64;
+        }
+    }
+    for (path, ids) in &month_proj_sessions {
+        if let Some(proj) = this_month.by_project.get_mut(path) {
+            proj.session_count = ids.len() as u64;
         }
     }
 
