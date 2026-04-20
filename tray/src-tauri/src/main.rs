@@ -49,6 +49,22 @@ struct UpdateCheckResult {
 }
 
 #[tauri::command]
+fn get_api_token() -> Result<String, String> {
+    let appdata = std::env::var("APPDATA")
+        .or_else(|_| std::env::var("HOME").map(|h| format!("{h}/.config")))
+        .map_err(|e| e.to_string())?;
+    let path = std::path::PathBuf::from(appdata)
+        .join("winusage")
+        .join("config.json");
+    let raw = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    let val: serde_json::Value = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
+    val["api_token"]
+        .as_str()
+        .map(|s| s.to_owned())
+        .ok_or_else(|| "api_token not found in config".to_owned())
+}
+
+#[tauri::command]
 async fn check_for_update(app: tauri::AppHandle) -> Result<UpdateCheckResult, String> {
     let updater = app.updater_builder().build().map_err(|e| e.to_string())?;
     match updater.check().await.map_err(|e| e.to_string())? {
@@ -75,6 +91,7 @@ fn main() {
             get_autostart_enabled,
             set_autostart_enabled,
             check_for_update,
+            get_api_token,
         ])
         .setup(|app| {
             // Build the right-click context menu.
