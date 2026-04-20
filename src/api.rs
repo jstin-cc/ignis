@@ -32,9 +32,11 @@ impl ApiState {
 
     /// Replace the current snapshot (called after each re-scan).
     pub fn update_snapshot(&self, snap: Snapshot) {
-        if let Ok(mut guard) = self.snapshot.write() {
-            *guard = Arc::new(snap);
-        }
+        let mut guard = match self.snapshot.write() {
+            Ok(g) => g,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        *guard = Arc::new(snap);
     }
 
     fn read_snapshot(&self) -> Arc<Snapshot> {
@@ -104,21 +106,30 @@ fn check_auth(headers: &HeaderMap, token: &str) -> Result<(), Box<Response>> {
     }
 }
 
-/// Returns `Err(Response)` when the `Origin` header is present but not allowed.
+/// Allowed origins for cross-origin requests.
+const ALLOWED_ORIGINS: &[&str] = &[
+    "tauri://localhost",       // Tauri production WebView (Windows/macOS)
+    "http://tauri.localhost",  // Tauri production WebView (Linux)
+    "http://localhost:1420",   // Vite dev-server (tauri dev default)
+    "http://localhost:5173",   // Vite standalone dev-server default
+];
+
+/// Returns `Err(Response)` when the `Origin` header is present but not in the allowlist.
 ///
-/// Per the spec: requests without an `Origin` header (CLI tools, editor plugins)
-/// are always allowed. Requests with `Origin` are blocked unless the allowlist
-/// contains a matching entry (currently always empty in MVP → all browser origins
-/// are rejected).
+/// Requests without an `Origin` header (CLI tools, editor plugins) are always allowed.
 fn check_origin(headers: &HeaderMap) -> Result<(), Box<Response>> {
-    if headers.get("origin").is_some() {
-        return Err(Box::new(error_response(
-            StatusCode::FORBIDDEN,
-            "origin_rejected",
-            "Origin header not in allowlist.",
-        )));
+    let Some(origin) = headers.get("origin") else {
+        return Ok(());
+    };
+    let origin_str = origin.to_str().unwrap_or("");
+    if ALLOWED_ORIGINS.contains(&origin_str) {
+        return Ok(());
     }
-    Ok(())
+    Err(Box::new(error_response(
+        StatusCode::FORBIDDEN,
+        "origin_rejected",
+        "Origin header not in allowlist.",
+    )))
 }
 
 // ── Handlers ──────────────────────────────────────────────────────────────────
@@ -362,7 +373,7 @@ async fn sessions_handler(
         })
         .take(limit)
         .map(|s| {
-            let is_active = active_id == Some(s.session_id.as_str());
+            let is_active = active_id.is_some_and(|id| id == s.session_id.as_str());
             let by_model = s
                 .by_model
                 .iter()
