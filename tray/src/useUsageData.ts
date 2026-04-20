@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import type {
   UsageData,
   SummaryResponse,
@@ -24,9 +24,14 @@ function authHeaders(token: string): HeadersInit {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-async function fetchSummary(range: "today" | "month", token: string): Promise<SummaryResponse> {
+async function fetchSummary(
+  range: "today" | "month",
+  token: string,
+  signal: AbortSignal,
+): Promise<SummaryResponse> {
   const resp = await fetch(`${API_BASE}/v1/summary?range=${range}`, {
     headers: authHeaders(token),
+    signal,
   });
   if (!resp.ok) {
     throw new Error(`summary?range=${range} returned ${resp.status}`);
@@ -34,9 +39,13 @@ async function fetchSummary(range: "today" | "month", token: string): Promise<Su
   return resp.json() as Promise<SummaryResponse>;
 }
 
-async function fetchActiveSessions(token: string): Promise<Session | null> {
+async function fetchActiveSessions(
+  token: string,
+  signal: AbortSignal,
+): Promise<Session | null> {
   const resp = await fetch(`${API_BASE}/v1/sessions?active=true&limit=1`, {
     headers: authHeaders(token),
+    signal,
   });
   if (!resp.ok) {
     throw new Error(`sessions?active=true returned ${resp.status}`);
@@ -45,9 +54,10 @@ async function fetchActiveSessions(token: string): Promise<Session | null> {
   return body.sessions[0] ?? null;
 }
 
-async function fetchHeatmap(token: string): Promise<HeatmapDay[]> {
+async function fetchHeatmap(token: string, signal: AbortSignal): Promise<HeatmapDay[]> {
   const resp = await fetch(`${API_BASE}/v1/heatmap`, {
     headers: authHeaders(token),
+    signal,
   });
   if (!resp.ok) {
     throw new Error(`heatmap returned ${resp.status}`);
@@ -57,6 +67,7 @@ async function fetchHeatmap(token: string): Promise<HeatmapDay[]> {
 
 export function useUsageData(): UsageData {
   const [token, setToken] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const [data, setData] = useState<UsageData>({
     today: null,
     month: null,
@@ -73,17 +84,25 @@ export function useUsageData(): UsageData {
   }, []);
 
   const refresh = useCallback(async () => {
+    // Abort any in-flight request from a previous run.
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const { signal } = controller;
+
     const t = token ?? "";
     try {
       const [today, month, activeSession, heatmap] = await Promise.all([
-        fetchSummary("today", t),
-        fetchSummary("month", t),
-        fetchActiveSessions(t),
-        fetchHeatmap(t),
+        fetchSummary("today", t, signal),
+        fetchSummary("month", t, signal),
+        fetchActiveSessions(t, signal),
+        fetchHeatmap(t, signal),
       ]);
+      if (signal.aborted) return;
       const activeBlock: ActiveBlock | null = today.active_block ?? null;
       setData({ today, month, activeSession, activeBlock, heatmap, loading: false, error: null });
     } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
       const message = err instanceof Error ? err.message : String(err);
       setData((prev) => ({ ...prev, loading: false, error: message }));
     }
@@ -94,7 +113,10 @@ export function useUsageData(): UsageData {
     if (token === null) return;
     void refresh();
     const id = setInterval(() => void refresh(), POLL_INTERVAL_MS);
-    return () => clearInterval(id);
+    return () => {
+      clearInterval(id);
+      abortRef.current?.abort();
+    };
   }, [refresh, token]);
 
   return data;

@@ -72,8 +72,11 @@ function remainingTime(endIso: string): string {
 }
 
 function computeBurnRate(block: ActiveBlock): string | null {
-  const elapsedMs = Date.now() - new Date(block.start).getTime();
-  const elapsedH = elapsedMs / 3_600_000;
+  if (block.percent_elapsed <= 0) return null;
+  // Use server-side percent_elapsed to avoid client/server clock drift.
+  const totalH =
+    (new Date(block.end).getTime() - new Date(block.start).getTime()) / 3_600_000;
+  const elapsedH = (block.percent_elapsed / 100) * totalH;
   if (elapsedH < 0.01) return null;
   const cost = parseFloat(block.cost_usd);
   if (isNaN(cost)) return null;

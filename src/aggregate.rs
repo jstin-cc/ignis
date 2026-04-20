@@ -107,6 +107,7 @@ pub fn build_snapshot(
 
     let mut sessions_vec: Vec<SessionState> = sessions.into_values().collect();
     sessions_vec.sort_unstable_by_key(|s| std::cmp::Reverse(s.last_seen));
+    sessions_vec.truncate(500);
 
     let active_session = sessions_vec
         .iter()
