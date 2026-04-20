@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "updated": "2026-04-17",
-  "note": "PLACEHOLDER — verify against https://anthropic.com/pricing before v0.1.0-mvp release.",
+  "updated": "2026-04-20",
+  "note": "Preise verifiziert per 2026-04-20. pricing.json aktualisieren und App-Version bumpen, wenn Anthropic die Preise ändert.",
   "models": {
     "claude-opus-4-7": {
       "input_per_mtok":         "15.00",
