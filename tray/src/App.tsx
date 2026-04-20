@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useUsageData } from "./useUsageData";
 import { useBlockNotifications } from "./hooks/useBlockNotifications";
 import { useAutoStart } from "./hooks/useAutoStart";
+import { useUpdater } from "./hooks/useUpdater";
 import { TodayPanel } from "./components/TodayPanel";
 import { MonthPanel } from "./components/MonthPanel";
 import { BlockPanel } from "./components/BlockPanel";
@@ -14,6 +15,7 @@ export function App() {
   const { today, month, activeSession, activeBlock, heatmap, error } = useUsageData();
   useBlockNotifications(activeBlock);
   const { isEnabled, toggle } = useAutoStart();
+  const { checking, result, error: updateError, checkForUpdate } = useUpdater();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   function handleOpenDashboard() {
@@ -57,6 +59,25 @@ export function App() {
             />
             <span style={styles.settingsLabel}>Auto-Start bei Windows-Login</span>
           </label>
+          <div style={styles.updateRow}>
+            <button
+              style={styles.updateBtn}
+              disabled={checking}
+              onClick={() => void checkForUpdate()}
+            >
+              {checking ? "Prüfe…" : "Updates prüfen"}
+            </button>
+            {result && (
+              <span style={styles.updateStatus}>
+                {result.available ? `v${result.version} verfügbar` : "Aktuell"}
+              </span>
+            )}
+            {updateError && (
+              <span style={{ ...styles.updateStatus, color: "var(--text-tertiary)" }}>
+                kein Server
+              </span>
+            )}
+          </div>
         </div>
       )}
 
@@ -156,5 +177,25 @@ const styles = {
   settingsLabel: {
     fontSize: "13px",
     color: "var(--text-secondary)",
+  },
+  updateRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    marginTop: "8px",
+  },
+  updateBtn: {
+    fontSize: "12px",
+    padding: "3px 8px",
+    backgroundColor: "var(--bg-elevated)",
+    border: "1px solid var(--border-subtle)",
+    borderRadius: "4px",
+    color: "var(--text-secondary)",
+    cursor: "pointer",
+    fontFamily: "var(--font-ui)",
+  },
+  updateStatus: {
+    fontSize: "12px",
+    color: "var(--accent)",
   },
 } as const;
