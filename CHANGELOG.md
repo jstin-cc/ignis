@@ -7,6 +7,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-04-20
+
+### Added
+
+- `winusage watch` — Live-TUI (ratatui 0.29 + crossterm 0.28 + notify 6): Header / Today+Session / By-Model / Burn-Rate / Footer; Keys q/r/d/m; NO_COLOR-Fallback
+- `src/aggregate.rs` — `SessionBlock`, `billing_blocks()`, `active_block_at()`: 5-Stunden-Billing-Windows nach Anthropic-Abrechnungslogik (ADR-010)
+- `src/api.rs` — `ActiveBlockDto` mit `percent_elapsed: u8`; `active_block`-Feld in `GET /v1/summary`
+- Tray `BlockPanel` — CSS-Fortschrittsbalken, $/h Burn-Rate, verbleibende Block-Zeit
+- Tray `ProjectsPanel` — Top-5-Projekte mit proportionalen Mini-Balken und Kosten (kein Recharts)
+- Tray `useBlockNotifications` — Windows-Notifications bei 80 % und 100 % Block-Auslastung (`tauri-plugin-notification`)
+- Tray `useAutoStart` + Settings-Panel — Auto-Start bei Windows-Login per ⚙-Button ein-/ausschaltbar (`tauri-plugin-autostart`)
+
+### Fixed
+
+- CI: `clippy --all-targets` deckte zwei Warnungen in Test-Code auf (`cloned_ref_to_slice_refs`, `field_reassign_with_default`) — beide behoben
+
+### Notes
+
+- 54 Tests, `cargo clippy --all-targets -- -D warnings` clean, `cargo fmt --check` clean.
+- Tray-Build erfordert `npm run tauri build` auf Windows mit WebView2 und Tauri-Voraussetzungen.
+
 ## [0.1.0-mvp] — 2026-04-18
 
 ### Added
@@ -37,6 +58,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Initial repository scaffolding (Phase 0): documentation, architecture decisions,
   single-crate Rust layout with `winusage-core` lib + `examples/scan.rs`.
 
-[Unreleased]: https://github.com/jstin-cc/winusage/compare/v0.1.0-mvp...HEAD
+[Unreleased]: https://github.com/jstin-cc/winusage/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/jstin-cc/winusage/compare/v0.1.0-mvp...v0.2.0
 [0.1.0-mvp]: https://github.com/jstin-cc/winusage/compare/v0.0.1...v0.1.0-mvp
 [0.0.1]: https://github.com/jstin-cc/winusage/releases/tag/v0.0.1

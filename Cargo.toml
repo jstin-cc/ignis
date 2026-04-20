@@ -1,6 +1,6 @@
 [package]
 name = "winusage-core"
-version = "0.0.0"
+version = "0.2.0"
 edition = "2021"
 rust-version = "1.75"
 description = "Windows-native Claude Code usage tracker — core library (scanner, parser, pricing, aggregation)."
