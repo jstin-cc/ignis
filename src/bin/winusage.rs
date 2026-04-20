@@ -1,6 +1,6 @@
 use anyhow::Context;
 use chrono::Utc;
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use rust_decimal::Decimal;
 use winusage_core::{build_snapshot, scan_all, Config, ModelUsage, PricingTable, Summary};
 
@@ -9,6 +9,19 @@ use winusage_core::{build_snapshot, scan_all, Config, ModelUsage, PricingTable, 
 struct Cli {
     #[command(subcommand)]
     command: Command,
+}
+
+#[derive(Copy, Clone, ValueEnum)]
+enum ExportFormat {
+    Json,
+    Csv,
+}
+
+#[derive(Copy, Clone, ValueEnum)]
+enum ExportPeriod {
+    Today,
+    Week,
+    Month,
 }
 
 #[derive(Subcommand)]
@@ -21,6 +34,15 @@ enum Command {
     Session,
     /// Full scan — dump a JSON summary to stdout (dev tool).
     Scan,
+    /// Export usage data as JSON or CSV.
+    Export {
+        /// Output format.
+        #[arg(short, long, value_enum, default_value = "json")]
+        format: ExportFormat,
+        /// Time period to export.
+        #[arg(short, long, value_enum, default_value = "month")]
+        period: ExportPeriod,
+    },
 }
 
 fn main() -> anyhow::Result<()> {
@@ -40,6 +62,17 @@ fn main() -> anyhow::Result<()> {
         Command::Monthly => print_summary("This Month", &snap.this_month),
         Command::Session => print_session(&snap),
         Command::Scan => print_scan_json(&scan, &snap)?,
+        Command::Export { format, period } => {
+            let (label, summary) = match period {
+                ExportPeriod::Today => ("today", &snap.today),
+                ExportPeriod::Week => ("week", &snap.this_week),
+                ExportPeriod::Month => ("month", &snap.this_month),
+            };
+            match format {
+                ExportFormat::Json => export_json(label, summary)?,
+                ExportFormat::Csv => export_csv(label, summary)?,
+            }
+        }
     }
 
     Ok(())
@@ -164,4 +197,55 @@ fn summary_output_total(summary: &Summary) -> u64 {
         .values()
         .map(|u: &ModelUsage| u.output_tokens)
         .sum()
+}
+
+fn export_json(period: &str, summary: &Summary) -> anyhow::Result<()> {
+    let by_model: Vec<_> = summary
+        .by_model
+        .iter()
+        .map(|(id, u)| {
+            serde_json::json!({
+                "model":         id.0,
+                "input_tokens":  u.input_tokens,
+                "output_tokens": u.output_tokens,
+                "cost_usd":      u.cost_usd.to_string(),
+            })
+        })
+        .collect();
+
+    let by_project: Vec<_> = summary
+        .by_project
+        .iter()
+        .map(|(path, p)| {
+            serde_json::json!({
+                "project":      path.display().to_string(),
+                "total_tokens": p.total_tokens,
+                "cost_usd":     p.total_cost_usd.to_string(),
+            })
+        })
+        .collect();
+
+    let out = serde_json::json!({
+        "period":          period,
+        "total_cost_usd":  summary.total_cost_usd.to_string(),
+        "total_tokens":    summary.total_tokens,
+        "event_count":     summary.event_count,
+        "by_model":        by_model,
+        "by_project":      by_project,
+    });
+    println!("{}", serde_json::to_string_pretty(&out)?);
+    Ok(())
+}
+
+fn export_csv(period: &str, summary: &Summary) -> anyhow::Result<()> {
+    println!("period,model,input_tokens,output_tokens,cost_usd");
+    let mut rows: Vec<_> = summary.by_model.iter().collect();
+    rows.sort_by_key(|(id, _)| id.0.as_str());
+    for (id, u) in rows {
+        println!(
+            "{},{},{},{},{}",
+            period, id.0, u.input_tokens, u.output_tokens, u.cost_usd
+        );
+    }
+    Ok(())
 }
