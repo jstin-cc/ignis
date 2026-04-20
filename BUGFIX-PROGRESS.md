@@ -68,7 +68,7 @@ Reihenfolge der Fixes (Empfehlung aus Review):
   - Fix-Skizze: char-basierte Truncation (`s.chars().take(max).collect()`)
     oder `floor_char_boundary`-Pattern.
 
-- [ ] **#9 `HeatmapPanel` rechnet `Math.max(...[NaN])`**
+- [x] **#9 `HeatmapPanel` rechnet `Math.max(...[NaN])`**
   - Symptom: Ein einziges nicht-parsbares `cost_usd` → `maxCost = NaN` →
     alle Zellen `rgba(NaN)` → komplett transparente Heatmap.
   - Datei: `tray/src/components/HeatmapPanel.tsx:28`.
@@ -214,3 +214,4 @@ Reihenfolge der Fixes (Empfehlung aus Review):
 2026-04-20 · #4  · Cache-Tokens: nur cache_creation_tokens (kein Doppel-Counting) · c1a20bf
 2026-04-20 · #6  · parser: invalide Timestamps → Ok(None) statt Utc::now() · 257fed2
 2026-04-20 · #7  · truncate(): char_indices().nth() statt Byte-Slice-Panic · be5ddc7
+2026-04-20 · #9  · HeatmapPanel: NaN-Filter vor Math.max, cellColor isFinite-Guard · 4d9347e

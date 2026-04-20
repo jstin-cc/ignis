@@ -9,11 +9,7 @@ Der **eine** konkrete nächste Schritt. Bei Kontextverlust: erste Datei, die gel
 
 **Bugfix-Session vom 2026-04-20 — pausiert nach P0-Quick-Wins.**
 
-Noch offen aus der heutigen Session (P0-Reihenfolge laut BUGFIX-PROGRESS.md):
-
-- **#9** `HeatmapPanel` — `Math.max([NaN])`-Absicherung (TypeScript, ~5 min)
-
-Danach weiter mit der vereinbarten Reihenfolge:
+Weiter mit der vereinbarten Reihenfolge:
 
 - **#3 + #10** — Tray Bearer-Token + `winusage-api` Re-Scan-Loop
 - **#5 + #11** — TUI Position-Tracking (`scan_delta`) + `file_identity`-Race
