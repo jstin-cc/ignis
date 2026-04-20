@@ -195,7 +195,7 @@ Reihenfolge der Fixes (Empfehlung aus Review):
   - Snapshot enthält alle jemals gesehenen Sessions; `/v1/sessions` clamped
     erst auf 500.
 
-- [ ] **#25 Tauri-Tray-Icon ist 1×1 transparenter Pixel**
+- [x] **#25 Tauri-Tray-Icon ist 1×1 transparenter Pixel**
   - Datei: `tray/src-tauri/src/main.rs:91`.
 
 - [x] **#26 `pricing.json` ist `PLACEHOLDER`, v1.0.0 schon getaggt**
@@ -208,3 +208,4 @@ Reihenfolge der Fixes (Empfehlung aus Review):
 > Format: `YYYY-MM-DD · #N · <kurze Beschreibung> · <commit-hash>`
 
 2026-04-20 · #26 · pricing.json PLACEHOLDER-Note entfernt, Datum aktualisiert · 6afb557
+2026-04-20 · #25 · Tray-Icon: default_window_icon() statt 1×1-Pixel · a628cc2
