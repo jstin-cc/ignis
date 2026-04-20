@@ -22,6 +22,8 @@ use ratatui::{
 use rust_decimal::Decimal;
 use winusage_core::{build_snapshot, scan_all, Config, PricingTable, Snapshot, Summary};
 
+const BLOCK_HOURS: i64 = 5;
+
 // ── Palette ───────────────────────────────────────────────────────────────────
 
 #[derive(Clone, Copy)]
@@ -187,7 +189,7 @@ fn draw(f: &mut Frame, app: &App) {
             Constraint::Length(1),
             Constraint::Length(7),
             Constraint::Min(3),
-            Constraint::Length(3),
+            Constraint::Length(5),
             Constraint::Length(1),
         ])
         .split(area);
@@ -354,12 +356,72 @@ fn draw_burn_rate(f: &mut Frame, area: Rect, app: &App) {
     let block = styled_block("BURN RATE", p);
     let inner = block.inner(area);
     f.render_widget(block, area);
+
+    let lines = match &app.snap.active_block {
+        None => vec![
+            Line::from(Span::styled(
+                "  no active block",
+                Style::default().fg(p.muted),
+            )),
+            Line::default(),
+            Line::from(Span::styled(
+                "  starts when the next API call is made",
+                Style::default().fg(p.muted),
+            )),
+        ],
+        Some(b) => {
+            let now = Utc::now();
+            let elapsed_secs = (now - b.start).num_seconds().max(0);
+            let total_secs = BLOCK_HOURS * 3600;
+            let fraction = (elapsed_secs as f64 / total_secs as f64).clamp(0.0, 1.0);
+            let remaining_secs = (total_secs - elapsed_secs).max(0);
+
+            // Build progress bar (width = inner.width - 2 for margin)
+            let bar_width = inner.width.saturating_sub(4) as usize;
+            let filled = ((fraction * bar_width as f64) as usize).min(bar_width);
+            let bar: String = "█".repeat(filled) + &"░".repeat(bar_width - filled);
+
+            // Burn rate: cost per hour so far
+            let elapsed_h = elapsed_secs as f64 / 3600.0;
+            let burn_rate = if elapsed_h > 0.0 {
+                let rate = b.cost_usd / Decimal::from_f64_retain(elapsed_h).unwrap_or(Decimal::ONE);
+                format!("  {}/h", fmt_cost(rate))
+            } else {
+                "  —/h".to_owned()
+            };
+
+            vec![
+                Line::from(vec![
+                    Span::styled("  ", Style::default()),
+                    Span::styled(bar, Style::default().fg(p.accent)),
+                    Span::styled(
+                        format!("  {:.0}%", fraction * 100.0),
+                        Style::default().fg(p.dim),
+                    ),
+                ]),
+                Line::from(Span::styled(
+                    format!(
+                        "  {}  ·  {}  ·  {} remaining",
+                        fmt_cost(b.cost_usd),
+                        burn_rate.trim(),
+                        fmt_duration(remaining_secs),
+                    ),
+                    Style::default().fg(p.dim),
+                )),
+                Line::from(Span::styled(
+                    format!(
+                        "  block started {}  ·  {} tokens",
+                        b.start.with_timezone(&Local).format("%H:%M"),
+                        fmt_tokens(b.token_count),
+                    ),
+                    Style::default().fg(p.muted),
+                )),
+            ]
+        }
+    };
+
     f.render_widget(
-        Paragraph::new(Line::from(Span::styled(
-            "  live burn rate — coming in v0.2",
-            Style::default().fg(p.muted),
-        )))
-        .style(Style::default().bg(p.panel)),
+        Paragraph::new(lines).style(Style::default().bg(p.panel)),
         inner,
     );
 }

@@ -12,8 +12,10 @@ pub mod parser;
 pub mod pricing;
 pub mod scanner;
 
-pub use aggregate::build_snapshot;
+pub use aggregate::{active_block_at, billing_blocks, build_snapshot};
 pub use config::{Config, ConfigError};
-pub use model::{ModelId, ModelUsage, ProjectUsage, SessionState, Snapshot, Summary, UsageEvent};
+pub use model::{
+    ModelId, ModelUsage, ProjectUsage, SessionBlock, SessionState, Snapshot, Summary, UsageEvent,
+};
 pub use pricing::{ComputedCost, ModelPricing, PricingTable};
 pub use scanner::{scan_all, scan_delta, FilePosition, ScanError, ScanResult};

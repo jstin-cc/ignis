@@ -47,8 +47,11 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 ## Phase 2 — Live & smart (`v0.2.0`)
 
 - [x] `winusage watch` Live-TUI — ratatui 0.29 + crossterm 0.28 + notify 6;
-      Layout: Header / Today+Session / By-Model / Burn-Rate (Platzhalter) / Footer;
+      Layout: Header / Today+Session / By-Model / Burn-Rate / Footer;
       Keys: q quit, r refresh, d daily, m monthly; NO_COLOR-Fallback.
+- [x] 5-Stunden-Billing-Windows — `SessionBlock`, `billing_blocks()`, `active_block_at()`;
+      Burn-Rate-Panel: Fortschrittsbalken, $/h, verbleibende Zeit, Block-Start-Uhrzeit;
+      8 neue Tests (54 gesamt, alle grün).
 - [ ] 5-Stunden-Billing-Windows / Session-Blocks (ADR-010).
 - [ ] Burn-Rate + Projektionen.
 - [ ] Tray: Per-Projekt-Breakdown + Chart (Recharts).

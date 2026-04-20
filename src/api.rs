@@ -403,6 +403,7 @@ mod tests {
             this_month: Summary::default(),
             active_session: None,
             sessions: vec![],
+            active_block: None,
             pricing_warnings: vec![],
         }
     }
@@ -567,6 +568,7 @@ mod tests {
             this_month: Summary::default(),
             active_session: None,
             sessions: vec![],
+            active_block: None,
             pricing_warnings: vec![ModelId::from("claude-unknown-99")],
         };
         state.update_snapshot(new_snap);
@@ -594,6 +596,7 @@ mod tests {
             this_month: Summary::default(),
             active_session: None,
             sessions: vec![],
+            active_block: None,
             pricing_warnings: vec![],
         };
         state.update_snapshot(snap);

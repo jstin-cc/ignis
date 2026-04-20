@@ -88,6 +88,22 @@ pub struct Summary {
     pub by_project: BTreeMap<PathBuf, ProjectUsage>,
 }
 
+/// One 5-hour billing window inferred from event timestamps.
+///
+/// Claude Code bills in rolling 5-hour windows. A new block starts with the first
+/// event that arrives more than 5 hours after the previous block started, or with
+/// the very first event ever seen.
+#[derive(Clone, Debug)]
+pub struct SessionBlock {
+    /// Timestamp of the first event in this block.
+    pub start: DateTime<Utc>,
+    /// Block closes 5 hours after `start`.
+    pub end: DateTime<Utc>,
+    pub cost_usd: Decimal,
+    pub token_count: u64,
+    pub event_count: u64,
+}
+
 /// Immutable snapshot handed to consumers (CLI / API / Tray).
 ///
 /// Built by the scanner after every batch of Δ-events. Consumers read this via
@@ -102,6 +118,8 @@ pub struct Snapshot {
     pub active_session: Option<SessionState>,
     /// All known sessions, ordered by `last_seen` descending.
     pub sessions: Vec<SessionState>,
+    /// The billing block that contains `taken_at`, if any.
+    pub active_block: Option<SessionBlock>,
     /// Model IDs present in events but absent from the pricing table.
     pub pricing_warnings: Vec<ModelId>,
 }

@@ -1,11 +1,16 @@
-use crate::model::{ModelId, ModelUsage, SessionState, Snapshot, Summary, UsageEvent};
+use crate::model::{
+    ModelId, ModelUsage, SessionBlock, SessionState, Snapshot, Summary, UsageEvent,
+};
 use crate::pricing::PricingTable;
-use chrono::{DateTime, Datelike, Local, TimeZone, Utc};
+use chrono::{DateTime, Datelike, Duration, Local, TimeZone, Utc};
 use rust_decimal::Decimal;
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 /// Sessions inactive for longer than this are not considered "active".
 const ACTIVE_THRESHOLD_SECS: i64 = 300;
+
+/// Duration of one Claude Code billing window.
+const BILLING_BLOCK_HOURS: i64 = 5;
 
 /// Build a complete [`Snapshot`] from a flat list of usage events.
 ///
@@ -74,6 +79,9 @@ pub fn build_snapshot(
     let mut pricing_warnings: Vec<ModelId> = unpriced.into_iter().collect();
     pricing_warnings.sort();
 
+    let blocks = billing_blocks(events, pricing);
+    let active_block = active_block_at(&blocks, now);
+
     Snapshot {
         taken_at: now,
         today,
@@ -81,8 +89,58 @@ pub fn build_snapshot(
         this_month,
         active_session,
         sessions: sessions_vec,
+        active_block,
         pricing_warnings,
     }
+}
+
+/// Group events into 5-hour billing windows.
+///
+/// A new block begins when an event arrives more than [`BILLING_BLOCK_HOURS`] after
+/// the previous block's start, or with the very first event. Events are processed
+/// in chronological order; unordered input is sorted first.
+pub fn billing_blocks(events: &[UsageEvent], pricing: &PricingTable) -> Vec<SessionBlock> {
+    if events.is_empty() {
+        return Vec::new();
+    }
+
+    let mut sorted: Vec<&UsageEvent> = events.iter().collect();
+    sorted.sort_unstable_by_key(|e| e.timestamp);
+
+    let mut blocks: Vec<SessionBlock> = Vec::new();
+
+    for ev in sorted {
+        let cost = pricing.compute_cost(ev).cost_usd;
+        let tokens = ev.input_tokens + ev.output_tokens;
+
+        match blocks.last_mut() {
+            Some(b) if ev.timestamp < b.end => {
+                b.cost_usd += cost;
+                b.token_count += tokens;
+                b.event_count += 1;
+            }
+            _ => {
+                let start = ev.timestamp;
+                blocks.push(SessionBlock {
+                    start,
+                    end: start + Duration::hours(BILLING_BLOCK_HOURS),
+                    cost_usd: cost,
+                    token_count: tokens,
+                    event_count: 1,
+                });
+            }
+        }
+    }
+
+    blocks
+}
+
+/// Return the block whose window contains `now`, if any.
+pub fn active_block_at(blocks: &[SessionBlock], now: DateTime<Utc>) -> Option<SessionBlock> {
+    blocks
+        .iter()
+        .find(|b| now >= b.start && now < b.end)
+        .cloned()
 }
 
 fn accumulate_model(map: &mut BTreeMap<ModelId, ModelUsage>, ev: &UsageEvent, cost: Decimal) {
@@ -325,5 +383,107 @@ mod tests {
 
         let expected = rust_decimal::Decimal::from_str("6.00").unwrap();
         assert_eq!(snap.today.total_cost_usd, expected);
+    }
+
+    // ── billing_blocks() ──────────────────────────────────────────────────────
+
+    #[test]
+    fn empty_events_yields_no_blocks() {
+        assert!(billing_blocks(&[], &pricing()).is_empty());
+    }
+
+    #[test]
+    fn single_event_creates_one_block() {
+        let ev = make_event("s1", "claude-sonnet-4-6", ts_today(), 100, 0);
+        let blocks = billing_blocks(&[ev.clone()], &pricing());
+        assert_eq!(blocks.len(), 1);
+        assert_eq!(blocks[0].start, ev.timestamp);
+        assert_eq!(blocks[0].end, ev.timestamp + chrono::Duration::hours(5));
+        assert_eq!(blocks[0].event_count, 1);
+    }
+
+    #[test]
+    fn events_within_5h_are_one_block() {
+        let t0 = ts_today();
+        let ev1 = make_event("s1", "claude-sonnet-4-6", t0, 100, 0);
+        let ev2 = make_event(
+            "s1",
+            "claude-sonnet-4-6",
+            t0 + chrono::Duration::hours(4),
+            100,
+            0,
+        );
+        let blocks = billing_blocks(&[ev1, ev2], &pricing());
+        assert_eq!(blocks.len(), 1);
+        assert_eq!(blocks[0].event_count, 2);
+    }
+
+    #[test]
+    fn event_exactly_at_block_end_starts_new_block() {
+        let t0 = ts_today();
+        let ev1 = make_event("s1", "claude-sonnet-4-6", t0, 100, 0);
+        // exactly at t0 + 5h → NOT inside [start, end) → new block
+        let ev2 = make_event(
+            "s1",
+            "claude-sonnet-4-6",
+            t0 + chrono::Duration::hours(5),
+            100,
+            0,
+        );
+        let blocks = billing_blocks(&[ev1, ev2], &pricing());
+        assert_eq!(blocks.len(), 2);
+        assert_eq!(blocks[0].event_count, 1);
+        assert_eq!(blocks[1].event_count, 1);
+    }
+
+    #[test]
+    fn events_more_than_5h_apart_create_separate_blocks() {
+        let t0 = ts_today();
+        let ev1 = make_event("s1", "claude-sonnet-4-6", t0, 100, 0);
+        let ev2 = make_event(
+            "s1",
+            "claude-sonnet-4-6",
+            t0 + chrono::Duration::hours(6),
+            100,
+            0,
+        );
+        let blocks = billing_blocks(&[ev1, ev2], &pricing());
+        assert_eq!(blocks.len(), 2);
+    }
+
+    #[test]
+    fn unsorted_events_are_sorted_before_bucketing() {
+        let t0 = ts_today();
+        // deliberately reversed
+        let ev_late = make_event(
+            "s1",
+            "claude-sonnet-4-6",
+            t0 + chrono::Duration::hours(2),
+            100,
+            0,
+        );
+        let ev_early = make_event("s1", "claude-sonnet-4-6", t0, 100, 0);
+        let blocks = billing_blocks(&[ev_late, ev_early], &pricing());
+        assert_eq!(blocks.len(), 1);
+        assert_eq!(blocks[0].start, t0);
+    }
+
+    #[test]
+    fn active_block_found_when_now_within_window() {
+        let t0 = ts_today();
+        let ev = make_event("s1", "claude-sonnet-4-6", t0, 100, 0);
+        let blocks = billing_blocks(&[ev], &pricing());
+        // now() is also ts_today() + a few hours — block spans t0..t0+5h
+        let active = active_block_at(&blocks, t0 + chrono::Duration::hours(2));
+        assert!(active.is_some());
+    }
+
+    #[test]
+    fn active_block_none_when_now_outside_window() {
+        let t0 = ts_today();
+        let ev = make_event("s1", "claude-sonnet-4-6", t0, 100, 0);
+        let blocks = billing_blocks(&[ev], &pricing());
+        let active = active_block_at(&blocks, t0 + chrono::Duration::hours(6));
+        assert!(active.is_none());
     }
 }

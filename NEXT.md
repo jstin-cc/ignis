@@ -7,31 +7,27 @@ Der **eine** konkrete nächste Schritt. Bei Kontextverlust: erste Datei, die gel
 
 ## Jetzt
 
-**Phase 2: 5-Stunden-Billing-Windows / Session-Blocks (ADR-010).**
+**Phase 2: Tray-App — Per-Projekt-Breakdown + Burn-Rate-Block (Recharts).**
 
 ### Kontext
 
-Claude Code rechnet in 5-Stunden-Blöcken ab (Rolling Window). Ein neuer Block beginnt
-5 Stunden nach dem ersten Event des laufenden Blocks. Das ist für die Burn-Rate-Anzeige
-und Limit-Warnungen notwendig.
+Die Tray-App (`tray/`) zeigt bislang Today / This Month / Active Session (aus Phase 1).
+Phase 2 ergänzt:
+- Den aktiven Billing-Block als Fortschrittsbalken (analog zum TUI-Panel)
+- Einen Per-Projekt-Breakdown (Kosten sortiert nach Projekt)
 
 ### Schritte
 
-1. **ADR-010 ausarbeiten** (sofern noch nicht geschehen) — Definitionen:
-   - Block-Start: Timestamp des ersten Events nach einer Pause > 5 h (oder Programm-Start).
-   - Block-Ende: Block-Start + 5 h.
-   - Aktiver Block: der Block, dessen Fenster `Utc::now()` enthält.
+1. **HTTP-API erweitern** (`src/api.rs`): `/v1/summary`-Response um `active_block`
+   erweitern (start, end, cost_usd, token_count, percent_elapsed).
 
-2. **`src/aggregate.rs` erweitern**:
-   - `SessionBlock { start: DateTime<Utc>, cost_usd: Decimal, token_count: u64 }`
-   - `billing_blocks(events: &[UsageEvent]) -> Vec<SessionBlock>` — gruppiert Events
-     in 5-h-Fenster.
-   - `active_block(blocks: &[SessionBlock], now: DateTime<Utc>) -> Option<&SessionBlock>`
-   - `Snapshot` um `active_block: Option<SessionBlock>` erweitern.
+2. **`tray/src/types.ts`** — `ActiveBlock`-Interface hinzufügen.
 
-3. **`winusage watch` — Burn-Rate-Panel befüllen** (`src/bin/winusage-watch.rs`):
-   - Aktuellen Block-Fortschritt als Balken: `elapsed / 5h`.
-   - Token/Kosten-Summe im aktuellen Block.
-   - Einfache Burn-Rate: `cost_usd / elapsed_hours` → `$/h`.
+3. **`tray/src/components/BlockPanel.tsx`** — neues Panel:
+   - Fortschrittsbalken (CSS-Gradient, kein Recharts) mit `--accent-muted` bis 75%,
+     dann `--accent`, dann `--warning` ab 90%.
+   - Kosten + $/h + verbleibende Zeit.
 
-4. Tests in `src/aggregate.rs` für `billing_blocks()`.
+4. **`tray/src/App.tsx`** — BlockPanel oberhalb des Footer-Bereichs einbinden.
+
+Danach: Per-Projekt-Breakdown + Recharts-Chart.
