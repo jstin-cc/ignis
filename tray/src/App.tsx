@@ -2,6 +2,7 @@ import { useUsageData } from "./useUsageData";
 import { TodayPanel } from "./components/TodayPanel";
 import { MonthPanel } from "./components/MonthPanel";
 import { BlockPanel } from "./components/BlockPanel";
+import { ProjectsPanel } from "./components/ProjectsPanel";
 import { ActiveSessionPanel } from "./components/ActiveSessionPanel";
 import { Footer } from "./components/Footer";
 
@@ -46,6 +47,12 @@ export function App() {
       <MonthPanel data={month} />
       <hr className="section-divider" />
       <BlockPanel block={activeBlock} />
+      {today?.by_project.length ? (
+        <>
+          <hr className="section-divider" />
+          <ProjectsPanel data={today} />
+        </>
+      ) : null}
       <hr className="section-divider" />
       <ActiveSessionPanel session={activeSession} />
       <Footer onOpenDashboard={handleOpenDashboard} />

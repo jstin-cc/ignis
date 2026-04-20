@@ -56,7 +56,7 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 - [ ] Burn-Rate + Projektionen.
 - [x] Tray: BlockPanel — Fortschrittsbalken (CSS, kein Recharts), $/h Burn Rate,
       verbleibende Zeit; API: ActiveBlockDto + percent_elapsed in /v1/summary.
-- [ ] Tray: Per-Projekt-Breakdown + Chart (Recharts).
+- [x] Tray: ProjectsPanel — Top-5-Projekte mit Mini-Balken + Kosten (kein Recharts, reine CSS).
 - [ ] Notifications bei Limit-Schwellen.
 - [ ] Auto-Start bei Windows-Login (optional).
 

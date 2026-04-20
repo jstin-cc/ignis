@@ -7,24 +7,28 @@ Der **eine** konkrete nächste Schritt. Bei Kontextverlust: erste Datei, die gel
 
 ## Jetzt
 
-**Phase 2: Tray-App — Per-Projekt-Breakdown.**
+**Phase 2: Notifications bei Limit-Schwellen.**
 
 ### Kontext
 
-`Summary.by_project` enthält bereits Kosten und Token pro Projekt-Pfad. Die Tray-App
-zeigt das noch nicht. Eine neue Sektion soll die Top-Projekte nach Kosten anzeigen.
+Der aktive Block hat `percent_elapsed`. Wenn 80% oder 100% erreicht werden, soll eine
+Windows-Benachrichtigung ausgelöst werden. Tauri 2 stellt `tauri-plugin-notification`
+bereit.
 
 ### Schritte
 
-1. **`tray/src/components/ProjectsPanel.tsx`** — neue Komponente:
-   - Label: "PROJECTS (TODAY)"
-   - Liste: Projektname (aus `projectName()`), Kosten rechts ausgerichtet
-   - Maximal 5 Einträge, absteigend nach `total_cost_usd` sortiert
-   - Kein Chart für MVP — pure Textliste
+1. **`tray/src-tauri/Cargo.toml`** — `tauri-plugin-notification` hinzufügen.
 
-2. **`tray/src/App.tsx`** — `ProjectsPanel` zwischen `BlockPanel` und
-   `ActiveSessionPanel` einbinden, mit Trennlinie.
+2. **`tray/src-tauri/src/main.rs`** — Plugin registrieren:
+   `tauri::Builder::default().plugin(tauri_plugin_notification::init())`
 
-3. Nur rendern wenn `today.by_project.length > 0`.
+3. **`tray/src/hooks/useBlockNotifications.ts`** — neuer Hook:
+   - Speichert welche Schwellen (80%, 100%) für den aktuellen Block bereits gefeuert wurden
+     (via `useRef` — kein Re-Render nötig).
+   - Wenn `percent_elapsed >= 80` und noch nicht gemeldet → Notification.
+   - Wenn `percent_elapsed >= 100` / Block abgelaufen → Notification.
+   - Beim Block-Wechsel (neue `start`-Zeit) → fired-Set zurücksetzen.
 
-Danach: Notification-Schwellen (Limit-Warning bei 80% / 100% des Blocks).
+4. **`tray/src/App.tsx`** — `useBlockNotifications(activeBlock)` aufrufen.
+
+Danach: Auto-Start bei Windows-Login (optional, Tauri `autostart`-Plugin).
