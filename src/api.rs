@@ -613,10 +613,12 @@ mod tests {
     async fn summary_cost_is_string_not_float() {
         let state = make_state("");
         // inject a snapshot with a non-zero cost
-        let mut summary = Summary::default();
-        summary.total_cost_usd = Decimal::new(243, 2); // 2.43
-        summary.total_tokens = 1000;
-        summary.event_count = 1;
+        let summary = Summary {
+            total_cost_usd: Decimal::new(243, 2), // 2.43
+            total_tokens: 1000,
+            event_count: 1,
+            ..Summary::default()
+        };
         let snap = Snapshot {
             taken_at: Utc.with_ymd_and_hms(2026, 4, 17, 12, 0, 0).unwrap(),
             today: summary,

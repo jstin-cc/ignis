@@ -395,7 +395,7 @@ mod tests {
     #[test]
     fn single_event_creates_one_block() {
         let ev = make_event("s1", "claude-sonnet-4-6", ts_today(), 100, 0);
-        let blocks = billing_blocks(&[ev.clone()], &pricing());
+        let blocks = billing_blocks(std::slice::from_ref(&ev), &pricing());
         assert_eq!(blocks.len(), 1);
         assert_eq!(blocks[0].start, ev.timestamp);
         assert_eq!(blocks[0].end, ev.timestamp + chrono::Duration::hours(5));
