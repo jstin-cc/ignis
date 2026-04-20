@@ -29,7 +29,7 @@ Reihenfolge der Fixes (Empfehlung aus Review):
     `by_project`-Maps der drei Summaries schreiben — oder `accumulate_summary`
     eine `seen_sessions: &mut HashSet<(PathBuf, String)>` mitgeben.
 
-- [ ] **#2 UI labelt `event_count` als „sessions"**
+- [x] **#2 UI labelt `event_count` als „sessions"**
   - Symptom: TodayPanel/MonthPanel: „1234 tokens · 47 sessions" — Zahl ist
     aber `event_count` (API-Calls), nicht Sessions.
   - Datei: `tray/src/components/TodayPanel.tsx:18`, `MonthPanel.tsx:18`.
@@ -209,3 +209,4 @@ Reihenfolge der Fixes (Empfehlung aus Review):
 
 2026-04-20 · #26 · pricing.json PLACEHOLDER-Note entfernt, Datum aktualisiert · 6afb557
 2026-04-20 · #25 · Tray-Icon: default_window_icon() statt 1×1-Pixel · a628cc2
+2026-04-20 · #2  · TodayPanel/MonthPanel: 'sessions' → 'events' · a856a85
