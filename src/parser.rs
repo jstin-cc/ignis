@@ -50,13 +50,17 @@ pub fn parse_line(line: &str) -> Result<Option<UsageEvent>, ParseError> {
 
     let cwd = raw.cwd.unwrap_or_default();
 
+    // Fehlender oder nicht-parsbarer Timestamp → Event verwerfen statt Fake-Zeit einsetzen,
+    // die das Event fälschlich als "heute aktiv" erscheinen lässt.
+    let timestamp = match raw.timestamp.as_deref().and_then(|s| s.parse().ok()) {
+        Some(ts) => ts,
+        None => return Ok(None),
+    };
+
     Ok(Some(UsageEvent {
         session_id: raw.session_id.unwrap_or_default(),
         uuid: raw.uuid.unwrap_or_default(),
-        timestamp: raw
-            .timestamp
-            .and_then(|s| s.parse().ok())
-            .unwrap_or_else(chrono::Utc::now),
+        timestamp,
         project_path: PathBuf::from(&cwd),
         git_branch: raw.git_branch,
         model: model_str.into(),
