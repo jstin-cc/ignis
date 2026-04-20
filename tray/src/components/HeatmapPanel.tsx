@@ -16,7 +16,7 @@ function isoWeekday(dateStr: string): number {
 
 function cellColor(costUsd: string, maxCost: number): string {
   const v = parseFloat(costUsd);
-  if (v <= 0 || maxCost <= 0) return "var(--bg-elevated)";
+  if (!isFinite(v) || v <= 0 || maxCost <= 0) return "var(--bg-elevated)";
   const ratio = Math.min(1, v / maxCost);
   const alpha = 0.15 + ratio * 0.85;
   return `rgba(193, 95, 60, ${alpha.toFixed(2)})`;
@@ -25,7 +25,8 @@ function cellColor(costUsd: string, maxCost: number): string {
 export function HeatmapPanel({ days }: HeatmapPanelProps) {
   if (days.length === 0) return null;
 
-  const maxCost = Math.max(...days.map((d) => parseFloat(d.cost_usd)));
+  const costs = days.map((d) => parseFloat(d.cost_usd)).filter((v) => isFinite(v));
+  const maxCost = costs.length > 0 ? Math.max(...costs) : 0;
 
   // Align grid so that column 0 starts on a Monday.
   const firstWeekday = isoWeekday(days[0].date);
