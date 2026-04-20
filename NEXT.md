@@ -7,27 +7,29 @@ Der **eine** konkrete nächste Schritt. Bei Kontextverlust: erste Datei, die gel
 
 ## Jetzt
 
-**Phase 3, Schritt 1: Export — CSV und JSON.**
+**Phase 3, Schritt 3: Heatmap im Tray.**
 
 ### Kontext
 
-`winusage export` erweitert die CLI um maschinenlesbare Ausgabe. Nützlich für
-Eigenanalysen, Skripte und spätere Dashboard-Integrationen.
+Eine Aktivitäts-Heatmap zeigt die täglichen Kosten der letzten 12 Wochen als
+7×12-CSS-Grid (Spalten = Wochen, Zeilen = Wochentage Mo–So). Farbtiefe entspricht
+der Tagesausgabe (leer → leichtes Terrakotta → volles Terrakotta).
 
 ### Schritte
 
-1. **`src/bin/winusage.rs`** — `Export`-Subcommand mit `--format <csv|json>` und
-   `--period <today|week|month>` (Default: `month`) hinzufügen.
-   - JSON: Snapshot-Felder `total_cost_usd`, `total_tokens`, `event_count`,
-     `by_model` (Array), `by_project` (Array).
-   - CSV: Header-Zeile + eine Zeile pro Modell:
-     `period,model,input_tokens,output_tokens,cost_usd`
+1. **`src/api.rs`** — `GET /v1/heatmap` Endpoint: gibt Array von
+   `{ date: "YYYY-MM-DD", cost_usd: "0.00" }` für die letzten 84 Tage zurück.
+   Neue Funktion `daily_costs(events, pricing, since)` in `aggregate.rs`.
 
-2. Tests in `src/bin/winusage.rs` sind nicht nötig — die Formatierungslogik bleibt
-   thin. Ggf. Snapshot-Daten-Test in `aggregate.rs`.
+2. **`tray/src/types.ts`** — `HeatmapDay`-Interface + `fetchHeatmap()`-Funktion
+   in `useUsageData.ts`.
 
-### Danach (Phase 3 Reihenfolge)
+3. **`tray/src/components/HeatmapPanel.tsx`** — 7×12 CSS-Grid (kein Recharts),
+   Tooltip-Titel mit Datum + Kosten (`title`-Attribut reicht).
 
-- Provider-Plugin-Trait (ADR-012 schreiben, dann `src/provider.rs`)
-- Heatmap im Tray (7×n-CSS-Grid, Tages-Granularität)
-- Auto-Update via Tauri Updater
+4. **`tray/src/App.tsx`** — `HeatmapPanel` zwischen ProjectsPanel und Footer einbauen.
+
+### Danach
+
+- Auto-Update via Tauri Updater (Phase 3 Abschluss)
+- v1.0.0 Tag vorbereiten

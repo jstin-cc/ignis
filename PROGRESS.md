@@ -64,7 +64,7 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 
 ## Phase 3 — Plugin-ready (`v1.0.0`)
 
-- [ ] Provider-Plugin-Trait (Vorbereitung für Cursor/Codex).
-- [ ] Export: CSV, JSON.
+- [x] Provider-Plugin-Trait — `src/provider.rs`, `ClaudeCodeProvider`, ADR-012; 57 Tests.
+- [x] Export: CSV, JSON — `winusage export --format <csv|json> --period <today|week|month>`.
 - [ ] Heatmap im Tray.
 - [ ] Auto-Update via Tauri Updater.
