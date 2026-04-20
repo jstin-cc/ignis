@@ -13,6 +13,7 @@ use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Manager, Runtime,
 };
+use tauri_plugin_autostart::ManagerExt;
 
 fn toggle_panel<R: Runtime>(app: &tauri::AppHandle<R>) {
     let Some(window) = app.get_webview_window("main") else {
@@ -26,9 +27,32 @@ fn toggle_panel<R: Runtime>(app: &tauri::AppHandle<R>) {
     }
 }
 
+#[tauri::command]
+fn get_autostart_enabled(app: tauri::AppHandle) -> bool {
+    app.autolaunch().is_enabled().unwrap_or(false)
+}
+
+#[tauri::command]
+fn set_autostart_enabled(app: tauri::AppHandle, enabled: bool) -> Result<(), String> {
+    let mgr = app.autolaunch();
+    if enabled {
+        mgr.enable().map_err(|e| e.to_string())
+    } else {
+        mgr.disable().map_err(|e| e.to_string())
+    }
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            None,
+        ))
+        .invoke_handler(tauri::generate_handler![
+            get_autostart_enabled,
+            set_autostart_enabled,
+        ])
         .setup(|app| {
             // Build the right-click context menu.
             let quit_item = MenuItemBuilder::with_id("quit", "Quit WinUsage").build(app)?;

@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useUsageData } from "./useUsageData";
 import { useBlockNotifications } from "./hooks/useBlockNotifications";
+import { useAutoStart } from "./hooks/useAutoStart";
 import { TodayPanel } from "./components/TodayPanel";
 import { MonthPanel } from "./components/MonthPanel";
 import { BlockPanel } from "./components/BlockPanel";
@@ -10,6 +12,8 @@ import { Footer } from "./components/Footer";
 export function App() {
   const { today, month, activeSession, activeBlock, error } = useUsageData();
   useBlockNotifications(activeBlock);
+  const { isEnabled, toggle } = useAutoStart();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   function handleOpenDashboard() {
     // Phase 2: open a full dashboard window via Tauri IPC.
@@ -25,9 +29,7 @@ export function App() {
           <button
             style={styles.iconBtn}
             aria-label="Settings"
-            onClick={() => {
-              /* Phase 2: open settings */
-            }}
+            onClick={() => setSettingsOpen((v) => !v)}
           >
             ⚙
           </button>
@@ -42,6 +44,20 @@ export function App() {
           </button>
         </div>
       </header>
+
+      {settingsOpen && (
+        <div style={styles.settingsPanel}>
+          <label style={styles.settingsRow}>
+            <input
+              type="checkbox"
+              checked={isEnabled}
+              onChange={() => void toggle()}
+              style={styles.checkbox}
+            />
+            <span style={styles.settingsLabel}>Auto-Start bei Windows-Login</span>
+          </label>
+        </div>
+      )}
 
       <hr className="section-divider" />
       <TodayPanel data={today} />
@@ -68,7 +84,6 @@ const styles = {
     display: "flex",
     flexDirection: "column" as const,
     backgroundColor: "var(--bg-base)",
-    // Prevent the panel from growing taller than the Tauri window height.
     maxHeight: "520px",
     overflow: "hidden",
   },
@@ -113,5 +128,26 @@ const styles = {
     fontWeight: 700,
     color: "var(--danger)",
     marginRight: "4px",
+  },
+  settingsPanel: {
+    padding: "10px 16px",
+    backgroundColor: "var(--bg-surface)",
+    borderBottom: "1px solid var(--border-subtle)",
+  },
+  settingsRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    cursor: "pointer",
+  },
+  checkbox: {
+    accentColor: "var(--accent)",
+    width: "14px",
+    height: "14px",
+    cursor: "pointer",
+  },
+  settingsLabel: {
+    fontSize: "13px",
+    color: "var(--text-secondary)",
   },
 } as const;
