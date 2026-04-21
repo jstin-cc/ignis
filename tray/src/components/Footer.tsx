@@ -1,20 +1,46 @@
-interface FooterProps {
-  onOpenDashboard: () => void;
-}
+import { useState } from "react";
 
-export function Footer({ onOpenDashboard }: FooterProps) {
+export function Footer({ onOpenDashboard: _ }: { onOpenDashboard: () => void }) {
+  const [cliCopied, setCliCopied] = useState(false);
+  const [dashError, setDashError] = useState<string | null>(null);
+
+  async function handleOpenDashboard() {
+    setDashError(null);
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("open_cli_dashboard");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setDashError(msg);
+      setTimeout(() => setDashError(null), 2500);
+    }
+  }
+
+  async function handleCopyCli() {
+    try {
+      await navigator.clipboard.writeText("winusage");
+      setCliCopied(true);
+      setTimeout(() => setCliCopied(false), 1500);
+    } catch {
+      /* clipboard unavailable — ignore */
+    }
+  }
+
   return (
     <footer style={styles.footer}>
-      <button style={styles.primaryBtn} onClick={onOpenDashboard}>
-        Open Dashboard
+      <button
+        style={styles.primaryBtn}
+        onClick={() => void handleOpenDashboard()}
+        title={dashError ?? "winusage-watch (TUI) starten"}
+      >
+        {dashError ? "Fehler" : "Open Dashboard"}
       </button>
       <button
         style={styles.secondaryBtn}
-        onClick={() => {
-          /* CLI copy-hint: no shell spawn in MVP */
-        }}
+        onClick={() => void handleCopyCli()}
+        title="Kopiert 'winusage' in die Zwischenablage"
       >
-        CLI: winusage
+        {cliCopied ? "Kopiert ✓" : "CLI: winusage"}
       </button>
     </footer>
   );
@@ -27,6 +53,7 @@ const styles = {
     padding: "12px 16px",
     backgroundColor: "var(--bg-base)",
     borderTop: "1px solid var(--border-subtle)",
+    flexShrink: 0,
   },
   primaryBtn: {
     flex: 1,

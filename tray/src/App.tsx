@@ -25,10 +25,11 @@ export function App() {
 
   return (
     <div style={styles.shell}>
-      <header style={styles.header}>
-        <span style={styles.appName}>WinUsage</span>
+      <header style={styles.header} data-tauri-drag-region>
+        <span style={styles.appName} data-tauri-drag-region>
+          WinUsage
+        </span>
         <div style={styles.headerActions}>
-          {error && <span style={styles.errorDot} title={error}>!</span>}
           <button
             style={styles.iconBtn}
             aria-label="Settings"
@@ -40,7 +41,9 @@ export function App() {
             style={styles.iconBtn}
             aria-label="Close"
             onClick={() => {
-              /* Tauri: hide window — wired in main.rs via tray toggle */
+              void import("@tauri-apps/api/window").then((m) =>
+                m.getCurrentWindow().hide()
+              );
             }}
           >
             ×
@@ -48,59 +51,67 @@ export function App() {
         </div>
       </header>
 
-      {settingsOpen && (
-        <div style={styles.settingsPanel}>
-          <label style={styles.settingsRow}>
-            <input
-              type="checkbox"
-              checked={isEnabled}
-              onChange={() => void toggle()}
-              style={styles.checkbox}
-            />
-            <span style={styles.settingsLabel}>Auto-Start bei Windows-Login</span>
-          </label>
-          <div style={styles.updateRow}>
-            <button
-              style={styles.updateBtn}
-              disabled={checking}
-              onClick={() => void checkForUpdate()}
-            >
-              {checking ? "Prüfe…" : "Updates prüfen"}
-            </button>
-            {result && (
-              <span style={styles.updateStatus}>
-                {result.available ? `v${result.version} verfügbar` : "Aktuell"}
-              </span>
-            )}
-            {updateError && (
-              <span style={{ ...styles.updateStatus, color: "var(--text-tertiary)" }}>
-                kein Server
-              </span>
-            )}
+      <div style={styles.content}>
+        {settingsOpen && (
+          <div style={styles.settingsPanel}>
+            <label style={styles.settingsRow}>
+              <input
+                type="checkbox"
+                checked={isEnabled}
+                onChange={() => void toggle()}
+                style={styles.checkbox}
+              />
+              <span style={styles.settingsLabel}>Auto-Start bei Windows-Login</span>
+            </label>
+            <div style={styles.updateRow}>
+              <button
+                style={styles.updateBtn}
+                disabled={checking}
+                onClick={() => void checkForUpdate()}
+              >
+                {checking ? "Prüfe…" : "Updates prüfen"}
+              </button>
+              {result && (
+                <span style={styles.updateStatus}>
+                  {result.available ? `v${result.version} verfügbar` : "Aktuell"}
+                </span>
+              )}
+              {updateError && (
+                <span style={{ ...styles.updateStatus, color: "var(--text-tertiary)" }}>
+                  kein Server
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <hr className="section-divider" />
-      <TodayPanel data={today} />
-      <hr className="section-divider" />
-      <MonthPanel data={month} />
-      <hr className="section-divider" />
-      <BlockPanel block={activeBlock} />
-      {today?.by_project.length ? (
-        <>
-          <hr className="section-divider" />
-          <ProjectsPanel data={today} />
-        </>
-      ) : null}
-      {heatmap.length > 0 && (
-        <>
-          <hr className="section-divider" />
-          <HeatmapPanel days={heatmap} />
-        </>
-      )}
-      <hr className="section-divider" />
-      <ActiveSessionPanel session={activeSession} />
+        {error && (
+          <div style={styles.errorBanner}>
+            API nicht erreichbar — starte winusage-api
+          </div>
+        )}
+        <hr className="section-divider" />
+        <TodayPanel data={today} />
+        <hr className="section-divider" />
+        <MonthPanel data={month} />
+        <hr className="section-divider" />
+        <BlockPanel block={activeBlock} />
+        {today?.by_project.length ? (
+          <>
+            <hr className="section-divider" />
+            <ProjectsPanel data={today} />
+          </>
+        ) : null}
+        {heatmap.length > 0 && (
+          <>
+            <hr className="section-divider" />
+            <HeatmapPanel days={heatmap} />
+          </>
+        )}
+        <hr className="section-divider" />
+        <ActiveSessionPanel session={activeSession} />
+      </div>
+
       <Footer onOpenDashboard={handleOpenDashboard} />
     </div>
   );
@@ -109,10 +120,10 @@ export function App() {
 const styles = {
   shell: {
     width: "360px",
+    height: "520px",
     display: "flex",
     flexDirection: "column" as const,
     backgroundColor: "var(--bg-base)",
-    maxHeight: "520px",
     overflow: "hidden",
   },
   header: {
@@ -123,6 +134,14 @@ const styles = {
     padding: "0 16px",
     backgroundColor: "var(--bg-base)",
     flexShrink: 0,
+    cursor: "grab",
+  },
+  content: {
+    flex: 1,
+    overflowY: "auto" as const,
+    display: "flex",
+    flexDirection: "column" as const,
+    minHeight: 0,
   },
   appName: {
     fontSize: "14px",
@@ -197,5 +216,12 @@ const styles = {
   updateStatus: {
     fontSize: "12px",
     color: "var(--accent)",
+  },
+  errorBanner: {
+    padding: "8px 16px",
+    fontSize: "12px",
+    color: "var(--danger)",
+    backgroundColor: "var(--bg-surface)",
+    borderBottom: "1px solid var(--border-subtle)",
   },
 } as const;

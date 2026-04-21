@@ -10,6 +10,7 @@ import type {
 
 const API_BASE = "http://127.0.0.1:7337";
 const POLL_INTERVAL_MS = 30_000;
+const FETCH_TIMEOUT_MS = 10_000;
 
 async function loadApiToken(): Promise<string> {
   try {
@@ -89,6 +90,7 @@ export function useUsageData(): UsageData {
     const controller = new AbortController();
     abortRef.current = controller;
     const { signal } = controller;
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
     const t = token ?? "";
     try {
@@ -98,11 +100,16 @@ export function useUsageData(): UsageData {
         fetchActiveSessions(t, signal),
         fetchHeatmap(t, signal),
       ]);
+      clearTimeout(timeoutId);
       if (signal.aborted) return;
       const activeBlock: ActiveBlock | null = today.active_block ?? null;
       setData({ today, month, activeSession, activeBlock, heatmap, loading: false, error: null });
     } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") return;
+      clearTimeout(timeoutId);
+      if (err instanceof Error && err.name === "AbortError") {
+        setData((prev) => ({ ...prev, loading: false, error: "API nicht erreichbar (Timeout)" }));
+        return;
+      }
       const message = err instanceof Error ? err.message : String(err);
       setData((prev) => ({ ...prev, loading: false, error: message }));
     }

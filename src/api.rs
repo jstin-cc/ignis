@@ -1,7 +1,7 @@
 use crate::model::{ModelId, ModelUsage, Snapshot, Summary};
 use axum::{
     extract::{Query, State},
-    http::{HeaderMap, StatusCode},
+    http::{header, HeaderMap, HeaderValue, Method, StatusCode},
     response::{IntoResponse, Response},
     routing::get,
     Json, Router,
@@ -9,6 +9,7 @@ use axum::{
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use tower_http::cors::CorsLayer;
 
 /// Shared API state threaded through every handler.
 #[derive(Clone)]
@@ -50,12 +51,23 @@ impl ApiState {
 // ── Router ────────────────────────────────────────────────────────────────────
 
 pub fn router(state: ApiState) -> Router {
+    let allowed: Vec<HeaderValue> = ALLOWED_ORIGINS
+        .iter()
+        .filter_map(|o| HeaderValue::from_str(o).ok())
+        .collect();
+
+    let cors = CorsLayer::new()
+        .allow_origin(allowed)
+        .allow_methods([Method::GET, Method::OPTIONS])
+        .allow_headers([header::AUTHORIZATION, header::CONTENT_TYPE]);
+
     Router::new()
         .route("/health", get(health_handler))
         .route("/v1/summary", get(summary_handler))
         .route("/v1/sessions", get(sessions_handler))
         .route("/v1/heatmap", get(heatmap_handler))
         .fallback(not_found_handler)
+        .layer(cors)
         .with_state(state)
 }
 

@@ -15,6 +15,7 @@ src-tauri/target/
 # Tauri build artifacts
 **/src-tauri/WixTools/
 **/src-tauri/target/
+**/src-tauri/gen/
 
 # Windows
 Thumbs.db
