@@ -1,4 +1,5 @@
 use crate::model::{ModelId, ModelUsage, Snapshot, Summary};
+use std::sync::atomic::{AtomicU64, Ordering};
 use axum::{
     extract::{Query, State},
     http::{header, HeaderMap, HeaderValue, Method, StatusCode},
@@ -20,15 +21,23 @@ pub struct ApiState {
     pub api_token: String,
     /// Crate version string embedded at build time.
     pub version: &'static str,
+    /// Token limit per 5-hour billing block (from plan config); updated on each re-scan cycle.
+    pub plan_token_limit: Arc<AtomicU64>,
 }
 
 impl ApiState {
-    pub fn new(snapshot: Snapshot, api_token: String) -> Self {
+    pub fn new(snapshot: Snapshot, api_token: String, plan_token_limit: u64) -> Self {
         Self {
             snapshot: Arc::new(std::sync::RwLock::new(Arc::new(snapshot))),
             api_token,
             version: env!("CARGO_PKG_VERSION"),
+            plan_token_limit: Arc::new(AtomicU64::new(plan_token_limit)),
         }
+    }
+
+    /// Update the plan token limit (called after re-reading config.json).
+    pub fn update_plan_token_limit(&self, limit: u64) {
+        self.plan_token_limit.store(limit, Ordering::Relaxed);
     }
 
     /// Replace the current snapshot (called after each re-scan).
@@ -236,8 +245,12 @@ struct ActiveBlockDto {
     cost_usd: String,
     token_count: u64,
     event_count: u64,
-    /// 0–100: fraction of the 5-hour window that has elapsed.
+    /// 0–100: fraction of the 5-hour window that has elapsed (time-based).
     percent_elapsed: u8,
+    /// Plan token limit for this block (from config.json).
+    block_token_limit: u64,
+    /// 0–100: fraction of the plan token limit consumed (token-based).
+    block_token_pct: u8,
 }
 
 async fn summary_handler(
@@ -295,6 +308,12 @@ async fn summary_handler(
         let total_secs = (b.end - b.start).num_seconds().max(1);
         let elapsed_secs = (snap.taken_at - b.start).num_seconds().clamp(0, total_secs);
         let percent_elapsed = ((elapsed_secs as f64 / total_secs as f64) * 100.0) as u8;
+        let token_limit = state.plan_token_limit.load(Ordering::Relaxed);
+        let block_token_pct = if token_limit > 0 {
+            ((b.token_count.min(token_limit) as f64 / token_limit as f64) * 100.0) as u8
+        } else {
+            0
+        };
         ActiveBlockDto {
             start: b.start,
             end: b.end,
@@ -302,6 +321,8 @@ async fn summary_handler(
             token_count: b.token_count,
             event_count: b.event_count,
             percent_elapsed,
+            block_token_limit: token_limit,
+            block_token_pct,
         }
     });
 
@@ -493,7 +514,7 @@ mod tests {
     }
 
     fn make_state(token: &str) -> ApiState {
-        ApiState::new(empty_snapshot(), token.to_owned())
+        ApiState::new(empty_snapshot(), token.to_owned(), 88_000)
     }
 
     async fn get_json(app: Router, path: &str) -> (StatusCode, serde_json::Value) {

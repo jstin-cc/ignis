@@ -14,7 +14,7 @@ pub mod provider;
 pub mod scanner;
 
 pub use aggregate::{active_block_at, billing_blocks, build_snapshot, daily_costs};
-pub use config::{Config, ConfigError};
+pub use config::{Config, ConfigError, PlanConfig, PlanKind};
 pub use model::{
     HeatmapDay, ModelId, ModelUsage, ProjectUsage, SessionBlock, SessionState, Snapshot, Summary,
     UsageEvent,

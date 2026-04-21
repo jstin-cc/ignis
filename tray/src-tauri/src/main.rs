@@ -113,6 +113,55 @@ fn get_api_token() -> Result<String, String> {
         .ok_or_else(|| "api_token not found in config".to_owned())
 }
 
+#[derive(serde::Serialize, serde::Deserialize)]
+struct PlanConfigDto {
+    kind: String,
+    custom_token_limit: Option<u64>,
+}
+
+fn config_path() -> Result<std::path::PathBuf, String> {
+    let appdata = std::env::var("APPDATA")
+        .or_else(|_| std::env::var("HOME").map(|h| format!("{h}/.config")))
+        .map_err(|e| e.to_string())?;
+    Ok(std::path::PathBuf::from(appdata)
+        .join("winusage")
+        .join("config.json"))
+}
+
+#[tauri::command]
+fn get_plan_config() -> Result<PlanConfigDto, String> {
+    let path = config_path()?;
+    let raw = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    let val: serde_json::Value = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
+    let plan = val.get("plan");
+    let kind = plan
+        .and_then(|p| p.get("kind"))
+        .and_then(|k| k.as_str())
+        .unwrap_or("max5")
+        .to_owned();
+    let custom_token_limit = plan
+        .and_then(|p| p.get("custom_token_limit"))
+        .and_then(|v| v.as_u64());
+    Ok(PlanConfigDto {
+        kind,
+        custom_token_limit,
+    })
+}
+
+#[tauri::command]
+fn set_plan_config(kind: String, custom_token_limit: Option<u64>) -> Result<(), String> {
+    let path = config_path()?;
+    let raw = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    let mut val: serde_json::Value = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
+    let mut plan = serde_json::json!({ "kind": kind });
+    if let Some(limit) = custom_token_limit {
+        plan["custom_token_limit"] = serde_json::json!(limit);
+    }
+    val["plan"] = plan;
+    let json = serde_json::to_string_pretty(&val).map_err(|e| e.to_string())?;
+    std::fs::write(&path, json).map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 fn open_cli_dashboard() -> Result<(), String> {
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;
@@ -177,6 +226,8 @@ fn main() {
             check_for_update,
             get_api_token,
             open_cli_dashboard,
+            get_plan_config,
+            set_plan_config,
         ])
         .setup(|app| {
             let quit_item = MenuItemBuilder::with_id("quit", "Quit WinUsage").build(app)?;

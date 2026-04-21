@@ -34,8 +34,19 @@ export interface ActiveBlock {
   cost_usd: string;
   token_count: number;
   event_count: number;
-  /** 0–100: fraction of the 5-hour window elapsed */
+  /** 0–100: fraction of the 5-hour window elapsed (time-based) */
   percent_elapsed: number;
+  /** Plan token limit for this block */
+  block_token_limit: number;
+  /** 0–100: fraction of the plan token limit consumed (token-based) */
+  block_token_pct: number;
+}
+
+export type PlanKind = "pro" | "max5" | "max20" | "custom";
+
+export interface PlanConfig {
+  kind: PlanKind;
+  custom_token_limit: number | null;
 }
 
 export interface SummaryResponse {

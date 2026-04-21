@@ -3,6 +3,45 @@ use std::io;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
 
+/// Claude plan tier — determines the token limit per 5-hour billing block.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PlanKind {
+    Pro,
+    Max5,
+    Max20,
+    Custom,
+}
+
+/// Plan configuration stored in `config.json`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PlanConfig {
+    pub kind: PlanKind,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub custom_token_limit: Option<u64>,
+}
+
+impl Default for PlanConfig {
+    fn default() -> Self {
+        PlanConfig {
+            kind: PlanKind::Max5,
+            custom_token_limit: None,
+        }
+    }
+}
+
+impl PlanConfig {
+    /// Token limit per 5-hour billing block for this plan.
+    pub fn token_limit(&self) -> u64 {
+        match self.kind {
+            PlanKind::Pro => 44_000,
+            PlanKind::Max5 => 88_000,
+            PlanKind::Max20 => 220_000,
+            PlanKind::Custom => self.custom_token_limit.unwrap_or(88_000),
+        }
+    }
+}
+
 #[derive(Debug, Error)]
 pub enum ConfigError {
     #[error("required environment variable '{var}' is not set: {source}")]
@@ -30,6 +69,8 @@ pub struct Config {
     pub claude_projects_dir: PathBuf,
     /// Bearer token for the local HTTP API.
     pub api_token: String,
+    /// Claude plan — determines the token limit per 5-hour billing block.
+    pub plan: PlanConfig,
 }
 
 impl Config {
@@ -46,6 +87,7 @@ impl Config {
             let c = Config {
                 claude_projects_dir: home_projects_dir()?,
                 api_token: generate_token(),
+                plan: PlanConfig::default(),
             };
             // Best-effort write — ignore failure (e.g. read-only filesystem).
             let _ = save_file(&c, &path);
@@ -67,6 +109,8 @@ impl Config {
 struct StoredConfig {
     claude_projects_dir: String,
     api_token: String,
+    #[serde(default)]
+    plan: PlanConfig,
 }
 
 fn config_file_path() -> Result<PathBuf, ConfigError> {
@@ -106,6 +150,7 @@ fn load_file(path: &Path) -> Result<Config, ConfigError> {
     Ok(Config {
         claude_projects_dir: PathBuf::from(stored.claude_projects_dir),
         api_token: stored.api_token,
+        plan: stored.plan,
     })
 }
 
@@ -119,6 +164,7 @@ fn save_file(cfg: &Config, path: &Path) -> Result<(), ConfigError> {
     let stored = StoredConfig {
         claude_projects_dir: cfg.claude_projects_dir.to_string_lossy().into_owned(),
         api_token: cfg.api_token.clone(),
+        plan: cfg.plan.clone(),
     };
     let json = serde_json::to_string_pretty(&stored).expect("StoredConfig always serializes");
     std::fs::write(path, json).map_err(|e| ConfigError::Io {

@@ -15,14 +15,14 @@ export function BlockPanel({ block }: BlockPanelProps) {
     );
   }
 
-  const pct = Math.min(100, Math.max(0, block.percent_elapsed));
+  const tokenPct = Math.min(100, Math.max(0, block.block_token_pct));
   const remaining = remainingTime(block.end);
   const burnRate = computeBurnRate(block);
 
   const barColor =
-    pct >= 90
+    tokenPct >= 90
       ? "var(--warning)"
-      : pct >= 75
+      : tokenPct >= 75
         ? "var(--accent)"
         : "var(--accent-muted)";
 
@@ -34,12 +34,16 @@ export function BlockPanel({ block }: BlockPanelProps) {
         <div
           style={{
             ...styles.barFill,
-            width: `${pct}%`,
+            width: `${tokenPct}%`,
             backgroundColor: barColor,
             transition: "width 200ms ease-out, background-color 200ms ease-out",
           }}
         />
       </div>
+
+      <span style={styles.pctLabel} className="tabular">
+        {tokenPct}% used · resets in {remaining}
+      </span>
 
       <div style={styles.row}>
         <span style={styles.cost} className="tabular">
@@ -50,14 +54,7 @@ export function BlockPanel({ block }: BlockPanelProps) {
             {burnRate}/h
           </span>
         )}
-        <span style={styles.remaining} className="tabular">
-          {remaining} left
-        </span>
       </div>
-
-      <span style={styles.meta} className="tabular">
-        {pct}% elapsed · started {blockStartTime(block.start)}
-      </span>
     </section>
   );
 }
@@ -73,7 +70,6 @@ function remainingTime(endIso: string): string {
 
 function computeBurnRate(block: ActiveBlock): string | null {
   if (block.percent_elapsed <= 0) return null;
-  // Use server-side percent_elapsed to avoid client/server clock drift.
   const totalH =
     (new Date(block.end).getTime() - new Date(block.start).getTime()) / 3_600_000;
   const elapsedH = (block.percent_elapsed / 100) * totalH;
@@ -81,13 +77,6 @@ function computeBurnRate(block: ActiveBlock): string | null {
   const cost = parseFloat(block.cost_usd);
   if (isNaN(cost)) return null;
   return formatCost((cost / elapsedH).toFixed(4));
-}
-
-function blockStartTime(startIso: string): string {
-  return new Date(startIso).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 const styles = {
@@ -115,6 +104,11 @@ const styles = {
     height: "100%",
     borderRadius: "3px",
   },
+  pctLabel: {
+    fontSize: "13px",
+    fontWeight: 500,
+    color: "var(--text-primary)",
+  },
   row: {
     display: "flex",
     alignItems: "baseline",
@@ -122,23 +116,13 @@ const styles = {
     flexWrap: "wrap" as const,
   },
   cost: {
-    fontSize: "18px",
-    fontWeight: 600,
-    color: "var(--text-primary)",
-  },
-  rate: {
-    fontSize: "13px",
-    color: "var(--accent)",
-    fontWeight: 500,
-  },
-  remaining: {
     fontSize: "13px",
     color: "var(--text-secondary)",
-    marginLeft: "auto",
   },
-  meta: {
+  rate: {
     fontSize: "12px",
-    color: "var(--text-muted)",
+    color: "var(--accent)",
+    fontWeight: 500,
   },
   empty: {
     fontSize: "13px",

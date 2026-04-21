@@ -3,6 +3,8 @@ import { useUsageData } from "./useUsageData";
 import { useBlockNotifications } from "./hooks/useBlockNotifications";
 import { useAutoStart } from "./hooks/useAutoStart";
 import { useUpdater } from "./hooks/useUpdater";
+import { usePlanConfig } from "./hooks/usePlanConfig";
+import type { PlanKind } from "./types";
 import { TodayPanel } from "./components/TodayPanel";
 import { MonthPanel } from "./components/MonthPanel";
 import { BlockPanel } from "./components/BlockPanel";
@@ -16,7 +18,9 @@ export function App() {
   useBlockNotifications(activeBlock);
   const { isEnabled, toggle } = useAutoStart();
   const { checking, result, error: updateError, checkForUpdate } = useUpdater();
+  const { plan, setPlan } = usePlanConfig();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [customLimitInput, setCustomLimitInput] = useState<string>("");
 
   function handleOpenDashboard() {
     // Phase 2: open a full dashboard window via Tauri IPC.
@@ -63,6 +67,49 @@ export function App() {
               />
               <span style={styles.settingsLabel}>Auto-Start bei Windows-Login</span>
             </label>
+
+            <div style={styles.planRow}>
+              <span style={styles.settingsLabel}>Plan</span>
+              <select
+                style={styles.planSelect}
+                value={plan.kind}
+                onChange={(e) => {
+                  const kind = e.target.value as PlanKind;
+                  if (kind !== "custom") {
+                    void setPlan(kind);
+                  } else {
+                    setCustomLimitInput(String(plan.custom_token_limit ?? 88000));
+                    void setPlan(kind, plan.custom_token_limit ?? 88000);
+                  }
+                }}
+              >
+                <option value="pro">Pro (44k tokens)</option>
+                <option value="max5">Max 5× (88k tokens)</option>
+                <option value="max20">Max 20× (220k tokens)</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+
+            {plan.kind === "custom" && (
+              <div style={styles.planRow}>
+                <span style={styles.settingsLabel}>Token-Limit</span>
+                <input
+                  type="number"
+                  style={styles.customInput}
+                  value={customLimitInput}
+                  min={1000}
+                  step={1000}
+                  onChange={(e) => setCustomLimitInput(e.target.value)}
+                  onBlur={() => {
+                    const limit = parseInt(customLimitInput, 10);
+                    if (!isNaN(limit) && limit > 0) {
+                      void setPlan("custom", limit);
+                    }
+                  }}
+                />
+              </div>
+            )}
+
             <div style={styles.updateRow}>
               <button
                 style={styles.updateBtn}
@@ -196,6 +243,34 @@ const styles = {
   settingsLabel: {
     fontSize: "13px",
     color: "var(--text-secondary)",
+  },
+  planRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    marginTop: "8px",
+  },
+  planSelect: {
+    flex: 1,
+    fontSize: "12px",
+    padding: "3px 6px",
+    backgroundColor: "var(--bg-elevated)",
+    border: "1px solid var(--border-subtle)",
+    borderRadius: "4px",
+    color: "var(--text-secondary)",
+    cursor: "pointer",
+    fontFamily: "var(--font-ui)",
+  },
+  customInput: {
+    flex: 1,
+    fontSize: "12px",
+    padding: "3px 6px",
+    backgroundColor: "var(--bg-elevated)",
+    border: "1px solid var(--border-subtle)",
+    borderRadius: "4px",
+    color: "var(--text-secondary)",
+    fontFamily: "var(--font-ui)",
+    width: "80px",
   },
   updateRow: {
     display: "flex",

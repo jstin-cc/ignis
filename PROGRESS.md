@@ -87,3 +87,15 @@ im selben Tag gefixt, Commits siehe Git-Log.
 - [x] Dashboard-Button (Footer) startet `winusage-watch.exe` via `open_cli_dashboard`-Tauri-Command; CLI-Button kopiert `winusage` in die Zwischenablage.
 - [x] Scrollbarer Content-Bereich im Tray-Panel (Header + Footer bleiben sticky); Scrollbar im Warm-Dark-Design gestylt.
 - [x] Fetch-Timeout (10 s) im Tray-Polling + sichtbares Error-Banner bei API-Ausfall.
+
+## Plan-Usage-Feature (2026-04-21)
+
+- [x] Config-Erweiterung: `PlanKind` (pro/max5/max20/custom) + `PlanConfig.token_limit()`;
+      Default max5 (88k tokens), serde-default für Rückwärtskompatibilität.
+- [x] API: `plan_token_limit: Arc<AtomicU64>` in `ApiState`; `block_token_limit` +
+      `block_token_pct` (token-basiert, 0–100) in `ActiveBlockDto`.
+- [x] `winusage-api`: Plan-Limit bei Start + nach jedem Re-Scan aus config.json nachladen.
+- [x] Tauri: `get_plan_config` + `set_plan_config` Commands; schreiben direkt in config.json.
+- [x] Tray UI: `BlockPanel` zeigt Token-%-Balken als Hero + "X% used · resets in Xh Xm";
+      Dollar-Betrag als Sekundärinfo.
+- [x] Settings-Panel: Plan-Dropdown (pro/max5/max20/custom) + Custom-Eingabefeld.

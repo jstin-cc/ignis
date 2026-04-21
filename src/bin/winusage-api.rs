@@ -19,7 +19,7 @@ async fn main() -> anyhow::Result<()> {
     }
     let snapshot = build_snapshot(&scan.events, &pricing, Utc::now());
 
-    let state = ApiState::new(snapshot, config.api_token.clone());
+    let state = ApiState::new(snapshot, config.api_token.clone(), config.plan.token_limit());
 
     // Background re-scan: react to file changes (notify) + 30-second periodic fallback.
     let (notify_tx, mut notify_rx) = tokio::sync::mpsc::unbounded_channel::<()>();
@@ -71,6 +71,9 @@ async fn main() -> anyhow::Result<()> {
             }
             let snap = build_snapshot(&scan.events, &pricing_bg, Utc::now());
             state_bg.update_snapshot(snap);
+            if let Ok(cfg) = Config::load() {
+                state_bg.update_plan_token_limit(cfg.plan.token_limit());
+            }
         }
     });
 
