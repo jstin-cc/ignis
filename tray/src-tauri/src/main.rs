@@ -35,6 +35,8 @@ struct ExtraUsage {
     is_enabled: bool,
     used_usd: String,
     monthly_limit_usd: String,
+    /// true wenn monthly_limit == 0 (kein Limit gesetzt)
+    is_unlimited: bool,
     pct: u8,
 }
 
@@ -225,19 +227,22 @@ fn parse_extra(v: &serde_json::Value) -> Option<ExtraUsage> {
         return None;
     }
     let is_enabled = v.get("is_enabled").and_then(|x| x.as_bool()).unwrap_or(false);
-    let used_cents = v.get("used_credits").and_then(|x| x.as_u64()).unwrap_or(0);
-    let limit_cents = v.get("monthly_limit").and_then(|x| x.as_u64()).unwrap_or(0);
-    let pct = if limit_cents > 0 {
-        ((used_cents.min(limit_cents) * 100) / limit_cents) as u8
+    // Credits may be integer or float in the JSON response.
+    let used_cents = v.get("used_credits").and_then(|x| x.as_f64()).unwrap_or(0.0);
+    let limit_cents = v.get("monthly_limit").and_then(|x| x.as_f64()).unwrap_or(0.0);
+    let is_unlimited = limit_cents <= 0.0;
+    let pct = if !is_unlimited && limit_cents > 0.0 {
+        ((used_cents / limit_cents * 100.0).clamp(0.0, 100.0)) as u8
     } else {
         0
     };
-    let used_usd = format!("{:.2}", used_cents as f64 / 100.0);
-    let monthly_limit_usd = format!("{:.2}", limit_cents as f64 / 100.0);
+    let used_usd = format!("{:.2}", used_cents / 100.0);
+    let monthly_limit_usd = format!("{:.2}", limit_cents / 100.0);
     Some(ExtraUsage {
         is_enabled,
         used_usd,
         monthly_limit_usd,
+        is_unlimited,
         pct,
     })
 }

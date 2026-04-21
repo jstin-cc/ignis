@@ -51,6 +51,7 @@ export interface ExtraUsage {
   is_enabled: boolean;
   used_usd: string;
   monthly_limit_usd: string;
+  is_unlimited: boolean;
   pct: number;
 }
 

@@ -58,7 +58,11 @@ function ThreeBarsPanel({
         <UsageRow
           name="Extra"
           pct={usage.extra_usage.pct}
-          suffix={`$${usage.extra_usage.used_usd} / $${usage.extra_usage.monthly_limit_usd}`}
+          suffix={
+            usage.extra_usage.is_unlimited
+              ? `$${usage.extra_usage.used_usd} used`
+              : `$${usage.extra_usage.used_usd} / $${usage.extra_usage.monthly_limit_usd}`
+          }
         />
       )}
     </section>
