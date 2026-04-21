@@ -4,16 +4,21 @@ import { formatCost } from "./format";
 interface BlockPanelProps {
   block: ActiveBlock | null;
   usage: AnthropicUsage | null;
+  usageError?: string | null;
 }
 
-export function BlockPanel({ block, usage }: BlockPanelProps) {
-  // If we have live Anthropic data, show three bars.
+export function BlockPanel({ block, usage, usageError }: BlockPanelProps) {
   if (usage) {
     return <ThreeBarsPanel block={block} usage={usage} />;
   }
-
-  // Fallback: token-based single bar from JSONL data.
-  return <FallbackBar block={block} />;
+  return (
+    <>
+      {usageError && (
+        <div style={styles.usageErrorBanner}>{usageError}</div>
+      )}
+      <FallbackBar block={block} />
+    </>
+  );
 }
 
 // ── Three-bar panel (Anthropic OAuth data) ────────────────────────────────────
@@ -279,5 +284,13 @@ const styles = {
   empty: {
     fontSize: "13px",
     color: "var(--text-muted)",
+  },
+  usageErrorBanner: {
+    padding: "6px 16px",
+    fontSize: "11px",
+    color: "var(--danger)",
+    backgroundColor: "var(--bg-surface)",
+    borderBottom: "1px solid var(--border-subtle)",
+    wordBreak: "break-all" as const,
   },
 } as const;

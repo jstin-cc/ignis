@@ -208,7 +208,11 @@ async fn parse_usage_response(resp: reqwest::Response) -> Result<AnthropicUsageD
 }
 
 fn parse_window(v: &serde_json::Value) -> Option<UsageWindow> {
-    let utilization = v.get("utilization")?.as_u64()? as u8;
+    // utilization may be integer or float in the JSON response
+    let utilization = v
+        .get("utilization")?
+        .as_f64()
+        .map(|f| f.round().clamp(0.0, 100.0) as u8)?;
     let resets_at = v.get("resets_at")?.as_str()?.to_owned();
     Some(UsageWindow {
         utilization,

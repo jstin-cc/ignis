@@ -20,7 +20,7 @@ export function App() {
   const { isEnabled, toggle } = useAutoStart();
   const { checking, result, error: updateError, checkForUpdate } = useUpdater();
   const { plan, setPlan } = usePlanConfig();
-  const anthropicUsage = useAnthropicUsage();
+  const { usage: anthropicUsage, error: usageError } = useAnthropicUsage();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [customLimitInput, setCustomLimitInput] = useState<string>("");
 
@@ -144,7 +144,7 @@ export function App() {
         <hr className="section-divider" />
         <MonthPanel data={month} />
         <hr className="section-divider" />
-        <BlockPanel block={activeBlock} usage={anthropicUsage} />
+        <BlockPanel block={activeBlock} usage={anthropicUsage} usageError={usageError} />
         {today?.by_project.length ? (
           <>
             <hr className="section-divider" />
