@@ -42,6 +42,24 @@ export interface ActiveBlock {
   block_token_pct: number;
 }
 
+export interface UsageWindow {
+  utilization: number;
+  resets_at: string;
+}
+
+export interface ExtraUsage {
+  is_enabled: boolean;
+  used_usd: string;
+  monthly_limit_usd: string;
+  pct: number;
+}
+
+export interface AnthropicUsage {
+  five_hour: UsageWindow | null;
+  seven_day: UsageWindow | null;
+  extra_usage: ExtraUsage | null;
+}
+
 export type PlanKind = "pro" | "max5" | "max20" | "custom";
 
 export interface PlanConfig {

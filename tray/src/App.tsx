@@ -4,6 +4,7 @@ import { useBlockNotifications } from "./hooks/useBlockNotifications";
 import { useAutoStart } from "./hooks/useAutoStart";
 import { useUpdater } from "./hooks/useUpdater";
 import { usePlanConfig } from "./hooks/usePlanConfig";
+import { useAnthropicUsage } from "./hooks/useAnthropicUsage";
 import type { PlanKind } from "./types";
 import { TodayPanel } from "./components/TodayPanel";
 import { MonthPanel } from "./components/MonthPanel";
@@ -19,6 +20,7 @@ export function App() {
   const { isEnabled, toggle } = useAutoStart();
   const { checking, result, error: updateError, checkForUpdate } = useUpdater();
   const { plan, setPlan } = usePlanConfig();
+  const anthropicUsage = useAnthropicUsage();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [customLimitInput, setCustomLimitInput] = useState<string>("");
 
@@ -142,7 +144,7 @@ export function App() {
         <hr className="section-divider" />
         <MonthPanel data={month} />
         <hr className="section-divider" />
-        <BlockPanel block={activeBlock} />
+        <BlockPanel block={activeBlock} usage={anthropicUsage} />
         {today?.by_project.length ? (
           <>
             <hr className="section-divider" />

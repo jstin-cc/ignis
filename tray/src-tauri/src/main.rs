@@ -22,6 +22,222 @@ use tauri_plugin_updater::UpdaterExt;
 
 struct ApiChild(Mutex<Option<Child>>);
 
+// ── Anthropic OAuth Usage API ─────────────────────────────────────────────────
+
+#[derive(serde::Serialize)]
+struct UsageWindow {
+    utilization: u8,
+    resets_at: String,
+}
+
+#[derive(serde::Serialize)]
+struct ExtraUsage {
+    is_enabled: bool,
+    used_usd: String,
+    monthly_limit_usd: String,
+    pct: u8,
+}
+
+#[derive(serde::Serialize)]
+struct AnthropicUsageDto {
+    five_hour: Option<UsageWindow>,
+    seven_day: Option<UsageWindow>,
+    extra_usage: Option<ExtraUsage>,
+}
+
+#[derive(serde::Deserialize)]
+struct Credentials {
+    #[serde(rename = "claudeAiOauth")]
+    claude_ai_oauth: OAuthEntry,
+}
+
+#[derive(serde::Deserialize)]
+struct OAuthEntry {
+    #[serde(rename = "accessToken")]
+    access_token: String,
+    #[serde(rename = "refreshToken")]
+    refresh_token: String,
+    #[serde(rename = "expiresAt")]
+    expires_at: i64, // unix milliseconds
+}
+
+fn credentials_path() -> Result<std::path::PathBuf, String> {
+    let profile = std::env::var("USERPROFILE")
+        .or_else(|_| std::env::var("HOME"))
+        .map_err(|e| e.to_string())?;
+    Ok(std::path::PathBuf::from(profile)
+        .join(".claude")
+        .join(".credentials.json"))
+}
+
+fn read_credentials() -> Result<OAuthEntry, String> {
+    let path = credentials_path()?;
+    let raw = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    let creds: Credentials = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
+    Ok(creds.claude_ai_oauth)
+}
+
+fn write_tokens(access_token: &str, refresh_token: &str, expires_at: i64) -> Result<(), String> {
+    let path = credentials_path()?;
+    let raw = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    let mut val: serde_json::Value = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
+    if let Some(oauth) = val.get_mut("claudeAiOauth") {
+        oauth["accessToken"] = serde_json::json!(access_token);
+        oauth["refreshToken"] = serde_json::json!(refresh_token);
+        oauth["expiresAt"] = serde_json::json!(expires_at);
+    }
+    let json = serde_json::to_string_pretty(&val).map_err(|e| e.to_string())?;
+    std::fs::write(&path, json).map_err(|e| e.to_string())
+}
+
+async fn do_refresh(client: &reqwest::Client, refresh_token: &str) -> Result<OAuthEntry, String> {
+    const CLIENT_ID: &str = "9d1c250a-e61b-44d9-88ed-5944d1962f5e";
+    const SCOPE: &str = "user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload";
+
+    let body = serde_json::json!({
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+        "client_id": CLIENT_ID,
+        "scope": SCOPE,
+    });
+
+    let resp = client
+        .post("https://platform.claude.com/v1/oauth/token")
+        .json(&body)
+        .timeout(std::time::Duration::from_secs(15))
+        .send()
+        .await
+        .map_err(|e| format!("Token-Refresh fehlgeschlagen: {e}"))?;
+
+    if !resp.status().is_success() {
+        return Err("Token abgelaufen. Bitte `claude` neu starten.".to_owned());
+    }
+
+    let val: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+    let new_access = val["access_token"]
+        .as_str()
+        .ok_or("access_token fehlt in Refresh-Response")?
+        .to_owned();
+    let new_refresh = val["refresh_token"]
+        .as_str()
+        .unwrap_or(refresh_token)
+        .to_owned();
+    let expires_in = val["expires_in"].as_i64().unwrap_or(3600);
+    let expires_at = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as i64
+        + expires_in * 1_000;
+
+    write_tokens(&new_access, &new_refresh, expires_at)?;
+
+    Ok(OAuthEntry {
+        access_token: new_access,
+        refresh_token: new_refresh,
+        expires_at,
+    })
+}
+
+#[tauri::command]
+async fn get_anthropic_usage() -> Result<AnthropicUsageDto, String> {
+    let client = reqwest::Client::new();
+
+    let mut creds = read_credentials()?;
+
+    // Refresh if token expires within 5 minutes.
+    let now_ms = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as i64;
+    if creds.expires_at < now_ms + 5 * 60 * 1_000 {
+        creds = do_refresh(&client, &creds.refresh_token).await?;
+    }
+
+    let resp = client
+        .get("https://api.anthropic.com/api/oauth/usage")
+        .header("Authorization", format!("Bearer {}", creds.access_token))
+        .header("anthropic-beta", "oauth-2025-04-20")
+        .header("User-Agent", "winusage/1.0")
+        .timeout(std::time::Duration::from_secs(10))
+        .send()
+        .await
+        .map_err(|e| format!("Anthropic API nicht erreichbar: {e}"))?;
+
+    if resp.status() == reqwest::StatusCode::UNAUTHORIZED
+        || resp.status() == reqwest::StatusCode::FORBIDDEN
+    {
+        // Try one refresh, then retry.
+        creds = do_refresh(&client, &creds.refresh_token).await?;
+        let retry = client
+            .get("https://api.anthropic.com/api/oauth/usage")
+            .header("Authorization", format!("Bearer {}", creds.access_token))
+            .header("anthropic-beta", "oauth-2025-04-20")
+            .header("User-Agent", "winusage/1.0")
+            .timeout(std::time::Duration::from_secs(10))
+            .send()
+            .await
+            .map_err(|e| format!("Anthropic API nicht erreichbar: {e}"))?;
+        if !retry.status().is_success() {
+            return Err(format!("Anthropic API Fehler ({})", retry.status()));
+        }
+        return parse_usage_response(retry).await;
+    }
+
+    if !resp.status().is_success() {
+        return Err(format!("Anthropic API Fehler ({})", resp.status()));
+    }
+
+    parse_usage_response(resp).await
+}
+
+async fn parse_usage_response(resp: reqwest::Response) -> Result<AnthropicUsageDto, String> {
+    let val: serde_json::Value = resp
+        .json()
+        .await
+        .map_err(|e| format!("Antwort nicht parsebar: {e}"))?;
+
+    let five_hour = parse_window(&val["five_hour"]);
+    let seven_day = parse_window(&val["seven_day"]);
+    let extra_usage = parse_extra(&val["extra_usage"]);
+
+    Ok(AnthropicUsageDto {
+        five_hour,
+        seven_day,
+        extra_usage,
+    })
+}
+
+fn parse_window(v: &serde_json::Value) -> Option<UsageWindow> {
+    let utilization = v.get("utilization")?.as_u64()? as u8;
+    let resets_at = v.get("resets_at")?.as_str()?.to_owned();
+    Some(UsageWindow {
+        utilization,
+        resets_at,
+    })
+}
+
+fn parse_extra(v: &serde_json::Value) -> Option<ExtraUsage> {
+    if v.is_null() || !v.is_object() {
+        return None;
+    }
+    let is_enabled = v.get("is_enabled").and_then(|x| x.as_bool()).unwrap_or(false);
+    let used_cents = v.get("used_credits").and_then(|x| x.as_u64()).unwrap_or(0);
+    let limit_cents = v.get("monthly_limit").and_then(|x| x.as_u64()).unwrap_or(0);
+    let pct = if limit_cents > 0 {
+        ((used_cents.min(limit_cents) * 100) / limit_cents) as u8
+    } else {
+        0
+    };
+    let used_usd = format!("{:.2}", used_cents as f64 / 100.0);
+    let monthly_limit_usd = format!("{:.2}", limit_cents as f64 / 100.0);
+    Some(ExtraUsage {
+        is_enabled,
+        used_usd,
+        monthly_limit_usd,
+        pct,
+    })
+}
+
 fn find_api_binary() -> Option<PathBuf> {
     let exe = std::env::current_exe().ok()?;
     let dir = exe.parent()?;
@@ -228,6 +444,7 @@ fn main() {
             open_cli_dashboard,
             get_plan_config,
             set_plan_config,
+            get_anthropic_usage,
         ])
         .setup(|app| {
             let quit_item = MenuItemBuilder::with_id("quit", "Quit WinUsage").build(app)?;

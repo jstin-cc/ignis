@@ -1,11 +1,121 @@
-import type { ActiveBlock } from "../types";
+import type { ActiveBlock, AnthropicUsage } from "../types";
 import { formatCost } from "./format";
 
 interface BlockPanelProps {
   block: ActiveBlock | null;
+  usage: AnthropicUsage | null;
 }
 
-export function BlockPanel({ block }: BlockPanelProps) {
+export function BlockPanel({ block, usage }: BlockPanelProps) {
+  // If we have live Anthropic data, show three bars.
+  if (usage) {
+    return <ThreeBarsPanel block={block} usage={usage} />;
+  }
+
+  // Fallback: token-based single bar from JSONL data.
+  return <FallbackBar block={block} />;
+}
+
+// ── Three-bar panel (Anthropic OAuth data) ────────────────────────────────────
+
+function ThreeBarsPanel({
+  block,
+  usage,
+}: {
+  block: ActiveBlock | null;
+  usage: AnthropicUsage;
+}) {
+  const fiveHourRemaining = block ? remainingTime(block.end) : null;
+  const weekRemaining = usage.seven_day ? remainingLabel(usage.seven_day.resets_at) : null;
+
+  return (
+    <section style={styles.panel}>
+      <span style={styles.label}>USAGE LIMITS</span>
+
+      {usage.five_hour && (
+        <UsageRow
+          name="5h Block"
+          pct={usage.five_hour.utilization}
+          suffix={fiveHourRemaining ? `resets in ${fiveHourRemaining}` : undefined}
+          cost={block ? formatCost(block.cost_usd) : undefined}
+        />
+      )}
+
+      {usage.seven_day && (
+        <UsageRow
+          name="This Week"
+          pct={usage.seven_day.utilization}
+          suffix={weekRemaining ?? undefined}
+        />
+      )}
+
+      {usage.extra_usage?.is_enabled && (
+        <UsageRow
+          name="Extra"
+          pct={usage.extra_usage.pct}
+          suffix={`$${usage.extra_usage.used_usd} / $${usage.extra_usage.monthly_limit_usd}`}
+        />
+      )}
+    </section>
+  );
+}
+
+function UsageRow({
+  name,
+  pct,
+  suffix,
+  cost,
+}: {
+  name: string;
+  pct: number;
+  suffix?: string;
+  cost?: string;
+}) {
+  const clamped = Math.min(100, Math.max(0, pct));
+  const barColor =
+    clamped >= 90
+      ? "var(--warning)"
+      : clamped >= 75
+        ? "var(--accent)"
+        : "var(--accent-muted)";
+
+  return (
+    <div style={styles.usageRow}>
+      <span style={styles.rowName}>{name}</span>
+      <div style={styles.rowRight}>
+        <div style={styles.barTrack}>
+          <div
+            style={{
+              ...styles.barFill,
+              width: `${clamped}%`,
+              backgroundColor: barColor,
+              transition: "width 200ms ease-out, background-color 200ms ease-out",
+            }}
+          />
+        </div>
+        <div style={styles.rowMeta}>
+          <span style={styles.pct} className="tabular">
+            {clamped}%
+          </span>
+          {suffix && (
+            <span style={styles.suffix} className="tabular">
+              {suffix}
+            </span>
+          )}
+          {cost && (
+            <span style={styles.costSmall} className="tabular">
+              {cost}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Fallback single bar (JSONL token data) ────────────────────────────────────
+
+function FallbackBar({ block }: { block: ActiveBlock | null }) {
   if (!block) {
     return (
       <section style={styles.panel}>
@@ -18,7 +128,6 @@ export function BlockPanel({ block }: BlockPanelProps) {
   const tokenPct = Math.min(100, Math.max(0, block.block_token_pct));
   const remaining = remainingTime(block.end);
   const burnRate = computeBurnRate(block);
-
   const barColor =
     tokenPct >= 90
       ? "var(--warning)"
@@ -29,7 +138,6 @@ export function BlockPanel({ block }: BlockPanelProps) {
   return (
     <section style={styles.panel}>
       <span style={styles.label}>ACTIVE BLOCK</span>
-
       <div style={styles.barTrack}>
         <div
           style={{
@@ -40,13 +148,11 @@ export function BlockPanel({ block }: BlockPanelProps) {
           }}
         />
       </div>
-
       <span style={styles.pctLabel} className="tabular">
         {tokenPct}% used · resets in {remaining}
       </span>
-
-      <div style={styles.row}>
-        <span style={styles.cost} className="tabular">
+      <div style={styles.fallbackRow}>
+        <span style={styles.costSmall} className="tabular">
           {formatCost(block.cost_usd)}
         </span>
         {burnRate && (
@@ -59,6 +165,8 @@ export function BlockPanel({ block }: BlockPanelProps) {
   );
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
 function remainingTime(endIso: string): string {
   const diffMs = new Date(endIso).getTime() - Date.now();
   if (diffMs <= 0) return "0m";
@@ -66,6 +174,15 @@ function remainingTime(endIso: string): string {
   const h = Math.floor(totalMin / 60);
   const m = totalMin % 60;
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+function remainingLabel(resetsAtIso: string): string {
+  const diffMs = new Date(resetsAtIso).getTime() - Date.now();
+  if (diffMs <= 0) return "resets soon";
+  const totalH = Math.floor(diffMs / 3_600_000);
+  if (totalH < 24) return `resets in ${totalH}h`;
+  const d = Math.floor(totalH / 24);
+  return `resets in ${d}d`;
 }
 
 function computeBurnRate(block: ActiveBlock): string | null {
@@ -79,13 +196,15 @@ function computeBurnRate(block: ActiveBlock): string | null {
   return formatCost((cost / elapsedH).toFixed(4));
 }
 
+// ── Styles ────────────────────────────────────────────────────────────────────
+
 const styles = {
   panel: {
     backgroundColor: "var(--bg-elevated)",
     padding: "16px",
     display: "flex",
     flexDirection: "column" as const,
-    gap: "8px",
+    gap: "10px",
   },
   label: {
     fontSize: "12px",
@@ -94,8 +213,26 @@ const styles = {
     textTransform: "uppercase" as const,
     letterSpacing: "0.04em",
   },
+  usageRow: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "8px",
+  },
+  rowName: {
+    fontSize: "12px",
+    color: "var(--text-secondary)",
+    minWidth: "68px",
+    paddingTop: "1px",
+    flexShrink: 0,
+  },
+  rowRight: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "3px",
+  },
   barTrack: {
-    height: "6px",
+    height: "5px",
     borderRadius: "3px",
     backgroundColor: "var(--border-subtle)",
     overflow: "hidden",
@@ -104,20 +241,35 @@ const styles = {
     height: "100%",
     borderRadius: "3px",
   },
+  rowMeta: {
+    display: "flex",
+    alignItems: "baseline",
+    gap: "6px",
+    flexWrap: "wrap" as const,
+  },
+  pct: {
+    fontSize: "12px",
+    fontWeight: 600,
+    color: "var(--text-primary)",
+  },
+  suffix: {
+    fontSize: "11px",
+    color: "var(--text-muted)",
+  },
+  costSmall: {
+    fontSize: "12px",
+    color: "var(--text-secondary)",
+  },
+  // fallback-only styles
   pctLabel: {
     fontSize: "13px",
     fontWeight: 500,
     color: "var(--text-primary)",
   },
-  row: {
+  fallbackRow: {
     display: "flex",
     alignItems: "baseline",
     gap: "8px",
-    flexWrap: "wrap" as const,
-  },
-  cost: {
-    fontSize: "13px",
-    color: "var(--text-secondary)",
   },
   rate: {
     fontSize: "12px",
