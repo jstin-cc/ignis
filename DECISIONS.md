@@ -214,3 +214,30 @@ Nummerierung aufsteigend. Status: `Accepted` · `Superseded` · `Rejected` · `P
 - **Folgen:** `Summary.sidechain_cost_usd` und `sidechain_event_count` werden in
   `accumulate_summary` befüllt und im API-Response `/v1/summary` als neue Felder
   serialisiert. Tray kann optional `(inkl. $X sub-agent)` darstellen.
+
+## ADR-013 — Tray-App spawnt `winusage-api` als Child-Prozess
+
+- **Datum:** 2026-04-21
+- **Status:** Accepted
+- **Kontext:** Die HTTP-API (`winusage-api`) lief bisher nur, wenn der Nutzer sie separat
+  startete. In der Praxis öffnet der Nutzer das Tray-Icon, sieht leere Panels bzw. ein
+  endloses Laden und hat keine Indikation, dass ein zweiter Prozess fehlt. CLAUDE.md-Constraint:
+  „Keine Background-Processes außer Tray-App."
+- **Alternativen:**
+  - (A) Status quo — Nutzer startet `winusage-api.exe` manuell. Schlechte UX, inkompatibel
+        mit „Tray installieren und vergessen".
+  - (B) Windows-Service. Verletzt CLAUDE.md explizit und erfordert Admin-Install.
+  - (C) **Tray-Host spawnt `winusage-api` als Child-Prozess beim Start, killt ihn bei Exit.**
+        Respektiert den Constraint (nur ein sichtbarer Background-Process — die Tray —
+        der sein API-Backend intern hält).
+- **Entscheidung:** (C).
+- **Begründung:** Prozessleben ist 1:1 an die Tray gekoppelt → keine Zombies, kein
+  Auto-Start-at-Boot (das entscheidet der Nutzer via `tauri-plugin-autostart`).
+  Die API bleibt als eigenes Binary bestehen — CLI-Nutzer können sie weiterhin standalone
+  starten; nur die Tray übernimmt zusätzlich das Spawnen für den typischen Endnutzer-Flow.
+- **Folgen:** `tray/src-tauri/src/main.rs` enthält `ApiChild`-State + `spawn_api()`-Lookup
+  (neben `winusage-tray.exe` oder im `target/release` für Dev); `RunEvent::Exit` killt
+  den Child. Auf Windows wird `CREATE_NO_WINDOW` gesetzt, damit kein Konsolenfenster
+  aufploppt. Der Port (`127.0.0.1:7337`) bleibt unverändert — wenn ein anderer
+  `winusage-api`-Prozess bereits läuft, scheitert der Child-Spawn still und die Tray
+  nutzt die laufende Instanz.

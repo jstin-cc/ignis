@@ -71,3 +71,19 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
       Settings-Panel-Button; Platzhalter-Endpoint; App-Icons generiert.
 
 **Phase 3 abgeschlossen am 2026-04-20.**
+
+---
+
+## Post-v1.0 Hotfixes (2026-04-21)
+
+Erste End-to-End-Nutzung nach dem v1.0-Tag zeigte mehrere Real-Use-Lücken. Alle
+im selben Tag gefixt, Commits siehe Git-Log.
+
+- [x] Tray-App spawnt `winusage-api` automatisch als Child-Prozess beim Start,
+      killt ihn bei Exit (ADR-013). Nutzer muss die API nicht mehr manuell starten.
+- [x] CORS-Layer auf der HTTP-API (`tower-http::cors`): OPTIONS-Preflight + `Access-Control-Allow-*`-Header. Vorher blockte der Webview alle authentifizierten Requests.
+- [x] Tauri 2 Release-Build: `custom-protocol`-Feature in `tray/src-tauri/Cargo.toml` aktiviert. Vorher fiel der Webview auf `devUrl` zurück und zeigte `ERR_CONNECTION_REFUSED`.
+- [x] Capability `core:window:allow-start-dragging` für `data-tauri-drag-region` (Fenster lässt sich am Header verschieben).
+- [x] Dashboard-Button (Footer) startet `winusage-watch.exe` via `open_cli_dashboard`-Tauri-Command; CLI-Button kopiert `winusage` in die Zwischenablage.
+- [x] Scrollbarer Content-Bereich im Tray-Panel (Header + Footer bleiben sticky); Scrollbar im Warm-Dark-Design gestylt.
+- [x] Fetch-Timeout (10 s) im Tray-Polling + sichtbares Error-Banner bei API-Ausfall.

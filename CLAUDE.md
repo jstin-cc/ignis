@@ -7,6 +7,11 @@ Lies in dieser Reihenfolge:
 1. `CLAUDE.md` (hier) — Was ist das Projekt, welche Regeln gelten?
 2. `PROGRESS.md` — Was ist done / in-progress / blocked?
 3. `NEXT.md` — Was ist der **eine** konkrete nächste Schritt?
+4. `BUGFIX-PROGRESS.md` — offene Bugfixes aus dem Code-Review (priorisiert).
+   Wenn `NEXT.md` „mögliche nächste Schritte" listet und kein konkreter
+   Auftrag vorliegt, sind Einträge hier mit Status `[ ]` der Default-Workstack.
+   Pflege analog zu `PROGRESS.md`: Häkchen + Done-Log-Eintrag im selben
+   Commit wie der Fix.
 
 Bei Architektur-Fragen zusätzlich: `DECISIONS.md`, dann `docs/architecture.md`.
 
@@ -85,11 +90,12 @@ Ein Akzent, nicht fünf. Keine Emoji-Ikonografie. Details in `docs/design-system
 
 | Datei            | Zweck                                                   |
 |------------------|---------------------------------------------------------|
-| `CLAUDE.md`      | diese Datei — Projekt-Kontext                           |
-| `PROGRESS.md`    | Phasen-/Milestone-Fortschritt                           |
-| `NEXT.md`        | Der **eine** nächste konkrete Schritt                   |
-| `DECISIONS.md`   | ADR-light: jede nicht-triviale Entscheidung             |
-| `CHANGELOG.md`   | Keep-a-Changelog, wird bei Release-Tags aktualisiert    |
+| `CLAUDE.md`         | diese Datei — Projekt-Kontext                          |
+| `PROGRESS.md`       | Phasen-/Milestone-Fortschritt                          |
+| `NEXT.md`           | Der **eine** nächste konkrete Schritt                  |
+| `BUGFIX-PROGRESS.md`| Offene Bugs/Fehlerbehandlungs-Lücken aus Code-Reviews  |
+| `DECISIONS.md`      | ADR-light: jede nicht-triviale Entscheidung            |
+| `CHANGELOG.md`      | Keep-a-Changelog, wird bei Release-Tags aktualisiert   |
 
 ## Nicht-Ziele (MVP)
 
