@@ -99,3 +99,12 @@ im selben Tag gefixt, Commits siehe Git-Log.
 - [x] Tray UI: `BlockPanel` zeigt Token-%-Balken als Hero + "X% used · resets in Xh Xm";
       Dollar-Betrag als Sekundärinfo.
 - [x] Settings-Panel: Plan-Dropdown (pro/max5/max20/custom) + Custom-Eingabefeld.
+
+## Anthropic OAuth Usage-Balken (2026-04-21)
+
+- [x] Tauri-Command `get_anthropic_usage`: liest `~/.claude/.credentials.json`, refresht Token
+      automatisch (platform.claude.com), pollt `api.anthropic.com/api/oauth/usage`.
+- [x] Drei Balken im BlockPanel (USAGE LIMITS): 5h Block / This Week / Extra Usage.
+      Fallback auf JSONL-Einzelbalken wenn Credentials fehlen oder offline.
+- [x] Extra-Usage: `is_unlimited`-Flag + Dollar-Betrag wenn kein monatliches Limit gesetzt.
+- [x] Float-robustes Parsing für `utilization` und `used_credits` (Anthropic liefert Floats).

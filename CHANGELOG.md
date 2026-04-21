@@ -9,20 +9,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- Tray-App spawnt `winusage-api` automatisch als Child-Prozess beim Start und killt ihn beim Exit (ADR-013). Nutzer muss die API nicht mehr manuell starten.
+- **Drei Usage-Balken** im Tray `BlockPanel` (USAGE LIMITS): 5h-Block, Woche und Extra Usage — Werte direkt von `api.anthropic.com/api/oauth/usage` via OAuth (`anthropic-beta: oauth-2025-04-20`); Farbeskalation accent-muted → accent (≥ 75 %) → warning (≥ 90 %).
+- **Anthropic OAuth-Integration** (`tray/src-tauri`): Tauri-Command `get_anthropic_usage` liest `~/.claude/.credentials.json`, refresht den Token automatisch (5-min-Buffer, `platform.claude.com/v1/oauth/token`) und pollt alle 5 Minuten im Frontend.
+- **Plan-Konfiguration** (`src/config.rs`): `PlanKind`-Enum (pro / max5 / max20 / custom) + `PlanConfig.token_limit()` als Fallback-Limit; in `config.json` gespeichert (serde-default für Rückwärtskompatibilität).
+- **API: `block_token_limit` + `block_token_pct`** in `GET /v1/summary` → `active_block` — token-basierter Prozentsatz des Billing-Blocks (0–100); `plan_token_limit: Arc<AtomicU64>` wird im Background-Loop automatisch nachgeladen.
+- **Settings-Panel** im Tray: Plan-Dropdown (pro / max5 / max20 / custom) + Custom-Token-Limit-Eingabe; Tauri-Commands `get_plan_config` + `set_plan_config` schreiben direkt in `config.json`.
+- Tray-App spawnt `winusage-api` automatisch als Child-Prozess beim Start und killt ihn beim Exit (ADR-013).
 - CORS-Layer auf der HTTP-API (`tower-http::cors`) — `CorsLayer` mit Allowlist-Origins, OPTIONS-Preflight, `Authorization` + `Content-Type` in `allow_headers`.
-- Tauri-Command `open_cli_dashboard` — startet `winusage-watch.exe` in neuem Konsolenfenster (Windows: `cmd /c start …`).
-- CLI-Button im Tray-Footer kopiert `winusage` in die Zwischenablage (`navigator.clipboard.writeText` mit „Kopiert ✓"-Feedback).
-- Scrollbarer Content-Bereich im Tray-Panel — Header (Drag-Region) und Footer bleiben sticky, der mittlere Bereich scrollt.
-- Scrollbar-Styling in `index.css` — 8 px, Thumb in `--border-subtle`, Hover in `--accent-muted`, transparenter Track.
-- Fetch-Timeout (10 s) im Tray-Polling via `AbortController` + `setTimeout`.
-- Sichtbares Error-Banner im Panel bei API-Fehlern (ersetzt den unauffälligen `!`-Punkt im Header).
+- Tauri-Command `open_cli_dashboard` — startet `winusage-watch.exe` in neuem Konsolenfenster.
+- CLI-Button im Tray-Footer kopiert `winusage` in die Zwischenablage.
+- Scrollbarer Content-Bereich im Tray-Panel — Header und Footer bleiben sticky.
+- Fetch-Timeout (10 s) im Tray-Polling + sichtbares Error-Banner bei API-Ausfall.
 
 ### Fixed
 
-- Tauri 2 Release-Build: `custom-protocol`-Feature war in `tray/src-tauri/Cargo.toml` nicht definiert — Webview fiel im Release auf `devUrl` (`http://localhost:1420`) zurück und zeigte `ERR_CONNECTION_REFUSED`. Feature jetzt `default`-aktiviert.
-- Capability `core:window:allow-start-dragging` fehlte — `data-tauri-drag-region` wurde von der IPC-Schicht blockiert und das Fenster ließ sich nicht verschieben.
-- Tray-Shell-Höhe: `maxHeight` ersetzt durch feste `height: 520px`, damit das Flex-Layout (Header / Scroll-Content / Footer) korrekt aufteilt.
+- Extra-Usage-Balken: `used_credits` / `monthly_limit` als `f64` geparst (Anthropic liefert Floats); `is_unlimited`-Flag wenn `monthly_limit == 0` → zeigt `$X.XX used` statt Prozent.
+- `parse_window`: `utilization` als `f64` statt `u64` (robust gegen Float-Rückgaben der API).
+- Tauri 2 Release-Build: `custom-protocol`-Feature fehlte — Webview fiel auf `devUrl` zurück.
+- Capability `core:window:allow-start-dragging` fehlte — Fenster ließ sich nicht verschieben.
 
 ## [1.0.0] — 2026-04-20
 
