@@ -411,22 +411,28 @@ fn open_cli_dashboard() -> Result<(), String> {
         dir.join("../../../../target/debug/winusage-watch.exe"),
     ];
 
-    let watch_path = candidates
+    // canonicalize() returns \\?\ UNC paths on Windows which cmd.exe rejects;
+    // strip the prefix to get a plain absolute path.
+    let watch_path_str = candidates
         .iter()
-        .find_map(|p| p.canonicalize().ok().filter(|p| p.exists()))
-        .ok_or_else(|| "winusage-watch.exe not found".to_owned())?;
+        .find_map(|p| {
+            p.canonicalize().ok().filter(|cp| cp.exists()).map(|cp| {
+                let s = cp.to_string_lossy().into_owned();
+                s.strip_prefix(r"\\?\").unwrap_or(&s).to_owned()
+            })
+        })
+        .unwrap_or_else(|| "winusage-watch".to_owned()); // PATH fallback
 
     #[cfg(windows)]
     {
-        let path_str = watch_path.to_string_lossy().into_owned();
         Command::new("cmd")
-            .args(["/C", "start", "WinUsage Dashboard", &path_str])
+            .args(["/C", "start", "WinUsage Dashboard", &watch_path_str])
             .spawn()
             .map_err(|e| e.to_string())?;
     }
     #[cfg(not(windows))]
     {
-        Command::new(&watch_path).spawn().map_err(|e| e.to_string())?;
+        Command::new(&watch_path_str).spawn().map_err(|e| e.to_string())?;
     }
 
     Ok(())
