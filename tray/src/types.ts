@@ -66,6 +66,7 @@ export type PlanKind = "pro" | "max5" | "max20" | "custom";
 export interface PlanConfig {
   kind: PlanKind;
   custom_token_limit: number | null;
+  usage_poll_interval_secs: number;
 }
 
 export interface SummaryResponse {

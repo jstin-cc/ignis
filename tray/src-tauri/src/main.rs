@@ -342,6 +342,7 @@ fn get_api_token() -> Result<String, String> {
 struct PlanConfigDto {
     kind: String,
     custom_token_limit: Option<u64>,
+    usage_poll_interval_secs: u32,
 }
 
 fn config_path() -> Result<std::path::PathBuf, String> {
@@ -367,20 +368,32 @@ fn get_plan_config() -> Result<PlanConfigDto, String> {
     let custom_token_limit = plan
         .and_then(|p| p.get("custom_token_limit"))
         .and_then(|v| v.as_u64());
+    let usage_poll_interval_secs = plan
+        .and_then(|p| p.get("usage_poll_interval_secs"))
+        .and_then(|v| v.as_u64())
+        .unwrap_or(60) as u32;
     Ok(PlanConfigDto {
         kind,
         custom_token_limit,
+        usage_poll_interval_secs,
     })
 }
 
 #[tauri::command]
-fn set_plan_config(kind: String, custom_token_limit: Option<u64>) -> Result<(), String> {
+fn set_plan_config(
+    kind: String,
+    custom_token_limit: Option<u64>,
+    usage_poll_interval_secs: Option<u32>,
+) -> Result<(), String> {
     let path = config_path()?;
     let raw = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
     let mut val: serde_json::Value = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
     let mut plan = serde_json::json!({ "kind": kind });
     if let Some(limit) = custom_token_limit {
         plan["custom_token_limit"] = serde_json::json!(limit);
+    }
+    if let Some(secs) = usage_poll_interval_secs {
+        plan["usage_poll_interval_secs"] = serde_json::json!(secs);
     }
     val["plan"] = plan;
     let json = serde_json::to_string_pretty(&val).map_err(|e| e.to_string())?;

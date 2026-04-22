@@ -20,7 +20,7 @@ export function App() {
   const { isEnabled, toggle } = useAutoStart();
   const { checking, result, error: updateError, checkForUpdate } = useUpdater();
   const { plan, setPlan } = usePlanConfig();
-  const { usage: anthropicUsage, error: usageError } = useAnthropicUsage();
+  const { usage: anthropicUsage, error: usageError } = useAnthropicUsage(plan.usage_poll_interval_secs);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [customLimitInput, setCustomLimitInput] = useState<string>("");
 
@@ -111,6 +111,24 @@ export function App() {
                 />
               </div>
             )}
+
+            <div style={styles.planRow}>
+              <span style={styles.settingsLabel}>Aktualisierung</span>
+              <select
+                style={styles.planSelect}
+                value={plan.usage_poll_interval_secs}
+                onChange={(e) => {
+                  const secs = parseInt(e.target.value, 10);
+                  void setPlan(plan.kind, plan.custom_token_limit ?? undefined, secs);
+                }}
+              >
+                <option value={30}>30 Sekunden</option>
+                <option value={60}>1 Minute</option>
+                <option value={120}>2 Minuten</option>
+                <option value={300}>5 Minuten</option>
+                <option value={600}>10 Minuten</option>
+              </select>
+            </div>
 
             <div style={styles.updateRow}>
               <button

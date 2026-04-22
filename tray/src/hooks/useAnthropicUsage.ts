@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import type { AnthropicUsage } from "../types";
 
-const POLL_INTERVAL_MS = 5 * 60 * 1_000;
-
-export function useAnthropicUsage(): { usage: AnthropicUsage | null; error: string | null } {
+export function useAnthropicUsage(
+  pollIntervalSecs: number,
+): { usage: AnthropicUsage | null; error: string | null } {
   const [usage, setUsage] = useState<AnthropicUsage | null>(null);
   const [error, setError] = useState<string | null>(null);
   const cacheRef = useRef<AnthropicUsage | null>(null);
@@ -30,12 +30,12 @@ export function useAnthropicUsage(): { usage: AnthropicUsage | null; error: stri
     }
 
     void load();
-    const id = setInterval(() => void load(), POLL_INTERVAL_MS);
+    const id = setInterval(() => void load(), pollIntervalSecs * 1_000);
     return () => {
       cancelled = true;
       clearInterval(id);
     };
-  }, []);
+  }, [pollIntervalSecs]);
 
   return { usage, error };
 }
