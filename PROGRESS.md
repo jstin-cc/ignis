@@ -1,94 +1,60 @@
-# PROGRESS
+# PROGRESS.md
 
-Statusblick pro Phase. Updates nach jedem abgeschlossenen logischen Schritt, im selben
-Commit wie der Code/Doc-Change, auf den er sich bezieht.
+Zentrale Projekt-Dokumentation: Fortschritt, anstehende Arbeiten und Release-History
+in einer Datei. Updates nach jedem abgeschlossenen logischen Schritt, im selben Commit
+wie der Code/Doc-Change.
 
 Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 
 ---
 
-## Phase 0 — Scaffolding & Entscheidungen ✅
+## Next — Anstehende Arbeiten
 
-- [x] Prompt-Review — 10 offene Punkte vom Nutzer beantwortet (siehe `DECISIONS.md`).
-- [x] Toolchain verifiziert: rustc 1.95.0, cargo 1.95.0, clippy 0.1.95, rustfmt 1.9.0,
-      node v24.14.1, gh 2.89.0 (jstin-cc). Tauri-CLI: deferred.
-- [x] Projekt-Skelett + Pflicht-Dokumente.
-- [x] JSONL-Format empirisch untersucht → `docs/jsonl-format.md` + 3 Fixtures.
-- [x] `docs/architecture.md`, `docs/api.md`, `docs/design-system.md`, `docs/pricing.md`.
-- [x] 3 Agent-Definitionen (`lead_engineer`, `implementer`, `qa_docs`).
-- [x] Git-Init + Initial-Commit + `gh repo create jstin-cc/ignis --private` + Push.
+### Phase v1.1.0 — Tray-UI Überarbeitung
 
-**Phase 0 abgeschlossen am 2026-04-17.** Repo: https://github.com/jstin-cc/ignis.
+Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 
----
-
-## Phase 1 — MVP Kern (`v0.1.0`)
-
-- [x] Dependencies: `serde`, `serde_json`, `chrono`, `rust_decimal`, `thiserror`,
-      `pretty_assertions` (dev).
-- [x] `src/model.rs` — `UsageEvent`, `Snapshot`, `Summary`, `SessionState`, `ModelId`,
-      `ModelUsage`, `ProjectUsage`.
-- [x] `src/parser.rs` — `parse_line()` mit 6 Unit-Tests (happy-path, synthetic-skip,
-      sidechain, user-line-skip, malformed JSON, no-usage-skip).
-- [x] CI-Workflow `.github/workflows/ci.yml` — Windows-Runner, fmt + clippy + test.
-- [x] `src/pricing.rs` + `src/pricing.json` (Lookup, Datum-Suffix-Fallback, Warnings).
-- [x] `src/aggregate.rs` — Rolling-Windows (today / week / month) + active-session.
-- [x] `src/scanner.rs` — Full-Scan + Position-Tracking (Byte-Offset + FileIdentity via NTFS-FFI).
-- [x] `src/config.rs` — Pfade, Auth-Token, JSON-Persistenz.
-- [x] `examples/scan.rs` — Dev-CLI: Full-Scan → JSON-Dump (verifiziert: 38 Files, 2131 Events).
-- [x] CLI-Subcommands: `ignis daily`, `ignis monthly`, `ignis session`, `ignis scan`.
-- [x] HTTP-API: `/health`, `/v1/summary`, `/v1/sessions`.
-- [x] Tray-App Basis-Panel (Tauri 2 + React 18.3).
-- [x] Installer (MSI via Tauri Bundler) — konfiguriert in `tray/src-tauri/tauri.conf.json` (targets: msi + nsis); Build läuft via `tauri build` auf Windows.
-- [x] Release-Tag `v0.1.0-mvp`.
-
-**Phase 1 abgeschlossen am 2026-04-18.**
-
-## Phase 2 — Live & smart (`v0.2.0`)
-
-- [x] `ignis watch` Live-TUI — ratatui 0.29 + crossterm 0.28 + notify 6;
-      Layout: Header / Today+Session / By-Model / Burn-Rate / Footer;
-      Keys: q quit, r refresh, d daily, m monthly; NO_COLOR-Fallback.
-- [x] 5-Stunden-Billing-Windows — `SessionBlock`, `billing_blocks()`, `active_block_at()`;
-      Burn-Rate-Panel: Fortschrittsbalken, $/h, verbleibende Zeit, Block-Start-Uhrzeit;
-      8 neue Tests (54 gesamt, alle grün).
-- [x] 5-Stunden-Billing-Windows / Session-Blocks (ADR-010).
-- [x] Burn-Rate + Projektionen.
-- [x] Tray: BlockPanel — Fortschrittsbalken (CSS, kein Recharts), $/h Burn Rate,
-      verbleibende Zeit; API: ActiveBlockDto + percent_elapsed in /v1/summary.
-- [x] Tray: ProjectsPanel — Top-5-Projekte mit Mini-Balken + Kosten (kein Recharts, reine CSS).
-- [x] Notifications bei Limit-Schwellen — `useBlockNotifications` feuert bei 80% + 100%;
-      `tauri-plugin-notification`; Capabilities-Datei; Fallback außerhalb Tauri.
-- [x] Auto-Start bei Windows-Login — `tauri-plugin-autostart`; Tauri-Commands
-      `get/set_autostart_enabled`; `useAutoStart`-Hook; Settings-Panel via ⚙-Button.
-
-## Phase 3 — Plugin-ready (`v1.0.0`)
-
-- [x] Provider-Plugin-Trait — `src/provider.rs`, `ClaudeCodeProvider`, ADR-012; 57 Tests.
-- [x] Export: CSV, JSON — `ignis export --format <csv|json> --period <today|week|month>`.
-- [x] Heatmap im Tray — `GET /v1/heatmap`; `HeatmapDay`; 84-Tage-Grid (7×n CSS, Terrakotta-Intensität).
-- [x] Auto-Update via Tauri Updater — `tauri-plugin-updater`; `check_for_update`-Command;
-      Settings-Panel-Button; Platzhalter-Endpoint; App-Icons generiert.
-
-**Phase 3 abgeschlossen am 2026-04-20.**
+- [ ] Schritt 0 — Design-Token-Basis: `tray/src/index.css` abgleichen, IBM Plex Fonts
+      in `tray/index.html` laden.
+- [ ] Schritt 1 — `format.ts`: `fmt`-Objekt (usd/tok/dur) nach DESIGN.md-Spec exportieren.
+- [ ] Schritt 2 — `TabBar.tsx` (neu): vier Tabs today/month/projects/heatmap.
+- [ ] Schritt 3 — `App.tsx`: TabBar-Layout (48+36+380+56px), Settings-Overlay, kein Scroll.
+- [ ] Schritt 4 — `TodaySection`: `.section-label`, `fmt`-Integration, kein Panel-Background.
+- [ ] Schritt 5 — `MonthPanel`: WeekSection-Variante mit ProgressBar + `progressClass()`.
+- [ ] Schritt 6 — `BlockPanel`: `progressClass` statt Inline-Farben, Token-Ablauf-UX,
+      `.extra-usage`-CSS-Klasse, nur `width 200ms ease-out`.
+- [ ] Schritt 7 — `SessionSection`: `.section-label`, `fmt.tok()`, kein Panel-Background.
+- [ ] Schritt 8 — `ProjectsPanel` + `HeatmapPanel`: Tab-Layout (380px), kein Panel-Background.
+- [ ] Schritt 9 — `Footer`: `.btn--primary` (Dashboard) + `.btn--ghost` (CLI).
+- [ ] Schritt 10 — Port-Konflikt-Handling: `TcpListener`-Check in Rust vor `spawn_api()`.
+- [ ] Schritt 11 — Docs: CHANGELOG-Abschnitt → v1.1.0, README, NEXT-Abschnitt aktualisieren.
+- [ ] Schritt 12 — `git tag v1.1.0` + push.
 
 ---
 
-## Post-v1.0 Hotfixes (2026-04-21)
+## Abgeschlossen
 
-Erste End-to-End-Nutzung nach dem v1.0-Tag zeigte mehrere Real-Use-Lücken. Alle
-im selben Tag gefixt, Commits siehe Git-Log.
+### Design-Vorbereitung v1.1.0 (2026-04-22)
 
-- [x] Tray-App spawnt `ignis-api` automatisch als Child-Prozess beim Start,
-      killt ihn bei Exit (ADR-013). Nutzer muss die API nicht mehr manuell starten.
-- [x] CORS-Layer auf der HTTP-API (`tower-http::cors`): OPTIONS-Preflight + `Access-Control-Allow-*`-Header. Vorher blockte der Webview alle authentifizierten Requests.
-- [x] Tauri 2 Release-Build: `custom-protocol`-Feature in `tray/src-tauri/Cargo.toml` aktiviert. Vorher fiel der Webview auf `devUrl` zurück und zeigte `ERR_CONNECTION_REFUSED`.
-- [x] Capability `core:window:allow-start-dragging` für `data-tauri-drag-region` (Fenster lässt sich am Header verschieben).
-- [x] Dashboard-Button (Footer) startet `ignis-watch.exe` via `open_cli_dashboard`-Tauri-Command; CLI-Button kopiert `ignis` in die Zwischenablage.
-- [x] Scrollbarer Content-Bereich im Tray-Panel (Header + Footer bleiben sticky); Scrollbar im Warm-Dark-Design gestylt.
-- [x] Fetch-Timeout (10 s) im Tray-Polling + sichtbares Error-Banner bei API-Ausfall.
+- [x] `DESIGN.md` erstellt — vollständiger Design-Handoff (Farben, Typo, Spacing,
+      Komponenten-Struktur, Zahlenformat-Spec, Progress-Bar-Logik).
+- [x] `apps/tray-ui/src/styles/tokens.css` angelegt — vollständige Design-Token-Basis
+      als Referenz für die Überarbeitung.
+- [x] `apps/tray-ui/src/assets/` angelegt — Zielordner für App-Assets.
+- [x] `tray/src-tauri/icons/Logo_Final.png` hinzugefügt — finales App-Icon.
+- [x] `INITIAL_PROMPT.md` nach `archive/` verschoben — Projekt-Root aufgeräumt.
+- [x] `PLAN-UEBERARBEITUNG.md` erstellt — 12-Schritte-Plan für Tray-UI-Überarbeitung.
 
-## Plan-Usage-Feature (2026-04-21)
+### Anthropic OAuth Usage-Balken (2026-04-21)
+
+- [x] Tauri-Command `get_anthropic_usage`: liest `~/.claude/.credentials.json`, refresht Token
+      automatisch (platform.claude.com), pollt `api.anthropic.com/api/oauth/usage`.
+- [x] Drei Balken im BlockPanel (USAGE LIMITS): 5h Block / This Week / Extra Usage.
+      Fallback auf JSONL-Einzelbalken wenn Credentials fehlen oder offline.
+- [x] Extra-Usage: `is_unlimited`-Flag + Dollar-Betrag wenn kein monatliches Limit gesetzt.
+- [x] Float-robustes Parsing für `utilization` und `used_credits` (Anthropic liefert Floats).
+
+### Plan-Usage-Feature (2026-04-21)
 
 - [x] Config-Erweiterung: `PlanKind` (pro/max5/max20/custom) + `PlanConfig.token_limit()`;
       Default max5 (88k tokens), serde-default für Rückwärtskompatibilität.
@@ -100,44 +66,146 @@ im selben Tag gefixt, Commits siehe Git-Log.
       Dollar-Betrag als Sekundärinfo.
 - [x] Settings-Panel: Plan-Dropdown (pro/max5/max20/custom) + Custom-Eingabefeld.
 
-## Anthropic OAuth Usage-Balken (2026-04-21)
+### Post-v1.0 Hotfixes (2026-04-21)
 
-- [x] Tauri-Command `get_anthropic_usage`: liest `~/.claude/.credentials.json`, refresht Token
-      automatisch (platform.claude.com), pollt `api.anthropic.com/api/oauth/usage`.
-- [x] Drei Balken im BlockPanel (USAGE LIMITS): 5h Block / This Week / Extra Usage.
-      Fallback auf JSONL-Einzelbalken wenn Credentials fehlen oder offline.
-- [x] Extra-Usage: `is_unlimited`-Flag + Dollar-Betrag wenn kein monatliches Limit gesetzt.
-- [x] Float-robustes Parsing für `utilization` und `used_credits` (Anthropic liefert Floats).
+- [x] Tray-App spawnt `ignis-api` automatisch als Child-Prozess beim Start,
+      killt ihn bei Exit (ADR-013).
+- [x] CORS-Layer auf der HTTP-API (`tower-http::cors`): OPTIONS-Preflight + `Access-Control-Allow-*`-Header.
+- [x] Tauri 2 Release-Build: `custom-protocol`-Feature in `tray/src-tauri/Cargo.toml` aktiviert.
+- [x] Capability `core:window:allow-start-dragging` für `data-tauri-drag-region`.
+- [x] Dashboard-Button (Footer) startet `ignis-watch.exe` via `open_cli_dashboard`-Tauri-Command;
+      CLI-Button kopiert `ignis` in die Zwischenablage.
+- [x] Scrollbarer Content-Bereich im Tray-Panel (Header + Footer bleiben sticky).
+- [x] Fetch-Timeout (10 s) im Tray-Polling + sichtbares Error-Banner bei API-Ausfall.
+
+### Phase 3 — Plugin-ready (`v1.0.0`) ✅
+
+- [x] Provider-Plugin-Trait — `src/provider.rs`, `ClaudeCodeProvider`, ADR-012; 57 Tests.
+- [x] Export: CSV, JSON — `ignis export --format <csv|json> --period <today|week|month>`.
+- [x] Heatmap im Tray — `GET /v1/heatmap`; `HeatmapDay`; 84-Tage-Grid (7×n CSS, Terrakotta-Intensität).
+- [x] Auto-Update via Tauri Updater — `tauri-plugin-updater`; `check_for_update`-Command;
+      Settings-Panel-Button; Platzhalter-Endpoint; App-Icons generiert.
+
+**Phase 3 abgeschlossen am 2026-04-20.**
+
+### Phase 2 — Live & smart (`v0.2.0`) ✅
+
+- [x] `ignis watch` Live-TUI — ratatui 0.29 + crossterm 0.28 + notify 6;
+      Layout: Header / Today+Session / By-Model / Burn-Rate / Footer;
+      Keys: q quit, r refresh, d daily, m monthly; NO_COLOR-Fallback.
+- [x] 5-Stunden-Billing-Windows — `SessionBlock`, `billing_blocks()`, `active_block_at()`;
+      Burn-Rate-Panel: Fortschrittsbalken, $/h, verbleibende Zeit, Block-Start-Uhrzeit;
+      8 neue Tests (54 gesamt, alle grün).
+- [x] Tray: BlockPanel — Fortschrittsbalken (CSS, kein Recharts), $/h Burn Rate,
+      verbleibende Zeit; API: `ActiveBlockDto` + `percent_elapsed` in `/v1/summary`.
+- [x] Tray: ProjectsPanel — Top-5-Projekte mit Mini-Balken + Kosten (kein Recharts, reine CSS).
+- [x] Notifications bei Limit-Schwellen — `useBlockNotifications` feuert bei 80% + 100%.
+- [x] Auto-Start bei Windows-Login — `tauri-plugin-autostart`; Settings-Panel via ⚙-Button.
+
+**Phase 2 abgeschlossen am 2026-04-20.**
+
+### Phase 1 — MVP Kern (`v0.1.0`) ✅
+
+- [x] Dependencies: `serde`, `serde_json`, `chrono`, `rust_decimal`, `thiserror`, `pretty_assertions`.
+- [x] `src/model.rs`, `src/parser.rs`, `src/pricing.rs`, `src/aggregate.rs`,
+      `src/scanner.rs`, `src/config.rs` — Kern-Module mit Tests.
+- [x] CLI-Subcommands: `ignis daily`, `ignis monthly`, `ignis session`, `ignis scan`.
+- [x] HTTP-API: `/health`, `/v1/summary`, `/v1/sessions` mit Bearer-Auth.
+- [x] Tray-App Basis-Panel (Tauri 2 + React 18.3).
+- [x] Installer (MSI + NSIS via Tauri Bundler).
+- [x] CI-Workflow `.github/workflows/ci.yml` — Windows-Runner, fmt + clippy + test.
+- [x] Release-Tag `v0.1.0-mvp`.
+
+**Phase 1 abgeschlossen am 2026-04-18.**
+
+### Phase 0 — Scaffolding & Entscheidungen ✅
+
+- [x] Toolchain verifiziert, Projekt-Skelett + Pflicht-Dokumente angelegt.
+- [x] JSONL-Format empirisch untersucht → `docs/jsonl-format.md` + 3 Fixtures.
+- [x] `docs/architecture.md`, `docs/api.md`, `docs/design-system.md`, `docs/pricing.md`.
+- [x] 3 Agent-Definitionen (`lead_engineer`, `implementer`, `qa_docs`).
+- [x] Git-Init + Initial-Commit + `gh repo create jstin-cc/ignis --private` + Push.
+
+**Phase 0 abgeschlossen am 2026-04-17.** Repo: https://github.com/jstin-cc/ignis.
 
 ---
 
-## Design-Vorbereitung v1.1.0 (2026-04-22)
+## Changelog
 
-- [x] `DESIGN.md` erstellt — vollständiger Design-Handoff (Farben, Typo, Spacing,
-      Komponenten-Struktur, Zahlenformat-Spec, Progress-Bar-Logik).
-- [x] `apps/tray-ui/src/styles/tokens.css` angelegt — vollständige Design-Token-Basis
-      als Referenz für die Überarbeitung.
-- [x] `apps/tray-ui/src/assets/` angelegt — Zielordner für App-Assets.
-- [x] `tray/src-tauri/icons/Logo_Final.png` hinzugefügt — finales App-Icon.
-- [x] `INITIAL_PROMPT.md` nach `archive/` verschoben — Projekt-Root aufgeräumt.
-- [x] `PLAN-UEBERARBEITUNG.md` erstellt — 12-Schritte-Plan für Tray-UI-Überarbeitung.
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
----
+### [Unreleased] → v1.1.0
 
-## Phase v1.1.0 — Tray-UI Überarbeitung
+#### Added
 
-- [ ] Schritt 0 — Design-Token-Basis: `tray/src/index.css` abgleichen, IBM Plex Fonts
-      in `tray/index.html` laden.
-- [ ] Schritt 1 — `format.ts`: `fmt`-Objekt (usd/tok/dur) nach DESIGN.md-Spec exportieren.
-- [ ] Schritt 2 — `TabBar.tsx` (neu): four Tabs today/month/projects/heatmap.
-- [ ] Schritt 3 — `App.tsx`: TabBar-Layout (48+36+380+56px), Settings-Overlay, kein Scroll.
-- [ ] Schritt 4 — `TodaySection`: `.section-label`, `fmt`-Integration, kein Panel-Background.
-- [ ] Schritt 5 — `MonthPanel`: WeekSection-Variante mit ProgressBar + `progressClass()`.
-- [ ] Schritt 6 — `BlockPanel`: `progressClass` statt Inline-Farben, Token-Ablauf-UX,
-      `.extra-usage`-CSS-Klasse, nur `width 200ms ease-out`.
-- [ ] Schritt 7 — `SessionSection`: `.section-label`, `fmt.tok()`, kein Panel-Background.
-- [ ] Schritt 8 — `ProjectsPanel` + `HeatmapPanel`: Tab-Layout (380px), kein Panel-Background.
-- [ ] Schritt 9 — `Footer`: `.btn--primary` (Dashboard) + `.btn--ghost` (CLI).
-- [ ] Schritt 10 — Port-Konflikt-Handling: `TcpListener`-Check in Rust vor `spawn_api()`.
-- [ ] Schritt 11 — Docs: CHANGELOG → v1.1.0, README, NEXT.md aktualisieren.
-- [ ] Schritt 12 — `git tag v1.1.0` + push.
+- **Drei Usage-Balken** im Tray `BlockPanel` (USAGE LIMITS): 5h-Block, Woche und Extra Usage —
+  Werte direkt von `api.anthropic.com/api/oauth/usage` via OAuth (`anthropic-beta: oauth-2025-04-20`).
+- **Anthropic OAuth-Integration** (`tray/src-tauri`): Tauri-Command `get_anthropic_usage`, automatischer
+  Token-Refresh (5-min-Buffer), Polling alle 5 Minuten im Frontend.
+- **Plan-Konfiguration** (`src/config.rs`): `PlanKind`-Enum (pro/max5/max20/custom) +
+  `PlanConfig.token_limit()`; in `config.json` gespeichert.
+- **API: `block_token_limit` + `block_token_pct`** in `GET /v1/summary → active_block`.
+- **Settings-Panel** im Tray: Plan-Dropdown + Custom-Token-Limit-Eingabe.
+- Tray-App spawnt `ignis-api` automatisch als Child-Prozess (ADR-013).
+- CORS-Layer auf der HTTP-API (`tower-http::cors`).
+- Tauri-Command `open_cli_dashboard`, CLI-Button kopiert `ignis` in Zwischenablage.
+- Scrollbarer Content-Bereich, Fetch-Timeout (10 s), Error-Banner.
+
+#### Fixed
+
+- `used_credits` / `monthly_limit` als `f64` geparst (Anthropic liefert Floats).
+- `parse_window`: `utilization` als `f64` statt `u64`.
+- Tauri 2 Release-Build: `custom-protocol`-Feature fehlte.
+- Capability `core:window:allow-start-dragging` fehlte.
+
+### [1.0.0] — 2026-04-20
+
+#### Added
+
+- `ignis export --format <csv|json> --period <today|week|month>`
+- `src/provider.rs` — `Provider`-Trait + `ClaudeCodeProvider` (ADR-012)
+- `GET /v1/heatmap` — 84-Tage-Tageskostenübersicht
+- Tray `HeatmapPanel` — 7×n CSS-Grid (12 Wochen), Terrakotta-Farbintensität
+- Tray Auto-Update — `tauri-plugin-updater`; GitHub-Releases-Endpunkt (Platzhalter)
+- App-Icons (Terrakotta, alle Plattformgrößen via `tauri icon`)
+
+#### Fixed
+
+- `Image::from_rgba` → `Image::new_owned` (Tauri 2 API-Änderung)
+
+> 57 Tests, `cargo clippy --all-targets -- -D warnings` clean.
+
+### [0.2.0] — 2026-04-20
+
+#### Added
+
+- `ignis watch` — Live-TUI (ratatui 0.29 + crossterm 0.28 + notify 6)
+- `SessionBlock`, `billing_blocks()`, `active_block_at()` — 5h-Billing-Windows (ADR-010)
+- Tray `BlockPanel`, `ProjectsPanel`, `useBlockNotifications`, `useAutoStart`
+
+#### Fixed
+
+- CI: zwei Clippy-Warnungen in Test-Code behoben
+
+> 54 Tests, `cargo clippy --all-targets -- -D warnings` clean.
+
+### [0.1.0-mvp] — 2026-04-18
+
+#### Added
+
+- Kern-Module: `model`, `parser`, `pricing`, `aggregate`, `scanner`, `config`
+- CLI (`ignis daily/monthly/session/scan`), HTTP-API (`/health`, `/v1/summary`, `/v1/sessions`)
+- Tray-App Basis (Tauri 2 + React 18.3), MSI + NSIS Installer
+- CI-Workflow (Windows-Runner)
+
+> 46 Tests, `cargo clippy -- -D warnings` clean.
+
+### [0.0.1] — 2026-04-17
+
+- Initial scaffolding: Dokumentation, ADR-001–011, Single-Crate-Layout.
+
+[Unreleased]: https://github.com/jstin-cc/ignis/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/jstin-cc/ignis/compare/v0.2.0...v1.0.0
+[0.2.0]: https://github.com/jstin-cc/ignis/compare/v0.1.0-mvp...v0.2.0
+[0.1.0-mvp]: https://github.com/jstin-cc/ignis/compare/v0.0.1...v0.1.0-mvp
+[0.0.1]: https://github.com/jstin-cc/ignis/releases/tag/v0.0.1
