@@ -1,5 +1,4 @@
 use crate::model::{ModelId, ModelUsage, Snapshot, Summary};
-use std::sync::atomic::{AtomicU64, Ordering};
 use axum::{
     extract::{Query, State},
     http::{header, HeaderMap, HeaderValue, Method, StatusCode},
@@ -9,6 +8,7 @@ use axum::{
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use tower_http::cors::CorsLayer;
 
@@ -129,10 +129,10 @@ fn check_auth(headers: &HeaderMap, token: &str) -> Result<(), Box<Response>> {
 
 /// Allowed origins for cross-origin requests.
 const ALLOWED_ORIGINS: &[&str] = &[
-    "tauri://localhost",       // Tauri production WebView (Windows/macOS)
-    "http://tauri.localhost",  // Tauri production WebView (Linux)
-    "http://localhost:1420",   // Vite dev-server (tauri dev default)
-    "http://localhost:5173",   // Vite standalone dev-server default
+    "tauri://localhost",      // Tauri production WebView (Windows/macOS)
+    "http://tauri.localhost", // Tauri production WebView (Linux)
+    "http://localhost:1420",  // Vite dev-server (tauri dev default)
+    "http://localhost:5173",  // Vite standalone dev-server default
 ];
 
 /// Returns `Err(Response)` when the `Origin` header is present but not in the allowlist.

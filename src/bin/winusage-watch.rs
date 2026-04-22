@@ -42,7 +42,10 @@ struct Palette {
 }
 
 fn detect_palette() -> Palette {
-    if std::env::var("NO_COLOR").map(|v| !v.is_empty()).unwrap_or(false) {
+    if std::env::var("NO_COLOR")
+        .map(|v| !v.is_empty())
+        .unwrap_or(false)
+    {
         Palette {
             bg: Color::Reset,
             panel: Color::Reset,
@@ -109,7 +112,8 @@ impl App {
         // Merge updated positions (replace entries for scanned files, add new ones).
         let updated: std::collections::HashSet<&std::path::Path> =
             delta.positions.iter().map(|p| p.path.as_path()).collect();
-        self.positions.retain(|p| !updated.contains(p.path.as_path()));
+        self.positions
+            .retain(|p| !updated.contains(p.path.as_path()));
         self.positions.extend(delta.positions);
 
         self.all_events.extend(delta.events);

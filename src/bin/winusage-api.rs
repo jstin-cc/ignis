@@ -19,7 +19,11 @@ async fn main() -> anyhow::Result<()> {
     }
     let snapshot = build_snapshot(&scan.events, &pricing, Utc::now());
 
-    let state = ApiState::new(snapshot, config.api_token.clone(), config.plan.token_limit());
+    let state = ApiState::new(
+        snapshot,
+        config.api_token.clone(),
+        config.plan.token_limit(),
+    );
 
     // Background re-scan: react to file changes (notify) + 30-second periodic fallback.
     let (notify_tx, mut notify_rx) = tokio::sync::mpsc::unbounded_channel::<()>();
