@@ -108,3 +108,36 @@ im selben Tag gefixt, Commits siehe Git-Log.
       Fallback auf JSONL-Einzelbalken wenn Credentials fehlen oder offline.
 - [x] Extra-Usage: `is_unlimited`-Flag + Dollar-Betrag wenn kein monatliches Limit gesetzt.
 - [x] Float-robustes Parsing für `utilization` und `used_credits` (Anthropic liefert Floats).
+
+---
+
+## Design-Vorbereitung v1.1.0 (2026-04-22)
+
+- [x] `DESIGN.md` erstellt — vollständiger Design-Handoff (Farben, Typo, Spacing,
+      Komponenten-Struktur, Zahlenformat-Spec, Progress-Bar-Logik).
+- [x] `apps/tray-ui/src/styles/tokens.css` angelegt — vollständige Design-Token-Basis
+      als Referenz für die Überarbeitung.
+- [x] `apps/tray-ui/src/assets/` angelegt — Zielordner für App-Assets.
+- [x] `tray/src-tauri/icons/Logo_Final.png` hinzugefügt — finales App-Icon.
+- [x] `INITIAL_PROMPT.md` nach `archive/` verschoben — Projekt-Root aufgeräumt.
+- [x] `PLAN-UEBERARBEITUNG.md` erstellt — 12-Schritte-Plan für Tray-UI-Überarbeitung.
+
+---
+
+## Phase v1.1.0 — Tray-UI Überarbeitung
+
+- [ ] Schritt 0 — Design-Token-Basis: `tray/src/index.css` abgleichen, IBM Plex Fonts
+      in `tray/index.html` laden.
+- [ ] Schritt 1 — `format.ts`: `fmt`-Objekt (usd/tok/dur) nach DESIGN.md-Spec exportieren.
+- [ ] Schritt 2 — `TabBar.tsx` (neu): four Tabs today/month/projects/heatmap.
+- [ ] Schritt 3 — `App.tsx`: TabBar-Layout (48+36+380+56px), Settings-Overlay, kein Scroll.
+- [ ] Schritt 4 — `TodaySection`: `.section-label`, `fmt`-Integration, kein Panel-Background.
+- [ ] Schritt 5 — `MonthPanel`: WeekSection-Variante mit ProgressBar + `progressClass()`.
+- [ ] Schritt 6 — `BlockPanel`: `progressClass` statt Inline-Farben, Token-Ablauf-UX,
+      `.extra-usage`-CSS-Klasse, nur `width 200ms ease-out`.
+- [ ] Schritt 7 — `SessionSection`: `.section-label`, `fmt.tok()`, kein Panel-Background.
+- [ ] Schritt 8 — `ProjectsPanel` + `HeatmapPanel`: Tab-Layout (380px), kein Panel-Background.
+- [ ] Schritt 9 — `Footer`: `.btn--primary` (Dashboard) + `.btn--ghost` (CLI).
+- [ ] Schritt 10 — Port-Konflikt-Handling: `TcpListener`-Check in Rust vor `spawn_api()`.
+- [ ] Schritt 11 — Docs: CHANGELOG → v1.1.0, README, NEXT.md aktualisieren.
+- [ ] Schritt 12 — `git tag v1.1.0` + push.

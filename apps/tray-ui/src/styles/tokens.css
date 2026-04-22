@@ -1,0 +1,192 @@
+/* ─────────────────────────────────────────────────────────────
+   Ignis Design Tokens  —  v1.0  —  jstin-cc/ignis
+   Usage: import this file once at the app root.
+   All components use var(--token-name) directly.
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+
+  /* Backgrounds */
+  --bg-base:        #1F1E1B;   /* Main background — warm anthracite */
+  --bg-elevated:    #292724;   /* Cards, panels */
+  --bg-overlay:     #34312C;   /* Modals, tooltips */
+
+  /* Borders */
+  --border-subtle:  #3D3A34;   /* Default 1px border */
+  --border-default: #524E46;   /* Stronger divider */
+
+  /* Text */
+  --text-primary:   #F4F3EE;   /* "Pampas" — main text */
+  --text-secondary: #B1ADA1;   /* "Cloudy" — labels, metadata */
+  --text-muted:     #7A766D;   /* Disabled, secondary info */
+
+  /* Accent — Terracotta (use sparingly, one signal colour) */
+  --accent:         #C15F3C;   /* "Crail" — primary accent */
+  --accent-hover:   #D47551;   /* Hover state */
+  --accent-muted:   #8B4428;   /* Progress bars, secondary accent surfaces */
+
+  /* Status */
+  --success:        #7A9B76;   /* Muted sage green */
+  --warning:        #D4A574;   /* Warm amber */
+  --danger:         #C06862;   /* Muted red */
+
+  /* Charts — token type colours */
+  --chart-input:       #C15F3C;
+  --chart-output:      #D4A574;
+  --chart-cache-read:  #7A9B76;
+  --chart-cache-write: #8B6B9B;
+
+  /* Typography */
+  --font-sans: 'IBM Plex Sans', 'Segoe UI Variable', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Cascadia Code', 'JetBrains Mono', monospace;
+
+  --text-hero:   24px;   /* Hero numbers — 600 weight */
+  --text-body:   14px;   /* Body — 400 weight */
+  --text-label:  12px;   /* Labels — 500 weight */
+  --text-small:  11px;   /* Section labels — 500 weight, uppercase */
+  --text-mono:   13px;   /* Mono / tabular numbers */
+
+  /* Spacing scale — 4px grid, no exceptions */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-6:  24px;
+  --space-8:  32px;
+
+  /* Border radius */
+  --radius-chip:   2px;   /* Badges, chips */
+  --radius-button: 4px;   /* Buttons, inputs */
+  --radius-card:   6px;   /* Cards, panels */
+  --radius-panel:  8px;   /* Tray panel outer */
+
+  /* Shadows */
+  --shadow-overlay: 0 4px 12px rgba(0, 0, 0, 0.32);   /* Modals, tooltips */
+  --shadow-panel:   0 12px 40px rgba(0, 0, 0, 0.60);  /* Tray panel */
+
+  /* Tray panel */
+  --tray-width: 360px;
+  --tray-header-height: 48px;
+}
+
+/* ─── Global resets ──────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Tabular numerals — apply to any element with live-updating numbers */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Progress bar ───────────────────────────────────────── */
+.progress-track {
+  height: 6px;
+  background: var(--border-subtle);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 200ms ease-out;
+  background: var(--accent-muted);
+}
+
+/* State overrides — apply based on pct threshold in JS */
+.progress-fill--high    { background: var(--accent); }
+.progress-fill--warning { background: var(--warning); }
+.progress-fill--danger  { background: var(--danger); }
+
+/* ─── Buttons ────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-button);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 120ms, border-color 120ms, color 120ms;
+  white-space: nowrap;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: #1F1E1B;
+  border-color: var(--accent);
+}
+.btn--primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+.btn--secondary {
+  background: var(--bg-overlay);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.btn--secondary:hover { border-color: var(--accent); }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: transparent;
+}
+.btn--ghost:hover { background: var(--bg-overlay); color: var(--text-primary); }
+
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ─── Badge / Status chip ────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: var(--radius-chip);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+
+.badge--active  { background: rgba(122,155,118,0.12); border-color: rgba(122,155,118,0.25); color: var(--success); }
+.badge--idle    { background: rgba(212,165,116,0.12); border-color: rgba(212,165,116,0.25); color: var(--warning); }
+.badge--error   { background: rgba(192,104,98,0.12);  border-color: rgba(192,104,98,0.25);  color: var(--danger);  }
+.badge--neutral { background: var(--bg-overlay); border-color: var(--border-subtle); color: var(--text-muted); }
+
+/* ─── Tray section label ─────────────────────────────────── */
+.section-label {
+  font-size: var(--text-small);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+/* ─── Extra usage warning row ────────────────────────────── */
+.extra-usage {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-2);
+  padding: 5px 8px;
+  background: rgba(192, 104, 98, 0.08);
+  border: 1px solid rgba(192, 104, 98, 0.20);
+  border-radius: var(--radius-button);
+  font-size: 11px;
+  color: var(--danger);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}

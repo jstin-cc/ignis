@@ -67,6 +67,9 @@ liest JSONL-Logs aus `%USERPROFILE%\.claude\projects\`, zeigt Tokens/Kosten/Sess
 - Bevor Kontext knapp wird: `PROGRESS.md` + `NEXT.md` schreiben, committen, pushen. Kein
   Arbeiten bis zum letzten Token.
 - Nach jedem abgeschlossenen logischen Schritt: `PROGRESS.md` updaten + Commit.
+- **Jede Änderung sofort in `PROGRESS.md` dokumentieren** — auch neue Dateien, verschobene
+  Assets, Pläne oder Design-Artefakte. Nichts bleibt undokumentiert. Eintrag + Commit
+  erfolgen noch in derselben Session, in der die Änderung entsteht.
 - Nicht-triviale Entscheidung: neuer ADR in `DECISIONS.md` (Datum, Kontext, Alternativen,
   Begründung).
 - Push nach jedem Commit.
