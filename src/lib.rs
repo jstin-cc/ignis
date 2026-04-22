@@ -1,4 +1,4 @@
-//! winusage-core — scanner, parser, pricing and aggregation primitives.
+//! ignis-core — scanner, parser, pricing and aggregation primitives.
 //!
 //! This crate is the single source of truth for reading Claude Code JSONL logs
 //! and computing usage/cost summaries. API, CLI and Tray are downstream

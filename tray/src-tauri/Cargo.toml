@@ -1,9 +1,9 @@
 [package]
-name = "winusage-tray"
+name = "ignis-tray"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.75"
-description = "WinUsage system-tray host (Tauri 2)."
+description = "Ignis system-tray host (Tauri 2)."
 license = "UNLICENSED"
 publish = false
 

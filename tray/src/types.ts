@@ -1,4 +1,4 @@
-// API response types for the WinUsage HTTP API (docs/api.md).
+// API response types for the Ignis HTTP API (docs/api.md).
 // Cost amounts are strings (serialized rust_decimal::Decimal) — never parse as float.
 
 export interface ModelUsage {

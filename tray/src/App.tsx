@@ -33,7 +33,7 @@ export function App() {
     <div style={styles.shell}>
       <header style={styles.header} data-tauri-drag-region>
         <span style={styles.appName} data-tauri-drag-region>
-          WinUsage
+          Ignis
         </span>
         <div style={styles.headerActions}>
           <button
@@ -154,7 +154,7 @@ export function App() {
 
         {error && (
           <div style={styles.errorBanner}>
-            API nicht erreichbar — starte winusage-api
+            API nicht erreichbar — starte ignis-api
           </div>
         )}
         <hr className="section-divider" />

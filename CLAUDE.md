@@ -1,4 +1,4 @@
-# CLAUDE.md — Projekt-Kontext WinUsage
+# CLAUDE.md — Projekt-Kontext Ignis
 
 **Diese Datei wird zu Beginn jeder Session gelesen.** Gemeinsam mit `PROGRESS.md` und
 `NEXT.md` bildet sie den Einstiegspunkt bei Kontextverlust.
@@ -25,7 +25,7 @@ liest JSONL-Logs aus `%USERPROFILE%\.claude\projects\`, zeigt Tokens/Kosten/Sess
 ## Repository
 
 - GitHub: **privat** (später-public ist möglich, aktuell nicht im Scope).
-- Struktur: **Single-Crate-Start** (`winusage-core` als Lib + `examples/scan.rs`).
+- Struktur: **Single-Crate-Start** (`ignis-core` als Lib + `examples/scan.rs`).
   Aufteilen in Workspace-Crates erst wenn eine zweite Konsumenten-Schicht konkret entsteht
   (→ ADR-001).
 

@@ -1,7 +1,7 @@
 use anyhow::Context;
 use chrono::Utc;
+use ignis_core::{build_snapshot, scan_all, Config, PricingTable};
 use serde_json::json;
-use winusage_core::{build_snapshot, scan_all, Config, PricingTable};
 
 fn main() -> anyhow::Result<()> {
     let config = Config::load().context("failed to load config")?;

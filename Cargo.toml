@@ -1,27 +1,27 @@
 [package]
-name = "winusage-core"
+name = "ignis-core"
 version = "1.0.0"
 edition = "2021"
 rust-version = "1.75"
-description = "Windows-native Claude Code usage tracker — core library (scanner, parser, pricing, aggregation)."
+description = "Ignis — Claude Code usage tracker core library (scanner, parser, pricing, aggregation)."
 license = "UNLICENSED"
 publish = false
 
 [lib]
-name = "winusage_core"
+name = "ignis_core"
 path = "src/lib.rs"
 
 [[bin]]
-name = "winusage"
-path = "src/bin/winusage.rs"
+name = "ignis"
+path = "src/bin/ignis.rs"
 
 [[bin]]
-name = "winusage-api"
-path = "src/bin/winusage-api.rs"
+name = "ignis-api"
+path = "src/bin/ignis-api.rs"
 
 [[bin]]
-name = "winusage-watch"
-path = "src/bin/winusage-watch.rs"
+name = "ignis-watch"
+path = "src/bin/ignis-watch.rs"
 
 [[example]]
 name = "scan"

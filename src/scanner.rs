@@ -324,7 +324,7 @@ mod tests {
     struct TestDir(PathBuf);
     impl TestDir {
         fn new(name: &str) -> Self {
-            let d = std::env::temp_dir().join(format!("winusage_scanner_test_{name}"));
+            let d = std::env::temp_dir().join(format!("ignis_scanner_test_{name}"));
             let _ = std::fs::remove_dir_all(&d);
             std::fs::create_dir_all(&d).unwrap();
             Self(d)

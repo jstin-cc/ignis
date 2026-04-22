@@ -1,13 +1,13 @@
 use anyhow::Context;
 use chrono::Utc;
 use clap::{Parser, Subcommand, ValueEnum};
+use ignis_core::{build_snapshot, scan_all, Config, ModelUsage, PricingTable, Summary};
 use rust_decimal::Decimal;
 use std::io::{self, Write};
 use std::path::Path;
-use winusage_core::{build_snapshot, scan_all, Config, ModelUsage, PricingTable, Summary};
 
 #[derive(Parser)]
-#[command(name = "winusage", about = "Claude Code usage tracker", version)]
+#[command(name = "ignis", about = "Claude Code usage tracker", version)]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -127,7 +127,7 @@ fn print_summary(label: &str, summary: &Summary) {
     );
 }
 
-fn print_session(snap: &winusage_core::Snapshot) {
+fn print_session(snap: &ignis_core::Snapshot) {
     match &snap.active_session {
         None => println!("no active session"),
         Some(s) => {
@@ -150,8 +150,8 @@ fn print_session(snap: &winusage_core::Snapshot) {
 }
 
 fn print_scan_json(
-    scan: &winusage_core::ScanResult,
-    snap: &winusage_core::Snapshot,
+    scan: &ignis_core::ScanResult,
+    snap: &ignis_core::Snapshot,
 ) -> anyhow::Result<()> {
     let output = serde_json::json!({
         "scanned_files":       scan.positions.len(),

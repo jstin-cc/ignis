@@ -62,7 +62,7 @@ pub enum ConfigError {
     },
 }
 
-/// Runtime configuration for winusage.
+/// Runtime configuration for Ignis.
 #[derive(Clone, Debug)]
 pub struct Config {
     /// Root of Claude Code JSONL logs (usually `%USERPROFILE%\.claude\projects`).
@@ -74,7 +74,7 @@ pub struct Config {
 }
 
 impl Config {
-    /// Load from `%APPDATA%\winusage\config.json`, creating it with defaults when absent.
+    /// Load from `%APPDATA%\ignis\config.json`, creating it with defaults when absent.
     ///
     /// `WINUSAGE_PROJECTS_DIR` env var always overrides `claude_projects_dir` — useful
     /// for tests and CI without touching the user's real log directory.
@@ -116,14 +116,14 @@ struct StoredConfig {
 fn config_file_path() -> Result<PathBuf, ConfigError> {
     // On Windows APPDATA is the canonical config root; fall back to ~/.config on Unix.
     if let Ok(appdata) = std::env::var("APPDATA") {
-        return Ok(PathBuf::from(appdata).join("winusage").join("config.json"));
+        return Ok(PathBuf::from(appdata).join("ignis").join("config.json"));
     }
     let home = std::env::var("HOME").map_err(|e| ConfigError::EnvVar {
         var: "HOME",
         source: e,
     })?;
     Ok(PathBuf::from(format!("{home}/.config"))
-        .join("winusage")
+        .join("ignis")
         .join("config.json"))
 }
 
@@ -229,7 +229,7 @@ mod tests {
     }
 
     #[test]
-    fn winusage_projects_dir_env_override_is_applied() {
+    fn ignis_projects_dir_env_override_is_applied() {
         // Safety: single-threaded test; the var is restored after the test.
         let key = "WINUSAGE_PROJECTS_DIR";
         let original = std::env::var(key).ok();

@@ -1,9 +1,9 @@
 use anyhow::Context;
 use chrono::Utc;
+use ignis_core::{api::ApiState, build_snapshot, scan_all, Config, PricingTable};
 use notify::{RecursiveMode, Watcher};
 use std::net::SocketAddr;
 use std::time::Duration;
-use winusage_core::{api::ApiState, build_snapshot, scan_all, Config, PricingTable};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -81,13 +81,13 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
-    let app = winusage_core::api::router(state);
+    let app = ignis_core::api::router(state);
 
     let listener = tokio::net::TcpListener::bind(addr)
         .await
         .with_context(|| format!("failed to bind {addr}"))?;
 
-    eprintln!("winusage-api listening on http://{addr}");
+    eprintln!("ignis-api listening on http://{addr}");
 
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())

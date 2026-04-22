@@ -39,7 +39,7 @@ ersetzt. Beispiele:
 | `R:\001-Rechnungen-LS-Kreditoren\Nespresso` | `R--001-Rechnungen-LS-Kreditoren-Nespresso` |
 
 Diese Kodierung ist **nicht reversibel** (mehrere Pfade können denselben Directory-Namen
-ergeben). **Für WinUsage gilt: der Projekt-Pfad wird ausschließlich aus dem `cwd`-Feld
+ergeben). **Für Ignis gilt: der Projekt-Pfad wird ausschließlich aus dem `cwd`-Feld
 der JSONL-Zeilen gelesen, nie aus dem Directory-Namen.** Der Directory-Name ist nur ein
 Grouping-Key für den Scanner.
 
@@ -205,7 +205,7 @@ Sub-Agenten (Task-Tool) führen eigene Inner-Chats. Deren `assistant`-Zeilen hab
 bezahlt, unabhängig von der Agent-Schicht). Der Scanner mergt sie deshalb
 in die Session-Aggregation ein, ohne Sonderbehandlung.
 
-Einzige Unterscheidung, die WinUsage später anbietet: ein optionaler Breakdown
+Einzige Unterscheidung, die Ignis später anbietet: ein optionaler Breakdown
 "Main vs. Sidechain" pro Session (post-MVP, in v0.2 ggf.).
 
 ### `isMeta: true` → injected Text, keine echte User-Interaktion

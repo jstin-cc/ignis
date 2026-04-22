@@ -10,6 +10,10 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+use ignis_core::{
+    build_snapshot, scan_all, scan_incremental, Config, FilePosition, PricingTable, Snapshot,
+    Summary, UsageEvent,
+};
 use notify::{RecursiveMode, Watcher};
 use ratatui::{
     backend::CrosstermBackend,
@@ -20,10 +24,6 @@ use ratatui::{
     Frame, Terminal,
 };
 use rust_decimal::Decimal;
-use winusage_core::{
-    build_snapshot, scan_all, scan_incremental, Config, FilePosition, PricingTable, Snapshot,
-    Summary, UsageEvent,
-};
 
 const BLOCK_HOURS: i64 = 5;
 
@@ -230,7 +230,7 @@ fn draw(f: &mut Frame, app: &App) {
 fn draw_header(f: &mut Frame, area: Rect, app: &App, view_label: &str) {
     let p = app.pal;
     let now = Local::now().format("%H:%M:%S").to_string();
-    let title = format!(" WinUsage watch  [{view_label}]");
+    let title = format!(" Ignis watch  [{view_label}]");
     let right = format!("{now} ");
     let pad = area
         .width

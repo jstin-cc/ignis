@@ -46,7 +46,7 @@ export function useBlockNotifications(block: ActiveBlock | null): void {
     if (prev < 80 && pct >= 80 && !fired.current.has(80)) {
       fired.current.add(80);
       void sendTauriNotification(
-        "WinUsage — Block at 80%",
+        "Ignis — Block at 80%",
         `${formatCost(block.cost_usd)} used in this 5-hour billing block.`,
       );
     }
@@ -54,7 +54,7 @@ export function useBlockNotifications(block: ActiveBlock | null): void {
     if (prev < 100 && pct >= 100 && !fired.current.has(100)) {
       fired.current.add(100);
       void sendTauriNotification(
-        "WinUsage — Block complete",
+        "Ignis — Block complete",
         `Billing window closed. Total: ${formatCost(block.cost_usd)}.`,
       );
     }

@@ -18,7 +18,7 @@ export function Footer({ onOpenDashboard: _ }: { onOpenDashboard: () => void }) 
 
   async function handleCopyCli() {
     try {
-      await navigator.clipboard.writeText("winusage");
+      await navigator.clipboard.writeText("ignis");
       setCliCopied(true);
       setTimeout(() => setCliCopied(false), 1500);
     } catch {
@@ -31,16 +31,16 @@ export function Footer({ onOpenDashboard: _ }: { onOpenDashboard: () => void }) 
       <button
         style={styles.primaryBtn}
         onClick={() => void handleOpenDashboard()}
-        title={dashError ?? "winusage-watch (TUI) starten"}
+        title={dashError ?? "ignis-watch (TUI) starten"}
       >
         {dashError ? "Fehler" : "Open Dashboard"}
       </button>
       <button
         style={styles.secondaryBtn}
         onClick={() => void handleCopyCli()}
-        title="Kopiert 'winusage' in die Zwischenablage"
+        title="Kopiert 'ignis' in die Zwischenablage"
       >
-        {cliCopied ? "Kopiert ✓" : "CLI: winusage"}
+        {cliCopied ? "Kopiert ✓" : "CLI: ignis"}
       </button>
     </footer>
   );

@@ -1,10 +1,10 @@
-// Tauri frameless tray-panel host for WinUsage.
+// Tauri frameless tray-panel host for Ignis.
 //
 // Window behaviour:
 // - Frameless, always-on-top, no taskbar entry, initially hidden.
 // - Tray-icon left-click toggles visibility.
 // - Right-click context menu has a "Quit" item.
-// - Spawns `winusage-api` as a child process; kills it on exit.
+// - Spawns `ignis-api` as a child process; kills it on exit.
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
@@ -159,7 +159,7 @@ async fn get_anthropic_usage() -> Result<AnthropicUsageDto, String> {
         .get("https://api.anthropic.com/api/oauth/usage")
         .header("Authorization", format!("Bearer {}", creds.access_token))
         .header("anthropic-beta", "oauth-2025-04-20")
-        .header("User-Agent", "winusage/1.0")
+        .header("User-Agent", "ignis/1.0")
         .timeout(std::time::Duration::from_secs(10))
         .send()
         .await
@@ -174,7 +174,7 @@ async fn get_anthropic_usage() -> Result<AnthropicUsageDto, String> {
             .get("https://api.anthropic.com/api/oauth/usage")
             .header("Authorization", format!("Bearer {}", creds.access_token))
             .header("anthropic-beta", "oauth-2025-04-20")
-            .header("User-Agent", "winusage/1.0")
+            .header("User-Agent", "ignis/1.0")
             .timeout(std::time::Duration::from_secs(10))
             .send()
             .await
@@ -251,14 +251,14 @@ fn find_api_binary() -> Option<PathBuf> {
     let exe = std::env::current_exe().ok()?;
     let dir = exe.parent()?;
 
-    let same_dir = dir.join("winusage-api.exe");
+    let same_dir = dir.join("ignis-api.exe");
     if same_dir.exists() {
         return Some(same_dir);
     }
 
     for rel in [
-        "../../../../target/release/winusage-api.exe",
-        "../../../../target/debug/winusage-api.exe",
+        "../../../../target/release/ignis-api.exe",
+        "../../../../target/debug/ignis-api.exe",
     ] {
         let candidate = dir.join(rel);
         if candidate.exists() {
@@ -283,7 +283,7 @@ fn spawn_api() -> Option<Child> {
     match cmd.spawn() {
         Ok(child) => Some(child),
         Err(e) => {
-            eprintln!("failed to spawn winusage-api at {path:?}: {e}");
+            eprintln!("failed to spawn ignis-api at {path:?}: {e}");
             None
         }
     }
@@ -328,7 +328,7 @@ fn get_api_token() -> Result<String, String> {
         .or_else(|_| std::env::var("HOME").map(|h| format!("{h}/.config")))
         .map_err(|e| e.to_string())?;
     let path = std::path::PathBuf::from(appdata)
-        .join("winusage")
+        .join("ignis")
         .join("config.json");
     let raw = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
     let val: serde_json::Value = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
@@ -406,9 +406,9 @@ fn open_cli_dashboard() -> Result<(), String> {
     let dir = exe.parent().ok_or_else(|| "no parent".to_owned())?;
 
     let candidates = [
-        dir.join("winusage-watch.exe"),
-        dir.join("../../../../target/release/winusage-watch.exe"),
-        dir.join("../../../../target/debug/winusage-watch.exe"),
+        dir.join("ignis-watch.exe"),
+        dir.join("../../../../target/release/ignis-watch.exe"),
+        dir.join("../../../../target/debug/ignis-watch.exe"),
     ];
 
     // canonicalize() returns \\?\ UNC paths on Windows which cmd.exe rejects;
@@ -421,12 +421,12 @@ fn open_cli_dashboard() -> Result<(), String> {
                 s.strip_prefix(r"\\?\").unwrap_or(&s).to_owned()
             })
         })
-        .unwrap_or_else(|| "winusage-watch".to_owned()); // PATH fallback
+        .unwrap_or_else(|| "ignis-watch".to_owned()); // PATH fallback
 
     #[cfg(windows)]
     {
         Command::new("cmd")
-            .args(["/C", "start", "WinUsage Dashboard", &watch_path_str])
+            .args(["/C", "start", "Ignis Dashboard", &watch_path_str])
             .spawn()
             .map_err(|e| e.to_string())?;
     }
@@ -475,7 +475,7 @@ fn main() {
             get_anthropic_usage,
         ])
         .setup(|app| {
-            let quit_item = MenuItemBuilder::with_id("quit", "Quit WinUsage").build(app)?;
+            let quit_item = MenuItemBuilder::with_id("quit", "Quit Ignis").build(app)?;
             let menu = MenuBuilder::new(app).items(&[&quit_item]).build()?;
 
             let icon = app
@@ -486,7 +486,7 @@ fn main() {
             let _tray = TrayIconBuilder::new()
                 .icon(icon)
                 .menu(&menu)
-                .tooltip("WinUsage")
+                .tooltip("Ignis")
                 .on_tray_icon_event(|tray, event| {
                     if let TrayIconEvent::Click {
                         button: MouseButton::Left,
@@ -507,7 +507,7 @@ fn main() {
             Ok(())
         })
         .build(tauri::generate_context!())
-        .expect("error while building WinUsage tray application");
+        .expect("error while building Ignis tray application");
 
     app.run(|app_handle, event| {
         if let tauri::RunEvent::Exit = event {

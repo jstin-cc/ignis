@@ -14,10 +14,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Plan-Konfiguration** (`src/config.rs`): `PlanKind`-Enum (pro / max5 / max20 / custom) + `PlanConfig.token_limit()` als Fallback-Limit; in `config.json` gespeichert (serde-default für Rückwärtskompatibilität).
 - **API: `block_token_limit` + `block_token_pct`** in `GET /v1/summary` → `active_block` — token-basierter Prozentsatz des Billing-Blocks (0–100); `plan_token_limit: Arc<AtomicU64>` wird im Background-Loop automatisch nachgeladen.
 - **Settings-Panel** im Tray: Plan-Dropdown (pro / max5 / max20 / custom) + Custom-Token-Limit-Eingabe; Tauri-Commands `get_plan_config` + `set_plan_config` schreiben direkt in `config.json`.
-- Tray-App spawnt `winusage-api` automatisch als Child-Prozess beim Start und killt ihn beim Exit (ADR-013).
+- Tray-App spawnt `ignis-api` automatisch als Child-Prozess beim Start und killt ihn beim Exit (ADR-013).
 - CORS-Layer auf der HTTP-API (`tower-http::cors`) — `CorsLayer` mit Allowlist-Origins, OPTIONS-Preflight, `Authorization` + `Content-Type` in `allow_headers`.
-- Tauri-Command `open_cli_dashboard` — startet `winusage-watch.exe` in neuem Konsolenfenster.
-- CLI-Button im Tray-Footer kopiert `winusage` in die Zwischenablage.
+- Tauri-Command `open_cli_dashboard` — startet `ignis-watch.exe` in neuem Konsolenfenster.
+- CLI-Button im Tray-Footer kopiert `ignis` in die Zwischenablage.
 - Scrollbarer Content-Bereich im Tray-Panel — Header und Footer bleiben sticky.
 - Fetch-Timeout (10 s) im Tray-Polling + sichtbares Error-Banner bei API-Ausfall.
 
@@ -32,7 +32,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- `winusage export --format <csv|json> --period <today|week|month>` — maschinenlesbare Ausgabe aus der CLI
+- `ignis export --format <csv|json> --period <today|week|month>` — maschinenlesbare Ausgabe aus der CLI
 - `src/provider.rs` — `Provider`-Trait + `ClaudeCodeProvider` als Erweiterungspunkt für künftige Datenquellen (ADR-012)
 - `GET /v1/heatmap` — 84-Tage-Tageskostenübersicht als JSON-Array
 - Tray `HeatmapPanel` — 7×n CSS-Grid (12 Wochen), relative Terrakotta-Farbintensität, Montag-Ausrichtung
@@ -52,7 +52,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- `winusage watch` — Live-TUI (ratatui 0.29 + crossterm 0.28 + notify 6): Header / Today+Session / By-Model / Burn-Rate / Footer; Keys q/r/d/m; NO_COLOR-Fallback
+- `ignis watch` — Live-TUI (ratatui 0.29 + crossterm 0.28 + notify 6): Header / Today+Session / By-Model / Burn-Rate / Footer; Keys q/r/d/m; NO_COLOR-Fallback
 - `src/aggregate.rs` — `SessionBlock`, `billing_blocks()`, `active_block_at()`: 5-Stunden-Billing-Windows nach Anthropic-Abrechnungslogik (ADR-010)
 - `src/api.rs` — `ActiveBlockDto` mit `percent_elapsed: u8`; `active_block`-Feld in `GET /v1/summary`
 - Tray `BlockPanel` — CSS-Fortschrittsbalken, $/h Burn-Rate, verbleibende Block-Zeit
@@ -79,8 +79,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `src/aggregate.rs` — rolling-window aggregation: today / this week / this month; active-session detection
 - `src/scanner.rs` — full scan + delta scan with byte-offset position tracking and NTFS file-identity checks
 - `src/config.rs` — path resolution, auth token, JSON persistence
-- `src/api.rs` + `src/bin/winusage-api.rs` — Axum HTTP API on `127.0.0.1:7337`: `GET /health`, `GET /v1/summary`, `GET /v1/sessions`; Bearer-token auth, Origin-header block
-- `src/bin/winusage.rs` — CLI binary: `daily`, `monthly`, `session`, `scan` subcommands (clap 4)
+- `src/api.rs` + `src/bin/ignis-api.rs` — Axum HTTP API on `127.0.0.1:7337`: `GET /health`, `GET /v1/summary`, `GET /v1/sessions`; Bearer-token auth, Origin-header block
+- `src/bin/ignis.rs` — CLI binary: `daily`, `monthly`, `session`, `scan` subcommands (clap 4)
 - `tray/` — Tauri 2 + React 18.3 tray app: 360 px panel (Today / Month / Active Session), frameless toggle-on-click window, MSI + NSIS installer configuration
 - `examples/scan.rs` — dev CLI: full scan → JSON dump to stdout
 - `.github/workflows/ci.yml` — CI on Windows runner: fmt + clippy + test
@@ -97,10 +97,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Initial repository scaffolding (Phase 0): documentation, architecture decisions,
-  single-crate Rust layout with `winusage-core` lib + `examples/scan.rs`.
+  single-crate Rust layout with `ignis-core` lib + `examples/scan.rs`.
 
-[Unreleased]: https://github.com/jstin-cc/winusage/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/jstin-cc/winusage/compare/v0.2.0...v1.0.0
-[0.2.0]: https://github.com/jstin-cc/winusage/compare/v0.1.0-mvp...v0.2.0
-[0.1.0-mvp]: https://github.com/jstin-cc/winusage/compare/v0.0.1...v0.1.0-mvp
-[0.0.1]: https://github.com/jstin-cc/winusage/releases/tag/v0.0.1
+[Unreleased]: https://github.com/jstin-cc/ignis/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/jstin-cc/ignis/compare/v0.2.0...v1.0.0
+[0.2.0]: https://github.com/jstin-cc/ignis/compare/v0.1.0-mvp...v0.2.0
+[0.1.0-mvp]: https://github.com/jstin-cc/ignis/compare/v0.0.1...v0.1.0-mvp
+[0.0.1]: https://github.com/jstin-cc/ignis/releases/tag/v0.0.1

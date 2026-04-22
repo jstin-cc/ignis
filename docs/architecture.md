@@ -1,7 +1,7 @@
 # Architecture
 
 Ziel dieses Dokuments: jeder Implementer kann ohne weitere Rückfragen die Grundstruktur
-von `winusage-core`, die öffentlichen Typen und das Scanner-Verhalten bauen.
+von `ignis-core`, die öffentlichen Typen und das Scanner-Verhalten bauen.
 
 Verknüpfte Entscheidungen: `DECISIONS.md` (ADR-001 bis ADR-011). Format-Grundlage:
 `docs/jsonl-format.md`.
@@ -12,7 +12,7 @@ Verknüpfte Entscheidungen: `DECISIONS.md` (ADR-001 bis ADR-011). Format-Grundla
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│                        winusage-core (Lib)                         │
+│                        ignis-core (Lib)                         │
 │                                                                    │
 │  ┌────────┐   ┌─────────┐   ┌──────────┐   ┌───────────────────┐   │
 │  │ scanner│──▶│  parser │──▶│ aggregate│──▶│ snapshot (public) │   │
@@ -40,7 +40,7 @@ zu. Sie parsen weder JSONL noch kennen sie Pricing-Interna.
 ## 2. Code-Layout (Phase 1, Single-Crate → ADR-001)
 
 ```
-winusage/
+ignis/
 ├── Cargo.toml                          # single crate, edition = "2021"
 ├── src/
 │   └── lib.rs                          # Re-exports der Public-API
@@ -65,16 +65,16 @@ Später (Phase 1 Ende oder Phase 2 Start), wenn die zweite Konsumenten-Schicht k
 wird, splitten wir in Workspace:
 
 ```
-winusage/
+ignis/
 ├── Cargo.toml                          # workspace
 └── crates/
-    ├── winusage-core/
-    ├── winusage-cli/
-    ├── winusage-api/
-    └── winusage-tray/
+    ├── ignis-core/
+    ├── ignis-cli/
+    ├── ignis-api/
+    └── ignis-tray/
 ```
 
-Die Modulgrenzen in `winusage-core` entsprechen bereits diesem Ziel-Schnitt; ein Split
+Die Modulgrenzen in `ignis-core` entsprechen bereits diesem Ziel-Schnitt; ein Split
 ist ein mechanischer `cargo mv`-Refactor, kein API-Neudesign.
 
 ## 3. Datenmodell (Rust)

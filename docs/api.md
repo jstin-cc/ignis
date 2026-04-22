@@ -1,7 +1,7 @@
 # HTTP API
 
 Lokaler HTTP-Server, damit Statuslines, Editor-Plugins oder eigene Scripts den aktuellen
-WinUsage-Zustand auslesen können.
+Ignis-Zustand auslesen können.
 
 - **Bind:** `127.0.0.1:7337` (Port in Config anpassbar). Niemals `0.0.0.0` — das
   Server-Binary verweigert den Start, falls ein anderer Host konfiguriert wird (ADR-005).
@@ -170,13 +170,13 @@ Alle Fehler folgen dem Shape:
 ### 3.1 Bearer-Token
 
 - Beim ersten Start generiert das Binary ein Token (32 Bytes, base64-url) und legt es
-  unter `%APPDATA%\winusage\auth-token.txt` mit restriktiven ACLs ab:
+  unter `%APPDATA%\ignis\auth-token.txt` mit restriktiven ACLs ab:
   - Eigentümer: aktueller User, Inherit: aus.
   - ACL: nur Owner hat Read/Write; SYSTEM optional.
   - Implementation via `icacls` im Installer + defensiver Runtime-Check (`GetFileSecurity`).
 - Clients setzen `Authorization: Bearer <token>`.
 - Header fehlt oder ungleich → 401.
-- Rotation: CLI-Kommando `winusage token rotate` überschreibt die Datei (Phase 1,
+- Rotation: CLI-Kommando `ignis token rotate` überschreibt die Datei (Phase 1,
   optional; im allerersten MVP nur manuelles Löschen + Neustart).
 
 ### 3.2 Origin-Allowlist
@@ -188,7 +188,7 @@ Alle Fehler folgen dem Shape:
   werden abgefangen, ohne den Plugin-Use-Case zu brechen.
 - Konfiguration per Config-Datei:
   ```
-  %APPDATA%\winusage\config.toml
+  %APPDATA%\ignis\config.toml
     [api]
     origin_allowlist = ["vscode-webview://*", "cursor://*"]
   ```

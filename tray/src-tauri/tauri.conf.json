@@ -1,7 +1,7 @@
 {
-  "productName": "WinUsage",
+  "productName": "Ignis",
   "version": "1.0.0",
-  "identifier": "cc.jstin.winusage",
+  "identifier": "cc.jstin.ignis",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "WinUsage",
+        "title": "Ignis",
         "width": 360,
         "height": 520,
         "minWidth": 360,
@@ -29,7 +29,7 @@
       }
     ],
     "trayIcon": {
-      "id": "winusage-tray",
+      "id": "ignis-tray",
       "iconPath": "icons/icon.ico",
       "iconAsTemplate": false,
       "menuOnLeftClick": false
@@ -39,7 +39,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXkKUlVRa1FBQUE=",
       "endpoints": [
-        "https://github.com/jstin-cc/winusage/releases/latest/download/latest.json"
+        "https://github.com/jstin-cc/ignis/releases/latest/download/latest.json"
       ]
     }
   },

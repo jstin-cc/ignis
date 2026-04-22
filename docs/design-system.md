@@ -1,7 +1,7 @@
 # Design System
 
 **Philosophie.** Claude.ai arbeitet mit einer warmen, menschlichen Ästhetik —
-Terrakotta-Orange auf cremigen oder tiefen, warmen Dunkel-Tönen. WinUsage übernimmt
+Terrakotta-Orange auf cremigen oder tiefen, warmen Dunkel-Tönen. Ignis übernimmt
 dasselbe Gefühl: ein Tool, das sich wie ein vertrauter Arbeitsbegleiter anfühlt, nicht
 wie ein Dashboard.
 
@@ -11,7 +11,7 @@ Leitprinzipien:
 - **Dicht, aber nicht erdrückend.** Zahlen und Details sichtbar, Luft dazwischen.
 - **Ein Akzent, nicht fünf.** Terrakotta (`--accent`) ist DIE eine Signalfarbe.
 - **Typografie trägt.** Kräftige Zahlen, zurückhaltende Labels.
-- **Keine Emoji-Ikonografie** in der UI — WinUsage ist kein Konsumenten-Tool.
+- **Keine Emoji-Ikonografie** in der UI — Ignis ist kein Konsumenten-Tool.
 
 Gilt für Tray (React) **und** CLI/TUI (ratatui) gleichermaßen. Der TUI verwendet die
 Hex-Werte über ANSI-TrueColor.
@@ -119,7 +119,7 @@ Keine 5 unterschiedlichen Größen. Hierarchie: Hero (24), Body (14), Label (12)
 
 ```
 ┌─────────────────────────────────────────┐
-│  WinUsage              ⚙  ×             │  Header 48 px · --bg-base
+│  Ignis              ⚙  ×             │  Header 48 px · --bg-base
 ├─────────────────────────────────────────┤
 │  TODAY                                  │  Section-Label
 │  $2.43                                  │  Hero-Zahl (24 px, tabular)
@@ -133,7 +133,7 @@ Keine 5 unterschiedlichen Größen. Hierarchie: Hero (24), Body (14), Label (12)
 │  my-project          2h 14m             │  Name links, Duration rechts
 │  312k tokens · $0.71                    │
 ├─────────────────────────────────────────┤
-│  [ Open Dashboard ]  [ CLI: winusage ]  │  Footer-Actions
+│  [ Open Dashboard ]  [ CLI: ignis ]  │  Footer-Actions
 └─────────────────────────────────────────┘
 ```
 
@@ -143,10 +143,10 @@ Keine 5 unterschiedlichen Größen. Hierarchie: Hero (24), Body (14), Label (12)
 - **Kein Session-Block-Progress-Balken im MVP** — er wandert nach v0.2 (ADR-010).
   Der Platz über "THIS MONTH" bleibt leer bzw. zeigt nur die aktuelle Session-Dauer.
 
-## 6. TUI-Layout (`winusage watch`, v0.2)
+## 6. TUI-Layout (`ignis watch`, v0.2)
 
 ```
-┌ WinUsage watch ─────────────────────── 14:23:05 ─┐
+┌ Ignis watch ─────────────────────── 14:23:05 ─┐
 │                                                  │
 │  ╭─ Today ─────────────╮ ╭─ Session ─────────╮   │
 │  │  $2.43              │ │  2h 14m           │   │

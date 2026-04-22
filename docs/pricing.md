@@ -14,7 +14,7 @@ kein User-editierbares Override im MVP.
 - Ins Binary via `include_str!("pricing.json")` eingebettet.
 - Zur Laufzeit einmalig beim Start deserialisiert (`serde_json::from_str` → `PricingTable`).
 
-Ein späterer Override-Mechanismus (`%APPDATA%\winusage\pricing.local.json` mergt über
+Ein späterer Override-Mechanismus (`%APPDATA%\ignis\pricing.local.json` mergt über
 die Defaults) steht im Backlog, ist aber **nicht MVP** — zu wenig Use-Cases, zu viel
 Oberfläche für Inkonsistenzen.
 
@@ -93,7 +93,7 @@ gesetzt ist: der Gesamtbetrag wird als 5m-Write verrechnet (konservativ, da 5m b
 als 1h).
 
 `server_tool_use.*` wird **nicht** in die Kosten eingerechnet — diese Preise sind
-nicht Teil der Standard-Tabelle. WinUsage zeigt die Counts informativ an.
+nicht Teil der Standard-Tabelle. Ignis zeigt die Counts informativ an.
 
 ---
 
@@ -120,7 +120,7 @@ Aggregator:
   ↓
 UI / API:
   - Tray zeigt Warnung unter der Summen-Zeile.
-  - CLI (`winusage daily`) zeigt eine Zeile "⚠ unpriced models: claude-opus-5-99".
+  - CLI (`ignis daily`) zeigt eine Zeile "⚠ unpriced models: claude-opus-5-99".
   - `/v1/summary` gibt "pricing_warnings": ["claude-opus-5-99"] zurück.
   - `/health` listet die kumulierten Warnungen.
 ```
