@@ -16,7 +16,7 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 - [ ] Settings als eigener Tab (statt Overlay)
 - [ ] Wochen-Heatmap-Ansicht (7-Tage-Ausschnitt, detaillierter als 12-Wochen-Grid)
 
-### Phase v1.1.0 — Tray-UI Überarbeitung
+### Phase v1.1.0 — Tray-UI Überarbeitung ✅
 
 Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 
@@ -32,7 +32,7 @@ Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 - [x] Schritt 9 — Footer: .btn--primary + .btn--ghost CSS-Klassen.
 - [x] Schritt 10 — Port 7337 Konflikt-Check vor spawn_api().
 - [x] Schritt 11 — CHANGELOG v1.1.0, README + NEXT-Abschnitt aktualisiert.
-- [ ] Schritt 12 — `git tag v1.1.0` + push.
+- [x] Schritt 12 — v1.1.0 getaggt — Phase v1.1.0 abgeschlossen.
 
 ---
 
