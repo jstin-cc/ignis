@@ -209,7 +209,7 @@ export function App() {
 const styles = {
   shell: {
     width: "360px",
-    height: "520px",
+    height: "100vh",
     display: "flex",
     flexDirection: "column" as const,
     backgroundColor: "var(--bg-base)",
@@ -226,7 +226,8 @@ const styles = {
     cursor: "grab",
   },
   content: {
-    height: "380px",
+    flex: 1,
+    minHeight: 0,
     overflowY: "auto" as const,
     display: "flex",
     flexDirection: "column" as const,
@@ -264,7 +265,7 @@ const styles = {
     top: 0,
     left: 0,
     width: "100%",
-    height: "380px",
+    height: "100%",
     background: "var(--bg-overlay)",
     zIndex: 10,
     overflowY: "auto" as const,

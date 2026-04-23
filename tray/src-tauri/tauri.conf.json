@@ -17,14 +17,13 @@
         "width": 360,
         "height": 520,
         "minWidth": 360,
-        "minHeight": 520,
+        "minHeight": 280,
         "maxWidth": 360,
-        "maxHeight": 520,
         "decorations": false,
         "alwaysOnTop": true,
         "skipTaskbar": true,
         "visible": false,
-        "resizable": false,
+        "resizable": true,
         "url": "/"
       }
     ],
