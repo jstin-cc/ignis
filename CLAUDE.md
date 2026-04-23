@@ -69,8 +69,9 @@ liest JSONL-Logs aus `%USERPROFILE%\.claude\projects\`, zeigt Tokens/Kosten/Sess
   Den Next-Abschnitt aktuell halten — abgehakte Schritte nach „Abgeschlossen" verschieben,
   neue Aufgaben oben eintragen.
 - **Jede Änderung sofort in `PROGRESS.md` dokumentieren** — auch neue Dateien, verschobene
-  Assets, Pläne oder Design-Artefakte. Nichts bleibt undokumentiert. Eintrag + Commit
-  erfolgen noch in derselben Session, in der die Änderung entsteht.
+  Assets, Pläne, Design-Artefakte, Bugfixes, Ad-hoc-Hotfixes und Build-Anpassungen.
+  Nichts bleibt undokumentiert, egal wie klein. Eintrag + Commit erfolgen noch in
+  derselben Session, in der die Änderung entsteht. Auch Changelog `[Unreleased]` aktuell halten.
 - Release-Eintrag im Changelog-Abschnitt von `PROGRESS.md` beim Taggen aktualisieren
   (`[Unreleased]` → `[x.y.z]`).
 - Nicht-triviale Entscheidung: neuer ADR in `DECISIONS.md` (Datum, Kontext, Alternativen,

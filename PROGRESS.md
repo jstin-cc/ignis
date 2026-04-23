@@ -38,6 +38,17 @@ Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 
 ## Abgeschlossen
 
+### Post-v1.1.0 Hotfixes (2026-04-23)
+
+- [x] Content-Bereich scrollbar: `overflow-y: auto`, 4px-Scrollbar nur bei Hover sichtbar
+      (`background-color: transparent` → `--border-default` on hover).
+- [x] App-Icons aus `apps/tray-ui/src/assets/Logo.png` regeneriert — alle Tauri-Größen
+      (PNG, ICO, ICNS, AppX, iOS, Android) neu erzeugt via `tauri icon`.
+- [x] `ignis-api.exe` Release-Build (`cargo build --release --bin ignis-api`) +
+      neben `ignis-tray.exe` kopiert — `find_api_binary()` findet `same_dir` zuerst.
+- [x] Fenster vertikal resizable: `resizable: true`, `maxHeight` entfernt, `minHeight: 280px`,
+      `maxWidth: 360px` fix. Shell `height: 100vh`, Content `flex: 1`.
+
 ### Design-Vorbereitung v1.1.0 (2026-04-22)
 
 - [x] `DESIGN.md` erstellt — vollständiger Design-Handoff (Farben, Typo, Spacing,
@@ -139,6 +150,15 @@ Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### [Unreleased]
+
+#### Added
+- Fenster vertikal resizable (Breite 360px fix, Höhe ab 280px frei ziehbar)
+- App-Icons aus finalem Logo.png regeneriert (Flammen-Icon, Terrakotta auf Dunkel)
+
+#### Fixed
+- Content-Bereich war bei vollem Today-Tab abgeschnitten (`overflow: hidden` → `overflow-y: auto`)
+- Minimale 4px-Scrollbar, nur bei Hover sichtbar
+- `ignis-api.exe` fehlte im Release-Ordner; Binary liegt jetzt neben `ignis-tray.exe`
 
 ### [1.1.0] — 2026-04-23
 
