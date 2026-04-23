@@ -227,7 +227,7 @@ const styles = {
   },
   content: {
     height: "380px",
-    overflow: "hidden",
+    overflowY: "auto" as const,
     display: "flex",
     flexDirection: "column" as const,
     position: "relative" as const,

@@ -210,12 +210,12 @@ body,
   border-top: 1px solid var(--border-subtle);
 }
 
-::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background-color: var(--border-subtle);
-  border-radius: 4px;
-  border: 2px solid var(--bg-base);
-  background-clip: padding-box;
+  background-color: transparent;
+  border-radius: 2px;
+  transition: background-color 120ms;
 }
+:hover::-webkit-scrollbar-thumb { background-color: var(--border-default); }
 ::-webkit-scrollbar-thumb:hover { background-color: var(--accent-muted); }
