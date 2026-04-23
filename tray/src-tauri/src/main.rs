@@ -433,8 +433,10 @@ fn open_cli_dashboard() -> Result<(), String> {
 
     #[cfg(windows)]
     {
-        Command::new("cmd")
-            .args(["/C", "start", "Ignis Dashboard", &watch_path_str])
+        use std::os::windows::process::CommandExt;
+        const CREATE_NEW_CONSOLE: u32 = 0x0000_0010;
+        Command::new(&watch_path_str)
+            .creation_flags(CREATE_NEW_CONSOLE)
             .spawn()
             .map_err(|e| e.to_string())?;
     }

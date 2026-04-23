@@ -40,6 +40,8 @@ Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 
 ### Post-v1.1.0 Hotfixes (2026-04-23)
 
+- [x] Dashboard-Button: `cmd /C start` durch direkten Spawn mit `CREATE_NEW_CONSOLE`-Flag
+      ersetzt — zuverlässiger auf Windows 11 (kein cmd.exe-Umweg, kein WT-Konflikt).
 - [x] Content-Bereich scrollbar: `overflow-y: auto`, 4px-Scrollbar nur bei Hover sichtbar
       (`background-color: transparent` → `--border-default` on hover).
 - [x] App-Icons aus `apps/tray-ui/src/assets/Logo.png` regeneriert — alle Tauri-Größen
