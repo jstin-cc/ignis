@@ -6,12 +6,14 @@ import { useUpdater } from "./hooks/useUpdater";
 import { usePlanConfig } from "./hooks/usePlanConfig";
 import { useAnthropicUsage } from "./hooks/useAnthropicUsage";
 import type { PlanKind } from "./types";
-import { TodayPanel } from "./components/TodayPanel";
-import { MonthPanel } from "./components/MonthPanel";
+import { TabBar } from "./components/TabBar";
+import type { TabId } from "./components/TabBar";
+import { TodaySection } from "./components/TodayPanel";
+import { MonthPanel, WeekSection } from "./components/MonthPanel";
 import { BlockPanel } from "./components/BlockPanel";
 import { ProjectsPanel } from "./components/ProjectsPanel";
 import { HeatmapPanel } from "./components/HeatmapPanel";
-import { ActiveSessionPanel } from "./components/ActiveSessionPanel";
+import { SessionSection } from "./components/ActiveSessionPanel";
 import { Footer } from "./components/Footer";
 
 export function App() {
@@ -21,16 +23,13 @@ export function App() {
   const { checking, result, error: updateError, checkForUpdate } = useUpdater();
   const { plan, setPlan } = usePlanConfig();
   const { usage: anthropicUsage, error: usageError } = useAnthropicUsage(plan.usage_poll_interval_secs);
+  const [activeTab, setActiveTab] = useState<TabId>('today');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [customLimitInput, setCustomLimitInput] = useState<string>("");
 
-  function handleOpenDashboard() {
-    // Phase 2: open a full dashboard window via Tauri IPC.
-    // In MVP this is a no-op placeholder.
-  }
-
   return (
     <div style={styles.shell}>
+      {/* Header — 48px */}
       <header style={styles.header} data-tauri-drag-region>
         <span style={styles.appName} data-tauri-drag-region>
           Ignis
@@ -57,97 +56,115 @@ export function App() {
         </div>
       </header>
 
+      {/* TabBar — 36px */}
+      <TabBar active={activeTab} onChange={setActiveTab} />
+
+      {/* Content — 380px, kein Scroll */}
       <div style={styles.content}>
+        {/* Settings-Overlay */}
         {settingsOpen && (
-          <div style={styles.settingsPanel}>
-            <label style={styles.settingsRow}>
-              <input
-                type="checkbox"
-                checked={isEnabled}
-                onChange={() => void toggle()}
-                style={styles.checkbox}
-              />
-              <span style={styles.settingsLabel}>Auto-Start bei Windows-Login</span>
-            </label>
+          <div style={styles.settingsOverlay}>
+            <div style={styles.settingsPanel}>
+              <div style={styles.settingsHeader}>
+                <span style={styles.settingsTitle}>Settings</span>
+                <button
+                  style={styles.iconBtn}
+                  aria-label="Close settings"
+                  onClick={() => setSettingsOpen(false)}
+                >
+                  ×
+                </button>
+              </div>
 
-            <div style={styles.planRow}>
-              <span style={styles.settingsLabel}>Plan</span>
-              <select
-                style={styles.planSelect}
-                value={plan.kind}
-                onChange={(e) => {
-                  const kind = e.target.value as PlanKind;
-                  if (kind !== "custom") {
-                    void setPlan(kind);
-                  } else {
-                    setCustomLimitInput(String(plan.custom_token_limit ?? 88000));
-                    void setPlan(kind, plan.custom_token_limit ?? 88000);
-                  }
-                }}
-              >
-                <option value="pro">Pro (44k tokens)</option>
-                <option value="max5">Max 5× (88k tokens)</option>
-                <option value="max20">Max 20× (220k tokens)</option>
-                <option value="custom">Custom</option>
-              </select>
-            </div>
-
-            {plan.kind === "custom" && (
-              <div style={styles.planRow}>
-                <span style={styles.settingsLabel}>Token-Limit</span>
+              <label style={styles.settingsRow}>
                 <input
-                  type="number"
-                  style={styles.customInput}
-                  value={customLimitInput}
-                  min={1000}
-                  step={1000}
-                  onChange={(e) => setCustomLimitInput(e.target.value)}
-                  onBlur={() => {
-                    const limit = parseInt(customLimitInput, 10);
-                    if (!isNaN(limit) && limit > 0) {
-                      void setPlan("custom", limit);
+                  type="checkbox"
+                  checked={isEnabled}
+                  onChange={() => void toggle()}
+                  style={styles.checkbox}
+                />
+                <span style={styles.settingsLabel}>Auto-Start bei Windows-Login</span>
+              </label>
+
+              <div style={styles.planRow}>
+                <span style={styles.settingsLabel}>Plan</span>
+                <select
+                  style={styles.planSelect}
+                  value={plan.kind}
+                  onChange={(e) => {
+                    const kind = e.target.value as PlanKind;
+                    if (kind !== "custom") {
+                      void setPlan(kind);
+                    } else {
+                      setCustomLimitInput(String(plan.custom_token_limit ?? 88000));
+                      void setPlan(kind, plan.custom_token_limit ?? 88000);
                     }
                   }}
-                />
+                >
+                  <option value="pro">Pro (44k tokens)</option>
+                  <option value="max5">Max 5× (88k tokens)</option>
+                  <option value="max20">Max 20× (220k tokens)</option>
+                  <option value="custom">Custom</option>
+                </select>
               </div>
-            )}
 
-            <div style={styles.planRow}>
-              <span style={styles.settingsLabel}>Aktualisierung</span>
-              <select
-                style={styles.planSelect}
-                value={plan.usage_poll_interval_secs}
-                onChange={(e) => {
-                  const secs = parseInt(e.target.value, 10);
-                  void setPlan(plan.kind, plan.custom_token_limit ?? undefined, secs);
-                }}
-              >
-                <option value={30}>30 Sekunden</option>
-                <option value={60}>1 Minute</option>
-                <option value={120}>2 Minuten</option>
-                <option value={300}>5 Minuten</option>
-                <option value={600}>10 Minuten</option>
-              </select>
-            </div>
+              {plan.kind === "custom" && (
+                <div style={styles.planRow}>
+                  <span style={styles.settingsLabel}>Token-Limit</span>
+                  <input
+                    type="number"
+                    style={styles.customInput}
+                    value={customLimitInput}
+                    min={1000}
+                    step={1000}
+                    onChange={(e) => setCustomLimitInput(e.target.value)}
+                    onBlur={() => {
+                      const limit = parseInt(customLimitInput, 10);
+                      if (!isNaN(limit) && limit > 0) {
+                        void setPlan("custom", limit);
+                      }
+                    }}
+                  />
+                </div>
+              )}
 
-            <div style={styles.updateRow}>
-              <button
-                style={styles.updateBtn}
-                disabled={checking}
-                onClick={() => void checkForUpdate()}
-              >
-                {checking ? "Prüfe…" : "Updates prüfen"}
-              </button>
-              {result && (
-                <span style={styles.updateStatus}>
-                  {result.available ? `v${result.version} verfügbar` : "Aktuell"}
-                </span>
-              )}
-              {updateError && (
-                <span style={{ ...styles.updateStatus, color: "var(--text-tertiary)" }}>
-                  kein Server
-                </span>
-              )}
+              <div style={styles.planRow}>
+                <span style={styles.settingsLabel}>Aktualisierung</span>
+                <select
+                  style={styles.planSelect}
+                  value={plan.usage_poll_interval_secs}
+                  onChange={(e) => {
+                    const secs = parseInt(e.target.value, 10);
+                    void setPlan(plan.kind, plan.custom_token_limit ?? undefined, secs);
+                  }}
+                >
+                  <option value={30}>30 Sekunden</option>
+                  <option value={60}>1 Minute</option>
+                  <option value={120}>2 Minuten</option>
+                  <option value={300}>5 Minuten</option>
+                  <option value={600}>10 Minuten</option>
+                </select>
+              </div>
+
+              <div style={styles.updateRow}>
+                <button
+                  style={styles.updateBtn}
+                  disabled={checking}
+                  onClick={() => void checkForUpdate()}
+                >
+                  {checking ? "Prüfe…" : "Updates prüfen"}
+                </button>
+                {result && (
+                  <span style={styles.updateStatus}>
+                    {result.available ? `v${result.version} verfügbar` : "Aktuell"}
+                  </span>
+                )}
+                {updateError && (
+                  <span style={{ ...styles.updateStatus, color: "var(--text-muted)" }}>
+                    kein Server
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -157,29 +174,34 @@ export function App() {
             API nicht erreichbar — starte ignis-api
           </div>
         )}
-        <hr className="section-divider" />
-        <TodayPanel data={today} />
-        <hr className="section-divider" />
-        <MonthPanel data={month} />
-        <hr className="section-divider" />
-        <BlockPanel block={activeBlock} usage={anthropicUsage} usageError={usageError} />
-        {today?.by_project.length ? (
+
+        {activeTab === 'today' && (
           <>
+            <TodaySection data={today} />
             <hr className="section-divider" />
-            <ProjectsPanel data={today} />
-          </>
-        ) : null}
-        {heatmap.length > 0 && (
-          <>
+            <WeekSection data={month} />
             <hr className="section-divider" />
-            <HeatmapPanel days={heatmap} />
+            <BlockPanel block={activeBlock} usage={anthropicUsage} usageError={usageError} />
+            <hr className="section-divider" />
+            <SessionSection session={activeSession} />
           </>
         )}
-        <hr className="section-divider" />
-        <ActiveSessionPanel session={activeSession} />
+
+        {activeTab === 'month' && (
+          <MonthPanel data={month} variant="full" />
+        )}
+
+        {activeTab === 'projects' && (
+          <ProjectsPanel data={today} />
+        )}
+
+        {activeTab === 'heatmap' && (
+          <HeatmapPanel days={heatmap} />
+        )}
       </div>
 
-      <Footer onOpenDashboard={handleOpenDashboard} />
+      {/* Footer — 56px */}
+      <Footer onOpenDashboard={() => {}} />
     </div>
   );
 }
@@ -204,11 +226,11 @@ const styles = {
     cursor: "grab",
   },
   content: {
-    flex: 1,
-    overflowY: "auto" as const,
+    height: "380px",
+    overflow: "hidden",
     display: "flex",
     flexDirection: "column" as const,
-    minHeight: 0,
+    position: "relative" as const,
   },
   appName: {
     fontSize: "14px",
@@ -233,20 +255,38 @@ const styles = {
     color: "var(--text-secondary)",
     fontSize: "16px",
     cursor: "pointer",
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     lineHeight: 1,
     transition: "color 120ms ease-out, background-color 120ms ease-out",
   },
-  errorDot: {
-    fontSize: "12px",
-    fontWeight: 700,
-    color: "var(--danger)",
-    marginRight: "4px",
+  settingsOverlay: {
+    position: "absolute" as const,
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "380px",
+    background: "var(--bg-overlay)",
+    zIndex: 10,
+    overflowY: "auto" as const,
   },
   settingsPanel: {
-    padding: "10px 16px",
-    backgroundColor: "var(--bg-surface)",
-    borderBottom: "1px solid var(--border-subtle)",
+    padding: "12px 16px",
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "4px",
+  },
+  settingsHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: "8px",
+  },
+  settingsTitle: {
+    fontSize: "13px",
+    fontWeight: 600,
+    color: "var(--text-primary)",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.06em",
   },
   settingsRow: {
     display: "flex",
@@ -279,7 +319,7 @@ const styles = {
     borderRadius: "4px",
     color: "var(--text-secondary)",
     cursor: "pointer",
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
   },
   customInput: {
     flex: 1,
@@ -289,7 +329,7 @@ const styles = {
     border: "1px solid var(--border-subtle)",
     borderRadius: "4px",
     color: "var(--text-secondary)",
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
     width: "80px",
   },
   updateRow: {
@@ -306,7 +346,7 @@ const styles = {
     borderRadius: "4px",
     color: "var(--text-secondary)",
     cursor: "pointer",
-    fontFamily: "var(--font-ui)",
+    fontFamily: "var(--font-sans)",
   },
   updateStatus: {
     fontSize: "12px",
@@ -316,7 +356,8 @@ const styles = {
     padding: "8px 16px",
     fontSize: "12px",
     color: "var(--danger)",
-    backgroundColor: "var(--bg-surface)",
+    backgroundColor: "var(--bg-overlay)",
     borderBottom: "1px solid var(--border-subtle)",
+    flexShrink: 0,
   },
 } as const;

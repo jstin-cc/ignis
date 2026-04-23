@@ -17,7 +17,7 @@ Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 - [x] Schritt 0 — Design-Tokens vollständig, IBM Plex Fonts geladen.
 - [x] Schritt 1 — format.ts: fmt-Objekt nach DESIGN.md-Spec exportiert.
 - [x] Schritt 2 — TabBar.tsx erstellt (today/month/projects/heatmap).
-- [ ] Schritt 3 — `App.tsx`: TabBar-Layout (48+36+380+56px), Settings-Overlay, kein Scroll.
+- [x] Schritt 3 — App.tsx: TabBar-Layout, Settings-Overlay, kein Scroll.
 - [x] Schritt 4 — TodaySection überarbeitet (section-label, fmt).
 - [x] Schritt 5 — MonthPanel: WeekSection-Variante + progressClass implementiert.
 - [x] Schritt 6 — BlockPanel: progressClass, Token-Ablauf-UX, CSS-Klassen.
