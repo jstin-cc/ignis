@@ -11,8 +11,9 @@ export function Footer({ onOpenDashboard: _ }: { onOpenDashboard: () => void }) 
       await invoke("open_cli_dashboard");
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
+      console.error("open_cli_dashboard failed:", msg);
       setDashError(msg);
-      setTimeout(() => setDashError(null), 2500);
+      setTimeout(() => setDashError(null), 8000);
     }
   }
 

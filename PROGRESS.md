@@ -45,6 +45,10 @@ Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 - [x] `ignis-watch.exe` als `externalBin` ins Installer-Bundle aufgenommen
       (`tauri.conf.json` + `src-tauri/binaries/`); `beforeBuildCommand` baut den
       Release-Binary automatisch vor jedem `tauri build`.
+- [x] `find_watch_binary()` extrahiert + robuster: prüft Same-Dir mit/ohne
+      Target-Triple (`ignis-watch-x86_64-pc-windows-msvc.exe`), Repo-Target-Dirs,
+      und Verzeichnis-Scan als Fallback. Detaillierte Fehlermeldung statt
+      stillem PATH-Fallback. Footer loggt Fehler in console und zeigt 8s lang.
 - [x] Content-Bereich scrollbar: `overflow-y: auto`, 4px-Scrollbar nur bei Hover sichtbar
       (`background-color: transparent` → `--border-default` on hover).
 - [x] App-Icons aus `apps/tray-ui/src/assets/Logo.png` regeneriert — alle Tauri-Größen

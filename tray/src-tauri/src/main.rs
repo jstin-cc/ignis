@@ -408,28 +408,53 @@ fn set_plan_config(
     std::fs::write(&path, json).map_err(|e| e.to_string())
 }
 
+fn find_watch_binary(dir: &std::path::Path) -> Option<PathBuf> {
+    // 1. Direct candidates: same dir (with/without target triple), repo target dirs.
+    let direct = [
+        dir.join("ignis-watch.exe"),
+        dir.join("ignis-watch-x86_64-pc-windows-msvc.exe"),
+        dir.join("../../../../target/release/ignis-watch.exe"),
+        dir.join("../../../../target/debug/ignis-watch.exe"),
+    ];
+    for p in &direct {
+        if let Ok(cp) = p.canonicalize() {
+            if cp.exists() {
+                return Some(cp);
+            }
+        }
+    }
+
+    // 2. Fallback: scan dir for any file starting with "ignis-watch" ending ".exe".
+    if let Ok(entries) = std::fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let name = entry.file_name();
+            let name_str = name.to_string_lossy().to_lowercase();
+            if name_str.starts_with("ignis-watch") && name_str.ends_with(".exe") {
+                return Some(entry.path());
+            }
+        }
+    }
+
+    None
+}
+
 #[tauri::command]
 fn open_cli_dashboard() -> Result<(), String> {
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;
     let dir = exe.parent().ok_or_else(|| "no parent".to_owned())?;
 
-    let candidates = [
-        dir.join("ignis-watch.exe"),
-        dir.join("../../../../target/release/ignis-watch.exe"),
-        dir.join("../../../../target/debug/ignis-watch.exe"),
-    ];
+    let watch_path = find_watch_binary(dir).ok_or_else(|| {
+        format!(
+            "ignis-watch.exe nicht gefunden — gesucht in: {}",
+            dir.display()
+        )
+    })?;
 
-    // canonicalize() returns \\?\ UNC paths on Windows which cmd.exe rejects;
-    // strip the prefix to get a plain absolute path.
-    let watch_path_str = candidates
-        .iter()
-        .find_map(|p| {
-            p.canonicalize().ok().filter(|cp| cp.exists()).map(|cp| {
-                let s = cp.to_string_lossy().into_owned();
-                s.strip_prefix(r"\\?\").unwrap_or(&s).to_owned()
-            })
-        })
-        .unwrap_or_else(|| "ignis-watch".to_owned()); // PATH fallback
+    // canonicalize() returns \\?\ UNC paths on Windows; strip the prefix.
+    let watch_path_str = {
+        let s = watch_path.to_string_lossy().into_owned();
+        s.strip_prefix(r"\\?\").unwrap_or(&s).to_owned()
+    };
 
     #[cfg(windows)]
     {
@@ -438,11 +463,13 @@ fn open_cli_dashboard() -> Result<(), String> {
         Command::new(&watch_path_str)
             .creation_flags(CREATE_NEW_CONSOLE)
             .spawn()
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| format!("spawn fehlgeschlagen ({watch_path_str}): {e}"))?;
     }
     #[cfg(not(windows))]
     {
-        Command::new(&watch_path_str).spawn().map_err(|e| e.to_string())?;
+        Command::new(&watch_path_str)
+            .spawn()
+            .map_err(|e| format!("spawn fehlgeschlagen ({watch_path_str}): {e}"))?;
     }
 
     Ok(())
