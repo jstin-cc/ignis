@@ -1,5 +1,19 @@
 // Pure formatting helpers — no React, no side effects.
 
+export const fmt = {
+  usd: (n: number) => '$' + n.toFixed(2),
+  tok: (n: number) => {
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+    if (n >= 1_000)     return (n / 1_000).toFixed(0) + 'k';
+    return n.toString();
+  },
+  dur: (s: number) => {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    return h > 0 ? `${h}h ${m}m` : `${m}m ${s % 60}s`;
+  },
+};
+
 export function formatCost(usd: string): string {
   const n = parseFloat(usd);
   if (isNaN(n)) return "$—";

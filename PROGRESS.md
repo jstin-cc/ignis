@@ -14,9 +14,8 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 
 Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 
-- [ ] Schritt 0 — Design-Token-Basis: `tray/src/index.css` abgleichen, IBM Plex Fonts
-      in `tray/index.html` laden.
-- [ ] Schritt 1 — `format.ts`: `fmt`-Objekt (usd/tok/dur) nach DESIGN.md-Spec exportieren.
+- [x] Schritt 0 — Design-Tokens vollständig, IBM Plex Fonts geladen.
+- [x] Schritt 1 — format.ts: fmt-Objekt nach DESIGN.md-Spec exportiert.
 - [ ] Schritt 2 — `TabBar.tsx` (neu): vier Tabs today/month/projects/heatmap.
 - [ ] Schritt 3 — `App.tsx`: TabBar-Layout (48+36+380+56px), Settings-Overlay, kein Scroll.
 - [ ] Schritt 4 — `TodaySection`: `.section-label`, `fmt`-Integration, kein Panel-Background.
