@@ -10,6 +10,12 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 
 ## Next — Anstehende Arbeiten
 
+### v1.2.0-Kandidaten (nach v1.1.0-Tag)
+
+- [ ] Echter `/v1/summary?range=week`-Endpoint (Wochendaten statt Monats-Proxy in WeekSection)
+- [ ] Settings als eigener Tab (statt Overlay)
+- [ ] Wochen-Heatmap-Ansicht (7-Tage-Ausschnitt, detaillierter als 12-Wochen-Grid)
+
 ### Phase v1.1.0 — Tray-UI Überarbeitung
 
 Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
@@ -25,7 +31,7 @@ Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 - [x] Schritt 8 — Projects- und HeatmapPanel auf Tab-Layout angepasst.
 - [x] Schritt 9 — Footer: .btn--primary + .btn--ghost CSS-Klassen.
 - [x] Schritt 10 — Port 7337 Konflikt-Check vor spawn_api().
-- [ ] Schritt 11 — Docs: CHANGELOG-Abschnitt → v1.1.0, README, NEXT-Abschnitt aktualisieren.
+- [x] Schritt 11 — CHANGELOG v1.1.0, README + NEXT-Abschnitt aktualisiert.
 - [ ] Schritt 12 — `git tag v1.1.0` + push.
 
 ---
@@ -132,10 +138,26 @@ Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-### [Unreleased] → v1.1.0
+### [Unreleased]
+
+### [1.1.0] — 2026-04-23
 
 #### Added
 
+- **TabBar-Navigation** im Tray: vier Tabs (Today / Month / Projects / Heatmap),
+  Akzent-Unterstrich auf aktivem Tab, kein vertikales Scrollen mehr.
+- **Design-System-Tokens** in `tray/src/index.css`: Spacing-Skala, Border-Radii,
+  Schatten, `--font-sans` / `--font-mono` (IBM Plex), Typo-Größen-Tokens,
+  `--tray-width` / `--tray-header-height`.
+- **IBM Plex Sans + Mono** über Google Fonts in `tray/index.html` geladen.
+- **CSS-Klassen** für Progress-Bar (`.progress-track`, `.progress-fill`, `--high/--warning/--danger`),
+  Buttons (`.btn`, `.btn--primary`, `.btn--secondary`, `.btn--ghost`), `.section-label`, `.extra-usage`, `.badge`.
+- **`progressClass()`** in `MonthPanel.tsx`: CSS-Modifier statt Inline-Farben (75 / 90 / 100 %).
+- **`fmt`-Objekt** in `format.ts`: `fmt.usd`, `fmt.tok`, `fmt.dur` nach DESIGN.md-Spec.
+- **`WeekSection`**-Variante in `MonthPanel`: Monats-Fortschrittsbalken auf Today-Tab.
+- **Token-Ablauf-UX** in `BlockPanel`: Auth-Fehler → lesbare Meldung statt rohem Error-String.
+- **Settings-Overlay** in `App.tsx`: öffnet sich über dem Content-Bereich (z-index 10), × schließt.
+- **Port-7337-Konflikt-Check** vor `spawn_api()`: kein doppelter Spawn wenn Port belegt.
 - **Drei Usage-Balken** im Tray `BlockPanel` (USAGE LIMITS): 5h-Block, Woche und Extra Usage —
   Werte direkt von `api.anthropic.com/api/oauth/usage` via OAuth (`anthropic-beta: oauth-2025-04-20`).
 - **Anthropic OAuth-Integration** (`tray/src-tauri`): Tauri-Command `get_anthropic_usage`, automatischer
@@ -147,7 +169,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Tray-App spawnt `ignis-api` automatisch als Child-Prozess (ADR-013).
 - CORS-Layer auf der HTTP-API (`tower-http::cors`).
 - Tauri-Command `open_cli_dashboard`, CLI-Button kopiert `ignis` in Zwischenablage.
-- Scrollbarer Content-Bereich, Fetch-Timeout (10 s), Error-Banner.
+- Fetch-Timeout (10 s), Error-Banner bei API-Ausfall.
 
 #### Fixed
 
@@ -202,7 +224,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Initial scaffolding: Dokumentation, ADR-001–011, Single-Crate-Layout.
 
-[Unreleased]: https://github.com/jstin-cc/ignis/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/jstin-cc/ignis/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/jstin-cc/ignis/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/jstin-cc/ignis/compare/v0.2.0...v1.0.0
 [0.2.0]: https://github.com/jstin-cc/ignis/compare/v0.1.0-mvp...v0.2.0
 [0.1.0-mvp]: https://github.com/jstin-cc/ignis/compare/v0.0.1...v0.1.0-mvp

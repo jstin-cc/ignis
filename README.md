@@ -16,9 +16,9 @@ All data stays local. No cloud, no telemetry, no account.
 
 ## Status
 
-**Phase 3 complete (`v1.0.0`, 2026-04-20).** Post-v1.0 hotfix pass on 2026-04-21
-closed the remaining end-to-end gaps (auto-spawned API, CORS, drag-region,
-scrollable panel, Dashboard/CLI buttons).
+**v1.1.0 (2026-04-23).** Tray-UI redesigned: TabBar navigation, Design-System
+tokens (IBM Plex fonts), CSS-based progress bars with colour thresholds,
+and port-conflict safety for the auto-spawned API.
 
 | Module | State |
 |---|---|
@@ -28,12 +28,14 @@ scrollable panel, Dashboard/CLI buttons).
 | CLI: `ignis daily / monthly / session / scan / export` | ✅ |
 | Live TUI: `ignis-watch` (burn-rate, 5 h billing blocks) | ✅ |
 | HTTP API: `/health`, `/v1/summary`, `/v1/sessions`, `/v1/heatmap` + CORS | ✅ |
-| Tray app: Today / Month / Block / Projects / Heatmap / Active Session | ✅ |
-| Tray: auto-spawns `ignis-api` as child process (ADR-013) | ✅ |
+| Tray app: TabBar (Today / Month / Projects / Heatmap) | ✅ |
+| Tray: Usage-Balken (5h-Block, Woche, Extra) via Anthropic OAuth | ✅ |
+| Tray: Plan-Settings (Pro / Max5 / Max20 / Custom) im ⚙-Overlay | ✅ |
+| Tray: auto-spawns `ignis-api`, Port-7337-Konflikt-Check | ✅ |
 | Tray: notifications (80 % / 100 % block), auto-start, auto-update | ✅ |
 | Installer (MSI + NSIS via Tauri Bundler) | ✅ |
 
-See `PROGRESS.md` for the full phase breakdown, `NEXT.md` for the next concrete step,
+See `PROGRESS.md` for the full phase breakdown,
 `DECISIONS.md` for architecture decisions (ADR-001 – ADR-013), and
 `CHANGELOG.md` for release notes.
 
