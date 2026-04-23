@@ -269,7 +269,15 @@ fn find_api_binary() -> Option<PathBuf> {
     None
 }
 
+fn port_is_free(port: u16) -> bool {
+    std::net::TcpListener::bind(("127.0.0.1", port)).is_ok()
+}
+
 fn spawn_api() -> Option<Child> {
+    if !port_is_free(7337) {
+        // Port already in use — existing ignis-api instance running, skip spawn.
+        return None;
+    }
     let path = find_api_binary()?;
     let mut cmd = Command::new(&path);
 

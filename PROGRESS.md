@@ -24,7 +24,7 @@ Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 - [x] Schritt 7 — SessionSection überarbeitet.
 - [x] Schritt 8 — Projects- und HeatmapPanel auf Tab-Layout angepasst.
 - [x] Schritt 9 — Footer: .btn--primary + .btn--ghost CSS-Klassen.
-- [ ] Schritt 10 — Port-Konflikt-Handling: `TcpListener`-Check in Rust vor `spawn_api()`.
+- [x] Schritt 10 — Port 7337 Konflikt-Check vor spawn_api().
 - [ ] Schritt 11 — Docs: CHANGELOG-Abschnitt → v1.1.0, README, NEXT-Abschnitt aktualisieren.
 - [ ] Schritt 12 — `git tag v1.1.0` + push.
 
