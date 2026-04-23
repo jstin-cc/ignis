@@ -42,6 +42,9 @@ Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 
 - [x] Dashboard-Button: `cmd /C start` durch direkten Spawn mit `CREATE_NEW_CONSOLE`-Flag
       ersetzt — zuverlässiger auf Windows 11 (kein cmd.exe-Umweg, kein WT-Konflikt).
+- [x] `ignis-watch.exe` als `externalBin` ins Installer-Bundle aufgenommen
+      (`tauri.conf.json` + `src-tauri/binaries/`); `beforeBuildCommand` baut den
+      Release-Binary automatisch vor jedem `tauri build`.
 - [x] Content-Bereich scrollbar: `overflow-y: auto`, 4px-Scrollbar nur bei Hover sichtbar
       (`background-color: transparent` → `--border-default` on hover).
 - [x] App-Icons aus `apps/tray-ui/src/assets/Logo.png` regeneriert — alle Tauri-Größen
