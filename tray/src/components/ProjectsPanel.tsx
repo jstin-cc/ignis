@@ -47,7 +47,6 @@ export function ProjectsPanel({ data }: ProjectsPanelProps) {
 
 const styles = {
   panel: {
-    backgroundColor: "var(--bg-elevated)",
     padding: "16px",
     display: "flex",
     flexDirection: "column" as const,

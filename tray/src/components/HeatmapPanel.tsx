@@ -4,7 +4,7 @@ interface HeatmapPanelProps {
   days: HeatmapDay[];
 }
 
-const DAY_LABELS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const CELL = 12;
 const GAP = 2;
 
@@ -42,7 +42,7 @@ export function HeatmapPanel({ days }: HeatmapPanelProps) {
 
   return (
     <section style={styles.panel}>
-      <span style={styles.label}>AKTIVITÄT (12 WOCHEN)</span>
+      <div className="section-label">ACTIVITY (12 WEEKS)</div>
       <div style={styles.gridWrap}>
         <div style={styles.dayLabels}>
           {DAY_LABELS.map((l) => (
@@ -88,14 +88,6 @@ export function HeatmapPanel({ days }: HeatmapPanelProps) {
 const styles = {
   panel: {
     padding: "10px 16px 12px",
-  },
-  label: {
-    display: "block",
-    fontSize: "10px",
-    fontWeight: 600,
-    color: "var(--text-tertiary)",
-    letterSpacing: "0.08em",
-    marginBottom: "8px",
   },
   gridWrap: {
     display: "flex",

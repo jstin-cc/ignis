@@ -29,14 +29,16 @@ export function Footer({ onOpenDashboard: _ }: { onOpenDashboard: () => void }) 
   return (
     <footer style={styles.footer}>
       <button
-        style={styles.primaryBtn}
+        className="btn btn--primary"
+        style={styles.grow}
         onClick={() => void handleOpenDashboard()}
         title={dashError ?? "ignis-watch (TUI) starten"}
       >
         {dashError ? "Fehler" : "Open Dashboard"}
       </button>
       <button
-        style={styles.secondaryBtn}
+        className="btn btn--ghost"
+        style={styles.grow}
         onClick={() => void handleCopyCli()}
         title="Kopiert 'ignis' in die Zwischenablage"
       >
@@ -55,30 +57,7 @@ const styles = {
     borderTop: "1px solid var(--border-subtle)",
     flexShrink: 0,
   },
-  primaryBtn: {
+  grow: {
     flex: 1,
-    height: "32px",
-    backgroundColor: "var(--accent)",
-    color: "var(--bg-base)",
-    border: "none",
-    borderRadius: "4px",
-    fontSize: "13px",
-    fontWeight: 500,
-    cursor: "pointer",
-    fontFamily: "var(--font-ui)",
-    transition: "background-color 120ms ease-out",
-  },
-  secondaryBtn: {
-    flex: 1,
-    height: "32px",
-    backgroundColor: "var(--bg-elevated)",
-    color: "var(--text-primary)",
-    border: "1px solid var(--border-default)",
-    borderRadius: "4px",
-    fontSize: "13px",
-    fontWeight: 500,
-    cursor: "pointer",
-    fontFamily: "var(--font-ui)",
-    transition: "border-color 120ms ease-out",
   },
 } as const;

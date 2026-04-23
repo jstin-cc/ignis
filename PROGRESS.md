@@ -18,13 +18,12 @@ Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 - [x] Schritt 1 — format.ts: fmt-Objekt nach DESIGN.md-Spec exportiert.
 - [x] Schritt 2 — TabBar.tsx erstellt (today/month/projects/heatmap).
 - [ ] Schritt 3 — `App.tsx`: TabBar-Layout (48+36+380+56px), Settings-Overlay, kein Scroll.
-- [ ] Schritt 4 — `TodaySection`: `.section-label`, `fmt`-Integration, kein Panel-Background.
-- [ ] Schritt 5 — `MonthPanel`: WeekSection-Variante mit ProgressBar + `progressClass()`.
-- [ ] Schritt 6 — `BlockPanel`: `progressClass` statt Inline-Farben, Token-Ablauf-UX,
-      `.extra-usage`-CSS-Klasse, nur `width 200ms ease-out`.
-- [ ] Schritt 7 — `SessionSection`: `.section-label`, `fmt.tok()`, kein Panel-Background.
-- [ ] Schritt 8 — `ProjectsPanel` + `HeatmapPanel`: Tab-Layout (380px), kein Panel-Background.
-- [ ] Schritt 9 — `Footer`: `.btn--primary` (Dashboard) + `.btn--ghost` (CLI).
+- [x] Schritt 4 — TodaySection überarbeitet (section-label, fmt).
+- [x] Schritt 5 — MonthPanel: WeekSection-Variante + progressClass implementiert.
+- [x] Schritt 6 — BlockPanel: progressClass, Token-Ablauf-UX, CSS-Klassen.
+- [x] Schritt 7 — SessionSection überarbeitet.
+- [x] Schritt 8 — Projects- und HeatmapPanel auf Tab-Layout angepasst.
+- [x] Schritt 9 — Footer: .btn--primary + .btn--ghost CSS-Klassen.
 - [ ] Schritt 10 — Port-Konflikt-Handling: `TcpListener`-Check in Rust vor `spawn_api()`.
 - [ ] Schritt 11 — Docs: CHANGELOG-Abschnitt → v1.1.0, README, NEXT-Abschnitt aktualisieren.
 - [ ] Schritt 12 — `git tag v1.1.0` + push.

@@ -1,10 +1,19 @@
 import type { ActiveBlock, AnthropicUsage } from "../types";
-import { formatCost } from "./format";
+import { fmt, formatCost } from "./format";
+import { progressClass } from "./MonthPanel";
 
 interface BlockPanelProps {
   block: ActiveBlock | null;
   usage: AnthropicUsage | null;
   usageError?: string | null;
+}
+
+function errorMessage(err: string): string {
+  if (/do_refresh|401|token|auth/i.test(err))
+    return 'Anthropic session expired. Re-run `claude` to reconnect.';
+  if (/network|fetch|offline/i.test(err))
+    return 'Offline — cached values shown.';
+  return err;
 }
 
 export function BlockPanel({ block, usage, usageError }: BlockPanelProps) {
@@ -14,7 +23,7 @@ export function BlockPanel({ block, usage, usageError }: BlockPanelProps) {
   return (
     <>
       {usageError && (
-        <div style={styles.usageErrorBanner}>{usageError}</div>
+        <div style={styles.usageErrorBanner}>{errorMessage(usageError)}</div>
       )}
       <FallbackBar block={block} />
     </>
@@ -35,7 +44,7 @@ function ThreeBarsPanel({
 
   return (
     <section style={styles.panel}>
-      <span style={styles.label}>USAGE LIMITS</span>
+      <div className="section-label">USAGE LIMITS</div>
 
       {usage.five_hour && (
         <UsageRow
@@ -55,15 +64,23 @@ function ThreeBarsPanel({
       )}
 
       {usage.extra_usage?.is_enabled && (
-        <UsageRow
-          name="Extra"
-          pct={usage.extra_usage.pct}
-          suffix={
-            usage.extra_usage.is_unlimited
-              ? `$${usage.extra_usage.used_usd} used`
-              : `$${usage.extra_usage.used_usd} / $${usage.extra_usage.monthly_limit_usd}`
-          }
-        />
+        <>
+          <UsageRow
+            name="Extra"
+            pct={usage.extra_usage.pct}
+            suffix={
+              usage.extra_usage.is_unlimited
+                ? `$${usage.extra_usage.used_usd} used`
+                : `$${usage.extra_usage.used_usd} / $${usage.extra_usage.monthly_limit_usd}`
+            }
+          />
+          {usage.extra_usage.pct > 0 && (
+            <div className="extra-usage">
+              <span>Extra Usage</span>
+              <span>+{fmt.usd(parseFloat(usage.extra_usage.used_usd))}</span>
+            </div>
+          )}
+        </>
       )}
     </section>
   );
@@ -81,25 +98,16 @@ function UsageRow({
   cost?: string;
 }) {
   const clamped = Math.min(100, Math.max(0, pct));
-  const barColor =
-    clamped >= 90
-      ? "var(--warning)"
-      : clamped >= 75
-        ? "var(--accent)"
-        : "var(--accent-muted)";
+  const cls = progressClass(clamped);
 
   return (
     <div style={styles.usageRow}>
       <span style={styles.rowName}>{name}</span>
       <div style={styles.rowRight}>
-        <div style={styles.barTrack}>
+        <div className="progress-track">
           <div
-            style={{
-              ...styles.barFill,
-              width: `${clamped}%`,
-              backgroundColor: barColor,
-              transition: "width 200ms ease-out, background-color 200ms ease-out",
-            }}
+            className={`progress-fill ${cls}`}
+            style={{ width: `${clamped}%`, transition: 'width 200ms ease-out' }}
           />
         </div>
         <div style={styles.rowMeta}>
@@ -128,7 +136,7 @@ function FallbackBar({ block }: { block: ActiveBlock | null }) {
   if (!block) {
     return (
       <section style={styles.panel}>
-        <span style={styles.label}>ACTIVE BLOCK</span>
+        <div className="section-label">ACTIVE BLOCK</div>
         <span style={styles.empty}>no active billing block</span>
       </section>
     );
@@ -137,24 +145,15 @@ function FallbackBar({ block }: { block: ActiveBlock | null }) {
   const tokenPct = Math.min(100, Math.max(0, block.block_token_pct));
   const remaining = remainingTime(block.end);
   const burnRate = computeBurnRate(block);
-  const barColor =
-    tokenPct >= 90
-      ? "var(--warning)"
-      : tokenPct >= 75
-        ? "var(--accent)"
-        : "var(--accent-muted)";
+  const cls = progressClass(tokenPct);
 
   return (
     <section style={styles.panel}>
-      <span style={styles.label}>ACTIVE BLOCK</span>
-      <div style={styles.barTrack}>
+      <div className="section-label">ACTIVE BLOCK</div>
+      <div className="progress-track">
         <div
-          style={{
-            ...styles.barFill,
-            width: `${tokenPct}%`,
-            backgroundColor: barColor,
-            transition: "width 200ms ease-out, background-color 200ms ease-out",
-          }}
+          className={`progress-fill ${cls}`}
+          style={{ width: `${tokenPct}%`, transition: 'width 200ms ease-out' }}
         />
       </div>
       <span style={styles.pctLabel} className="tabular">
@@ -209,18 +208,10 @@ function computeBurnRate(block: ActiveBlock): string | null {
 
 const styles = {
   panel: {
-    backgroundColor: "var(--bg-elevated)",
     padding: "16px",
     display: "flex",
     flexDirection: "column" as const,
     gap: "10px",
-  },
-  label: {
-    fontSize: "12px",
-    fontWeight: 500,
-    color: "var(--text-secondary)",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.04em",
   },
   usageRow: {
     display: "flex",
@@ -239,16 +230,6 @@ const styles = {
     display: "flex",
     flexDirection: "column" as const,
     gap: "3px",
-  },
-  barTrack: {
-    height: "5px",
-    borderRadius: "3px",
-    backgroundColor: "var(--border-subtle)",
-    overflow: "hidden",
-  },
-  barFill: {
-    height: "100%",
-    borderRadius: "3px",
   },
   rowMeta: {
     display: "flex",
@@ -269,7 +250,6 @@ const styles = {
     fontSize: "12px",
     color: "var(--text-secondary)",
   },
-  // fallback-only styles
   pctLabel: {
     fontSize: "13px",
     fontWeight: 500,
@@ -293,7 +273,7 @@ const styles = {
     padding: "6px 16px",
     fontSize: "11px",
     color: "var(--danger)",
-    backgroundColor: "var(--bg-surface)",
+    backgroundColor: "var(--bg-overlay)",
     borderBottom: "1px solid var(--border-subtle)",
     wordBreak: "break-all" as const,
   },

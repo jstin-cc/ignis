@@ -1,40 +1,37 @@
 import type { SummaryResponse } from "../types";
-import { formatTokens, formatCost } from "./format";
+import { fmt } from "./format";
 
 interface TodayPanelProps {
   data: SummaryResponse | null;
 }
 
-export function TodayPanel({ data }: TodayPanelProps) {
+export function TodaySection({ data }: TodayPanelProps) {
   return (
-    <section style={styles.panel}>
-      <span style={styles.label}>TODAY</span>
+    <section style={styles.section}>
+      <div className="section-label">TODAY</div>
       <span style={styles.hero} className="tabular">
-        {data ? formatCost(data.total_cost_usd) : "—"}
+        {data ? fmt.usd(parseFloat(data.total_cost_usd)) : "—"}
       </span>
       <span style={styles.meta} className="tabular">
         {data
-          ? `${formatTokens(data.total_tokens)} · ${data.event_count} events`
+          ? `${fmt.tok(data.total_tokens)} tok · ${data.event_count} events`
           : "—"}
       </span>
     </section>
   );
 }
 
+/** @deprecated Verwende TodaySection */
+export function TodayPanel({ data }: TodayPanelProps) {
+  return <TodaySection data={data} />;
+}
+
 const styles = {
-  panel: {
-    backgroundColor: "var(--bg-elevated)",
+  section: {
     padding: "16px",
     display: "flex",
     flexDirection: "column" as const,
     gap: "4px",
-  },
-  label: {
-    fontSize: "12px",
-    fontWeight: 500,
-    color: "var(--text-secondary)",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.04em",
   },
   hero: {
     fontSize: "24px",

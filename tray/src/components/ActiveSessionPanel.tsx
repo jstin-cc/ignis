@@ -1,14 +1,14 @@
 import type { Session } from "../types";
-import { formatCost, formatDuration, projectName } from "./format";
+import { fmt, formatCost, formatDuration, projectName } from "./format";
 
 interface ActiveSessionPanelProps {
   session: Session | null;
 }
 
-export function ActiveSessionPanel({ session }: ActiveSessionPanelProps) {
+export function SessionSection({ session }: ActiveSessionPanelProps) {
   return (
-    <section style={styles.panel}>
-      <span style={styles.label}>ACTIVE SESSION</span>
+    <section style={styles.section}>
+      <div className="section-label">ACTIVE SESSION</div>
       {session ? (
         <>
           <div style={styles.row}>
@@ -20,8 +20,7 @@ export function ActiveSessionPanel({ session }: ActiveSessionPanelProps) {
             </span>
           </div>
           <span style={styles.meta} className="tabular">
-            {/* total_tokens is not in SessionDto — derive from by_model */}
-            {formatSessionTokens(session)} &middot;{" "}
+            {fmt.tok(sessionTotalTokens(session))} tok &middot;{" "}
             {formatCost(session.total_cost_usd)}
           </span>
         </>
@@ -32,32 +31,21 @@ export function ActiveSessionPanel({ session }: ActiveSessionPanelProps) {
   );
 }
 
-function formatSessionTokens(session: Session): string {
-  const total = session.by_model.reduce((sum, m) => sum + m.tokens, 0);
-  // Reuse the same formatTokens helper used in the other panels.
-  return formatTokensRaw(total);
+/** @deprecated Verwende SessionSection */
+export function ActiveSessionPanel({ session }: ActiveSessionPanelProps) {
+  return <SessionSection session={session} />;
 }
 
-function formatTokensRaw(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M tokens`;
-  if (n >= 1_000) return `${Math.round(n / 1_000)}k tokens`;
-  return `${n} tokens`;
+function sessionTotalTokens(session: Session): number {
+  return session.by_model.reduce((sum, m) => sum + m.tokens, 0);
 }
 
 const styles = {
-  panel: {
-    backgroundColor: "var(--bg-elevated)",
+  section: {
     padding: "16px",
     display: "flex",
     flexDirection: "column" as const,
     gap: "4px",
-  },
-  label: {
-    fontSize: "12px",
-    fontWeight: 500,
-    color: "var(--text-secondary)",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.04em",
   },
   row: {
     display: "flex",
