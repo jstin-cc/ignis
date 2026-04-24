@@ -102,6 +102,19 @@ export function LiveTab({ today, activeSession, activeBlock, burnBuckets }: Live
                 cacheRead={totalCacheRead}
                 cacheWrite={totalCacheWrite}
               />
+              <div style={styles.tokenLegend}>
+                {[
+                  { label: 'Input',    color: 'var(--chart-input)',       value: totalInput },
+                  { label: 'Output',   color: 'var(--chart-output)',      value: totalOutput },
+                  { label: 'Cache-r',  color: 'var(--chart-cache-read)',  value: totalCacheRead },
+                  { label: 'Cache-w',  color: 'var(--chart-cache-write)', value: totalCacheWrite },
+                ].filter(s => s.value > 0).map(s => (
+                  <span key={s.label} style={styles.legendItem}>
+                    <span style={{ ...styles.legendDot, background: s.color }} />
+                    {s.label}
+                  </span>
+                ))}
+              </div>
             </div>
           </>
         )}
@@ -228,6 +241,27 @@ const styles = {
   },
   tokenBar: {
     marginTop: '4px',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '4px',
+  },
+  tokenLegend: {
+    display: 'flex',
+    gap: '10px',
+    flexWrap: 'wrap' as const,
+  },
+  legendItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontSize: '10px',
+    color: 'var(--text-muted)',
+  },
+  legendDot: {
+    width: '6px',
+    height: '6px',
+    borderRadius: '50%',
+    flexShrink: 0,
   },
   blockContent: {
     display: 'flex',
