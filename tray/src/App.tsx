@@ -15,6 +15,7 @@ import { ProjectsPanel } from "./components/ProjectsPanel";
 import { HeatmapPanel } from "./components/HeatmapPanel";
 import { SessionSection } from "./components/ActiveSessionPanel";
 import { Footer } from "./components/Footer";
+import { Dashboard } from './dashboard/Dashboard';
 
 export function App() {
   const { today, month, activeSession, activeBlock, heatmap, error } = useUsageData();
@@ -25,6 +26,7 @@ export function App() {
   const { usage: anthropicUsage, error: usageError } = useAnthropicUsage(plan.usage_poll_interval_secs);
   const [activeTab, setActiveTab] = useState<TabId>('today');
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [dashboardOpen, setDashboardOpen] = useState(false);
   const [customLimitInput, setCustomLimitInput] = useState<string>("");
 
   return (
@@ -169,6 +171,17 @@ export function App() {
           </div>
         )}
 
+        {dashboardOpen && (
+          <Dashboard
+            onClose={() => setDashboardOpen(false)}
+            today={today}
+            month={month}
+            activeSession={activeSession}
+            activeBlock={activeBlock}
+            heatmap={heatmap}
+          />
+        )}
+
         {error && (
           <div style={styles.errorBanner}>
             API nicht erreichbar — starte ignis-api
@@ -201,7 +214,7 @@ export function App() {
       </div>
 
       {/* Footer — 56px */}
-      <Footer onOpenDashboard={() => {}} />
+      <Footer onOpenDashboard={() => { setSettingsOpen(false); setDashboardOpen(true); }} />
     </div>
   );
 }

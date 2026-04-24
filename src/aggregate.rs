@@ -1,5 +1,6 @@
 use crate::model::{
-    HeatmapDay, ModelId, ModelUsage, SessionBlock, SessionState, Snapshot, Summary, UsageEvent,
+    BurnRateBucket, HeatmapDay, ModelId, ModelUsage, SessionBlock, SessionState, Snapshot, Summary,
+    UsageEvent,
 };
 use crate::pricing::PricingTable;
 use chrono::{DateTime, Datelike, Duration, Local, NaiveDate, TimeZone, Utc};
@@ -121,6 +122,7 @@ pub fn build_snapshot(
     let active_block = active_block_at(&blocks, now);
     let today_local = now.with_timezone(&Local).date_naive();
     let heatmap = daily_costs(events, pricing, today_local);
+    let burn_rate = build_burn_rate(events, pricing, now);
 
     Snapshot {
         taken_at: now,
@@ -132,6 +134,7 @@ pub fn build_snapshot(
         active_block,
         pricing_warnings,
         heatmap,
+        burn_rate,
     }
 }
 
@@ -164,6 +167,47 @@ pub fn daily_costs(
             }
         })
         .collect()
+}
+
+/// Builds 30 one-minute buckets covering `(now - 30 min) ..= now` for the burn-rate sparkline.
+///
+/// Sidechain events are excluded (sub-agent calls are noise for live burn-rate).
+/// Each bucket covers exactly one calendar minute. Empty minutes get zeros.
+/// Returns buckets sorted ascending by minute_start, oldest first.
+pub fn build_burn_rate(
+    events: &[UsageEvent],
+    pricing: &PricingTable,
+    now: DateTime<Utc>,
+) -> Vec<BurnRateBucket> {
+    const BUCKET_COUNT: i64 = 30;
+    let window_start = now - Duration::minutes(BUCKET_COUNT);
+
+    let mut buckets: Vec<BurnRateBucket> = (0..BUCKET_COUNT)
+        .map(|i| BurnRateBucket {
+            minute_start: window_start + Duration::minutes(i),
+            tokens: 0,
+            cost_usd: Decimal::ZERO,
+        })
+        .collect();
+
+    for ev in events {
+        if ev.is_sidechain {
+            continue;
+        }
+        if ev.timestamp < window_start || ev.timestamp > now {
+            continue;
+        }
+        let idx = (ev.timestamp - window_start).num_minutes();
+        if !(0..BUCKET_COUNT).contains(&idx) {
+            continue;
+        }
+        let b = &mut buckets[idx as usize];
+        b.tokens +=
+            ev.input_tokens + ev.output_tokens + ev.cache_read_tokens + ev.cache_creation_tokens;
+        b.cost_usd += pricing.compute_cost(ev).cost_usd;
+    }
+
+    buckets
 }
 
 /// Group events into 5-hour billing windows.

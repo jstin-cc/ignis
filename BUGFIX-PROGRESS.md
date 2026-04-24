@@ -172,9 +172,22 @@ Reihenfolge der Fixes (Empfehlung aus Review):
   - Fix-Skizze: Erste Beobachtung pro Block markieren („baseline"); nur
     feuern, wenn `previousPct < threshold && currentPct >= threshold`.
 
----
-
-## P2 — Kleinkram
+- [x] **#27 Installer bundlet `ignis-api.exe` nicht — UI liefert „API nicht erreichbar"**
+  - Symptom: Nach Frisch-Install liegt nur `ignis-tray.exe` in
+    `%LOCALAPPDATA%\Ignis\`. `spawn_api()` findet `ignis-api.exe` weder im
+    Same-Dir noch via Repo-Target-Fallback (Endanwender hat kein
+    `target/release/`) und kehrt still mit `None` zurück → Tray-UI zeigt
+    persistent „Fehler: API nicht erreichbar".
+  - Datei: `tray/src-tauri/tauri.conf.json` (`externalBin`-Liste),
+    `tray/src-tauri/src/main.rs:250-298` (`find_api_binary`/`spawn_api`).
+  - Ursache: Post-v1.1.0 Hotfix #6 (`ignis-api.exe` manuell neben
+    `ignis-tray.exe` kopiert) war nicht persistent — nur `ignis-watch.exe`
+    ist als `externalBin` registriert, `ignis-api.exe` nicht. Nächster
+    Installer-Build liefert die Datei nicht mit aus.
+  - Fix-Skizze: `ignis-api` analog zu `ignis-watch` als `externalBin`
+    eintragen + `beforeBuildCommand` um `cargo build --release --bin
+    ignis-api` erweitern. Optional: `spawn_api()` bei Fehler sichtbares
+    Error-Banner liefern statt stilles `None` (analog zum Watch-Pfad).
 
 - [x] **#19 NO_COLOR akzeptiert leeren String**
   - Datei: `src/bin/winusage-watch.rs:42` — Spec verlangt non-empty.
@@ -223,3 +236,4 @@ Reihenfolge der Fixes (Empfehlung aus Review):
 2026-04-20 · #17+#18+#23+#24 · Tray: AbortController, Notification-Baseline, BurnRate-Uhr, Sessions-Cap · 356527c
 2026-04-20 · #19+#20 · winusage: NO_COLOR-Spec, export --output · 0ee5b3d
 2026-04-20 · #16 · aggregate: sidechain_cost_usd + sidechain_event_count in Summary (ADR-012) · e3b8877
+2026-04-24 · #27 · ignis-api als externalBin + beforeBuildCommand; ignis-watch entfernt (ADR-015) · (pending)

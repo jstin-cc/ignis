@@ -99,6 +99,14 @@ pub struct HeatmapDay {
     pub cost_usd: Decimal,
 }
 
+/// One-minute bucket of token/cost activity, used for the burn-rate sparkline.
+#[derive(Clone, Debug)]
+pub struct BurnRateBucket {
+    pub minute_start: DateTime<Utc>,
+    pub tokens: u64,
+    pub cost_usd: Decimal,
+}
+
 /// One 5-hour billing window inferred from event timestamps.
 ///
 /// Claude Code bills in rolling 5-hour windows. A new block starts with the first
@@ -135,4 +143,6 @@ pub struct Snapshot {
     pub pricing_warnings: Vec<ModelId>,
     /// Daily cost aggregates for the last 84 days (activity heatmap).
     pub heatmap: Vec<HeatmapDay>,
+    /// Per-minute token/cost buckets for the last 30 minutes (burn-rate sparkline).
+    pub burn_rate: Vec<BurnRateBucket>,
 }

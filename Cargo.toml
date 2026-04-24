@@ -19,10 +19,6 @@ path = "src/bin/ignis.rs"
 name = "ignis-api"
 path = "src/bin/ignis-api.rs"
 
-[[bin]]
-name = "ignis-watch"
-path = "src/bin/ignis-watch.rs"
-
 [[example]]
 name = "scan"
 path = "examples/scan.rs"

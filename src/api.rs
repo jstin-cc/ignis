@@ -75,6 +75,7 @@ pub fn router(state: ApiState) -> Router {
         .route("/v1/summary", get(summary_handler))
         .route("/v1/sessions", get(sessions_handler))
         .route("/v1/heatmap", get(heatmap_handler))
+        .route("/v1/burn-rate", get(burn_rate_handler))
         .fallback(not_found_handler)
         .layer(cors)
         .with_state(state)
@@ -472,6 +473,35 @@ async fn heatmap_handler(headers: HeaderMap, State(state): State<ApiState>) -> R
     Json(days).into_response()
 }
 
+// ── /v1/burn-rate ─────────────────────────────────────────────────────────────
+
+#[derive(Serialize)]
+struct BurnRateBucketDto {
+    minute_start: DateTime<Utc>,
+    tokens: u64,
+    cost_usd: String,
+}
+
+async fn burn_rate_handler(State(state): State<ApiState>, headers: HeaderMap) -> Response {
+    if let Err(r) = check_auth(&headers, &state.api_token) {
+        return *r;
+    }
+    if let Err(r) = check_origin(&headers) {
+        return *r;
+    }
+    let snap = state.read_snapshot();
+    let buckets: Vec<BurnRateBucketDto> = snap
+        .burn_rate
+        .iter()
+        .map(|b| BurnRateBucketDto {
+            minute_start: b.minute_start,
+            tokens: b.tokens,
+            cost_usd: b.cost_usd.to_string(),
+        })
+        .collect();
+    Json(buckets).into_response()
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 fn model_usage_dtos(map: &std::collections::BTreeMap<ModelId, ModelUsage>) -> Vec<ModelUsageDto> {
@@ -510,6 +540,7 @@ mod tests {
             active_block: None,
             pricing_warnings: vec![],
             heatmap: vec![],
+            burn_rate: vec![],
         }
     }
 
@@ -676,6 +707,7 @@ mod tests {
             active_block: None,
             pricing_warnings: vec![ModelId::from("claude-unknown-99")],
             heatmap: vec![],
+            burn_rate: vec![],
         };
         state.update_snapshot(new_snap);
 
@@ -707,6 +739,7 @@ mod tests {
             active_block: None,
             pricing_warnings: vec![],
             heatmap: vec![],
+            burn_rate: vec![],
         };
         state.update_snapshot(snap);
         let app = router(state);

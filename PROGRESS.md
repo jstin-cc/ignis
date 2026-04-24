@@ -10,11 +10,24 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 
 ## Next — Anstehende Arbeiten
 
-### v1.2.0-Kandidaten (nach v1.1.0-Tag)
+### v1.2.0 — Dashboard in Tray eingebettet (~in progress)
 
+- [x] Eingebettetes Dashboard-Overlay (360px breit, z-index 11, Escape + ← schließt)
+- [x] Live-Tab: Burn-Rate-Sparkline, Active Session, Session-Block-Ring, By-Model-Breakdown
+- [x] History-Tab: Week-vs-Week-Bars, 30d-Kosten-Trend, Top-Projekte (This Month)
+- [x] Pure-SVG Chart-Komponenten: Sparkline, LineChart, BlockRing, TokenTypeBar, WeekBars
+- [x] Neuer API-Endpoint `/v1/burn-rate` (30 Minuten-Buckets, Sidechain-ausgeschlossen)
+- [x] `ignis-watch` TUI komplett entfernt (Bin-Target, Binary, Tauri-Command; ADR-015)
+- [x] BUGFIX #27 gelöst: `ignis-api.exe` als `externalBin` + `beforeBuildCommand` ins Bundle
 - [ ] Echter `/v1/summary?range=week`-Endpoint (Wochendaten statt Monats-Proxy in WeekSection)
 - [ ] Settings als eigener Tab (statt Overlay)
 - [ ] Wochen-Heatmap-Ansicht (7-Tage-Ausschnitt, detaillierter als 12-Wochen-Grid)
+
+### Lokale Hotfixes (nicht im Repo — nur Installations-Reparaturen)
+
+- 2026-04-24: `ignis-api.exe` + `ignis-watch.exe` manuell aus `target/release/` nach
+  `%LOCALAPPDATA%\Ignis\` kopiert. Symptom: „API nicht erreichbar" im Tray, weil
+  Installer-Bundle die beiden Binaries nicht enthielt. BUGFIX #27 jetzt im Repo gelöst.
 
 ### Phase v1.1.0 — Tray-UI Überarbeitung ✅
 
@@ -168,6 +181,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Content-Bereich war bei vollem Today-Tab abgeschnitten (`overflow: hidden` → `overflow-y: auto`)
 - Minimale 4px-Scrollbar, nur bei Hover sichtbar
 - `ignis-api.exe` fehlte im Release-Ordner; Binary liegt jetzt neben `ignis-tray.exe`
+
+#### Added
+- Eingebettetes Dashboard-Overlay im Tray (Footer-Button "Open Dashboard")
+- Live-Tab: Burn-Rate-Sparkline (30 Min), Active Session, Block-Ring, By-Model
+- History-Tab: Week-vs-Week, 30d-Trend, Top-Projekte (This Month)
+- Neuer API-Endpoint `/v1/burn-rate` — 30 Minuten-Buckets (ADR-014)
+- `ignis-api.exe` als `externalBin` im Installer-Bundle (behebt BUGFIX #27)
+
+#### Removed
+- `ignis-watch` TUI-Dashboard: Binary, Bin-Target, Tauri-Command `open_cli_dashboard` (ADR-015)
 
 ### [1.1.0] — 2026-04-23
 

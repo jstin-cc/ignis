@@ -241,3 +241,44 @@ Nummerierung aufsteigend. Status: `Accepted` · `Superseded` · `Rejected` · `P
   aufploppt. Der Port (`127.0.0.1:7337`) bleibt unverändert — wenn ein anderer
   `winusage-api`-Prozess bereits läuft, scheitert der Child-Spawn still und die Tray
   nutzt die laufende Instanz.
+
+## ADR-014 — Burn-Rate als 30-Minuten-Buckets, On-Request-Berechnung
+
+- **Datum:** 2026-04-24
+- **Status:** Accepted
+- **Kontext:** Das eingebettete Dashboard (v1.2.0) zeigt eine Burn-Rate-Sparkline mit
+  30 Datenpunkten über die letzten 30 Minuten. Es gibt keinen historischen Event-Stream
+  im Frontend. Optionen: neuer API-Endpoint, Client-seitige Akkumulation, oder
+  Sparkline weglassen.
+- **Alternativen:**
+  - (A) Client-seitige Akkumulation — füllt sich erst nach 30 Min, verloren bei Neuladen.
+  - (B) Sparkline weglassen — einfach, aber Design-Spec (DESIGN.md Z. 184) explizit.
+  - (C) **Neuer Endpoint `/v1/burn-rate`** — 30 Minuten-Buckets, Server-seitig aus Events
+        berechnet, sofort vollständig nach Start.
+- **Entscheidung:** (C).
+- **Begründung:** Saubere API-Semantik, kein transientes Client-State, kein Design-Kompromiss.
+  On-Request-Berechnung (bei jedem GET aus dem `Snapshot.burn_rate`-Feld gelesen, das
+  `build_snapshot` füllt) ist billig — 30 Buckets, klein.
+- **Folgen:** `src/aggregate.rs::build_burn_rate()`, `src/model.rs::BurnRateBucket`,
+  `Snapshot.burn_rate: Vec<BurnRateBucket>`. Sidechain-Events werden **ausgeschlossen**
+  (Sub-Agent-Calls verfälschen das Signal für den Haupt-Workflow). Route `/v1/burn-rate`
+  in `src/api.rs`. Frontend-Hook `tray/src/dashboard/useBurnRate.ts` pollt 30s.
+
+## ADR-015 — ignis-watch (TUI) entfernen
+
+- **Datum:** 2026-04-24
+- **Status:** Accepted
+- **Kontext:** `ignis-watch.exe` war das ratatui-TUI-Dashboard und wurde über den
+  Footer-Button "Open Dashboard" als externes Terminal gestartet. Mit dem eingebetteten
+  Dashboard (v1.2.0) übernimmt die Tray-UI alle Funktionen der TUI.
+- **Alternativen:**
+  - (A) TUI beibehalten als optionaler CLI-Zugang.
+  - (B) **Komplett entfernen** — Binary, Bin-Target, Tauri-Command, externalBin-Eintrag.
+  - (C) Footer-Button dual: embedded primär, TUI über Hotkey sekundär.
+- **Entscheidung:** (B).
+- **Begründung:** Redundanter Code bedeutet doppelter Wartungsaufwand. Der eingebettete
+  Ansatz ist funktional ein Superset: LIVE-Tab ersetzt alle TUI-Panels, HISTORY-Tab
+  fügt neue Insights hinzu. `ignis`-CLI bleibt für Headless-/Terminal-Nutzer erhalten.
+- **Folgen:** `src/bin/ignis-watch.rs` gelöscht, `[[bin]]`-Target aus `Cargo.toml` entfernt,
+  `open_cli_dashboard`-Command aus Tauri-Host und `tauri.conf.json` entfernt. Gleichzeitig
+  wird `ignis-api.exe` als `externalBin` ins Installer-Bundle aufgenommen (BUGFIX #27).

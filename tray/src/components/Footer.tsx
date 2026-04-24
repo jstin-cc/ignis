@@ -1,21 +1,7 @@
 import { useState } from "react";
 
-export function Footer({ onOpenDashboard: _ }: { onOpenDashboard: () => void }) {
+export function Footer({ onOpenDashboard }: { onOpenDashboard: () => void }) {
   const [cliCopied, setCliCopied] = useState(false);
-  const [dashError, setDashError] = useState<string | null>(null);
-
-  async function handleOpenDashboard() {
-    setDashError(null);
-    try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      await invoke("open_cli_dashboard");
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      console.error("open_cli_dashboard failed:", msg);
-      setDashError(msg);
-      setTimeout(() => setDashError(null), 8000);
-    }
-  }
 
   async function handleCopyCli() {
     try {
@@ -32,10 +18,10 @@ export function Footer({ onOpenDashboard: _ }: { onOpenDashboard: () => void }) 
       <button
         className="btn btn--primary"
         style={styles.grow}
-        onClick={() => void handleOpenDashboard()}
-        title={dashError ?? "ignis-watch (TUI) starten"}
+        onClick={onOpenDashboard}
+        title="Dashboard öffnen"
       >
-        {dashError ? "Fehler" : "Open Dashboard"}
+        Open Dashboard
       </button>
       <button
         className="btn btn--ghost"

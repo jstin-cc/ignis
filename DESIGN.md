@@ -160,6 +160,70 @@ Wenn `extraUsage > 0` im Block-Objekt, diesen Row einblenden:
 
 ---
 
+---
+
+## Dashboard
+
+Das Dashboard öffnet sich als Overlay über dem Tray-Panel (gleiche 360px Breite) wenn der User "Open Dashboard" klickt. Header mit ← Tray-Back-Button, zwei Tabs: **Live** und **History**.
+
+### Struktur
+
+```tsx
+<Dashboard onClose={() => setShowDashboard(false)}>
+  <DashboardHeader />         {/* 48px, --bg-elevated, ← Tray Button */}
+  <DashboardTabBar />         {/* Live / History */}
+  <ScrollBody maxHeight={540}>{/* overflowY: auto */}
+    {tab === 'live'    && <LiveTab />}
+    {tab === 'history' && <HistoryTab />}
+  </ScrollBody>
+</Dashboard>
+```
+
+### Live-Tab — Sektionen
+
+1. **Burn Rate** — Sparkline-Balkendiagramm (30 Datenpunkte = letzte 30 Min), avg tok/min rechts
+2. **Active Session** — Name + Laufzeit links, Kosten-Hero + Tokens rechts. Darunter 4px Token-Typ-Bar (Input/Output/Cache-r/Cache-w) + Legende
+3. **Session Block** — Ring-Progress (SVG, 72px) + Reset-Zeit + Extra-Usage-Warning. Darunter 5-Segment-Timeline (0h–5h)
+4. **By Model** — Pro Modell: Name (--accent, mono) + Kosten + Tokens + relativer Balken
+
+### History-Tab — Sektionen
+
+1. **This Week vs Last Week** — Doppelbalken pro Wochentag (this=--accent, last=--border-default opacity 0.6)
+2. **Cost Trend 30 Days** — SVG Polyline + Flächenfüllung (Gradient --accent → transparent), letzter Punkt als Dot
+3. **Top Projects 30 Days** — Rangfolge, relativer Balken, Kosten + Token-Anzahl
+
+### Chart-Komponenten (pure SVG, keine externe Library)
+
+```tsx
+// Sparkline — Balken
+const Sparkline = ({ values, width = 328, height = 48, color = 'var(--accent)' }) => { ... }
+// Letzter Balken: volle Farbe. Übrige: rgba(193,95,60, 0.25 + (v/max)*0.55)
+
+// Linechart — Polyline + Area
+const LineChart = ({ values, width = 328, height = 80 }) => { ... }
+// Area: linearGradient --accent 22% → 0%. Linie: stroke #C15F3C, strokeWidth 1.5
+
+// BlockRing — SVG Kreis-Progress
+const BlockRing = ({ pct, size = 72 }) => { ... }
+// r = size/2 - 6, strokeWidth 5
+// Farb-Logik: >= 100 → --danger, >= 90 → --warning, >= 75 → --accent, sonst --accent-muted
+```
+
+### Token-Typ-Farben (Chart-Palette)
+
+```ts
+input:       var(--chart-input)       // #C15F3C
+output:      var(--chart-output)      // #D4A574
+cache-read:  var(--chart-cache-read)  // #7A9B76
+cache-write: var(--chart-cache-write) // #8B6B9B
+```
+
+### Zahlen im Dashboard
+
+Gleiche `fmt`-Funktionen wie im Tray-Panel (usd / tok / dur). Alle Zahlen: `font-variant-numeric: tabular-nums`.
+
+---
+
 ## Nicht-Ziele (MVP v1.0)
 
 - Kein Light-Mode
