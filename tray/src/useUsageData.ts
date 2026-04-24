@@ -26,7 +26,7 @@ function authHeaders(token: string): HeadersInit {
 }
 
 async function fetchSummary(
-  range: "today" | "month",
+  range: "today" | "week" | "month",
   token: string,
   signal: AbortSignal,
 ): Promise<SummaryResponse> {
