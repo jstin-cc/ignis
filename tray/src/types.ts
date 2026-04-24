@@ -114,6 +114,7 @@ export interface HeatmapDay {
 
 export interface UsageData {
   today: SummaryResponse | null;
+  week: SummaryResponse | null;
   month: SummaryResponse | null;
   activeSession: Session | null;
   activeBlock: ActiveBlock | null;

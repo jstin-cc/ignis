@@ -18,7 +18,7 @@ import { Footer } from "./components/Footer";
 import { Dashboard } from './dashboard/Dashboard';
 
 export function App() {
-  const { today, month, activeSession, activeBlock, heatmap, error } = useUsageData();
+  const { today, week, month, activeSession, activeBlock, heatmap, error } = useUsageData();
   useBlockNotifications(activeBlock);
   const { isEnabled, toggle } = useAutoStart();
   const { checking, result, error: updateError, checkForUpdate } = useUpdater();
@@ -192,7 +192,7 @@ export function App() {
           <>
             <TodaySection data={today} />
             <hr className="section-divider" />
-            <WeekSection data={month} />
+            <WeekSection data={week} />
             <hr className="section-divider" />
             <BlockPanel block={activeBlock} usage={anthropicUsage} usageError={usageError} />
             <hr className="section-divider" />

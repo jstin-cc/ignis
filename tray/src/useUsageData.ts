@@ -71,6 +71,7 @@ export function useUsageData(): UsageData {
   const abortRef = useRef<AbortController | null>(null);
   const [data, setData] = useState<UsageData>({
     today: null,
+    week: null,
     month: null,
     activeSession: null,
     activeBlock: null,
@@ -94,8 +95,9 @@ export function useUsageData(): UsageData {
 
     const t = token ?? "";
     try {
-      const [today, month, activeSession, heatmap] = await Promise.all([
+      const [today, week, month, activeSession, heatmap] = await Promise.all([
         fetchSummary("today", t, signal),
+        fetchSummary("week", t, signal),
         fetchSummary("month", t, signal),
         fetchActiveSessions(t, signal),
         fetchHeatmap(t, signal),
@@ -103,7 +105,7 @@ export function useUsageData(): UsageData {
       clearTimeout(timeoutId);
       if (signal.aborted) return;
       const activeBlock: ActiveBlock | null = today.active_block ?? null;
-      setData({ today, month, activeSession, activeBlock, heatmap, loading: false, error: null });
+      setData({ today, week, month, activeSession, activeBlock, heatmap, loading: false, error: null });
     } catch (err) {
       clearTimeout(timeoutId);
       if (err instanceof Error && err.name === "AbortError") {

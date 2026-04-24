@@ -1,6 +1,6 @@
 [package]
 name = "ignis-core"
-version = "1.0.0"
+version = "1.2.0"
 edition = "2021"
 rust-version = "1.75"
 description = "Ignis — Claude Code usage tracker core library (scanner, parser, pricing, aggregation)."

@@ -10,7 +10,7 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 
 ## Next — Anstehende Arbeiten
 
-### v1.2.0 — Dashboard in Tray eingebettet (~in progress)
+### v1.2.0 — Dashboard in Tray eingebettet ✅
 
 - [x] Eingebettetes Dashboard-Overlay (360px breit, z-index 11, Escape + ← schließt)
 - [x] Live-Tab: Burn-Rate-Sparkline, Active Session, Session-Block-Ring, By-Model-Breakdown
@@ -19,9 +19,14 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 - [x] Neuer API-Endpoint `/v1/burn-rate` (30 Minuten-Buckets, Sidechain-ausgeschlossen)
 - [x] `ignis-watch` TUI komplett entfernt (Bin-Target, Binary, Tauri-Command; ADR-015)
 - [x] BUGFIX #27 gelöst: `ignis-api.exe` als `externalBin` + `beforeBuildCommand` ins Bundle
-- [ ] Echter `/v1/summary?range=week`-Endpoint (Wochendaten statt Monats-Proxy in WeekSection)
+- [x] WeekSection nutzt echte Wochendaten (`range=week` statt Monats-Proxy)
+- [x] Version auf 1.2.0 gebumpt + getaggt
+
+### v1.3.0-Kandidaten
+
 - [ ] Settings als eigener Tab (statt Overlay)
 - [ ] Wochen-Heatmap-Ansicht (7-Tage-Ausschnitt, detaillierter als 12-Wochen-Grid)
+- [ ] History-Tab: echte 30-Tage-Projektdaten (`range=30days`) statt Monats-Proxy
 
 ### Lokale Hotfixes (nicht im Repo — nur Installations-Reparaturen)
 
@@ -173,21 +178,25 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### [Unreleased]
 
+### [1.2.0] — 2026-04-24
+
 #### Added
+- Eingebettetes Dashboard-Overlay im Tray (Footer-Button "Open Dashboard")
+- Live-Tab: Burn-Rate-Sparkline (30 Min), Active Session + Token-Typ-Legende,
+  Session-Block-Ring (SVG), By-Model-Breakdown mit relativen Balken
+- History-Tab: Week-vs-Week-Doppelbalken, 30d-Kostentrendlinie, Top-Projekte (This Month)
+- Pure-SVG Chart-Library: Sparkline, LineChart, BlockRing, TokenTypeBar, WeekBars
+- Neuer API-Endpoint `GET /v1/burn-rate` — 30 Minuten-Buckets (ADR-014)
+- `ignis-api.exe` als `externalBin` im Installer-Bundle (BUGFIX #27)
+- `WeekSection` im Today-Tab nutzt echte Wochendaten (`/v1/summary?range=week`)
+  statt Monats-Proxy
 - Fenster vertikal resizable (Breite 360px fix, Höhe ab 280px frei ziehbar)
-- App-Icons aus finalem Logo.png regeneriert (Flammen-Icon, Terrakotta auf Dunkel)
+- App-Icons aus finalem Logo.png regeneriert
 
 #### Fixed
 - Content-Bereich war bei vollem Today-Tab abgeschnitten (`overflow: hidden` → `overflow-y: auto`)
 - Minimale 4px-Scrollbar, nur bei Hover sichtbar
 - `ignis-api.exe` fehlte im Release-Ordner; Binary liegt jetzt neben `ignis-tray.exe`
-
-#### Added
-- Eingebettetes Dashboard-Overlay im Tray (Footer-Button "Open Dashboard")
-- Live-Tab: Burn-Rate-Sparkline (30 Min), Active Session, Block-Ring, By-Model
-- History-Tab: Week-vs-Week, 30d-Trend, Top-Projekte (This Month)
-- Neuer API-Endpoint `/v1/burn-rate` — 30 Minuten-Buckets (ADR-014)
-- `ignis-api.exe` als `externalBin` im Installer-Bundle (behebt BUGFIX #27)
 
 #### Removed
 - `ignis-watch` TUI-Dashboard: Binary, Bin-Target, Tauri-Command `open_cli_dashboard` (ADR-015)
