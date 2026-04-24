@@ -8,6 +8,157 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 
 ---
 
+## Roadmap v1.3.0 → v2.0
+
+Strategischer Plan vom aktuellen Stand bis zum Major-Release. Rahmen: keine
+neuen Plattformen, keine neuen Provider, v2.0 ist Qualitäts- und Feature-Reife
+inkl. Public-Repo.
+
+Bug-Status (Stand 2026-04-24): Alle in `BUGFIX-PROGRESS.md` gelisteten P0- und
+P1-Punkte sind abgehakt. Es gibt aktuell **keine offenen P0-Blocker** für
+v1.3.0. `#26` (pricing.json) steht trotz Häkchen explizit als Pflege-Aufgabe in
+v1.3.0 — die Werte müssen vor jedem Release gegen Anthropic-Preisliste
+re-verifiziert werden, das ist Dauer-Aufgabe pro Release.
+
+**Aufwands-Skala:** S = ½–1 Tag · M = 2–4 Tage · L = 1+ Woche
+
+### v1.3.0 — Datenwahrheit & Settings-Reife
+
+> Theme: „Was die App zeigt, stimmt — und Konfiguration fühlt sich nicht mehr
+> nach Hack an."
+
+| # | Feature | Akzeptanzkriterium | Aufwand |
+|---|---------|--------------------|---------|
+| 1 | `pricing.json` re-verifiziert (#26 Pflege) | Alle aktiv genutzten Modelle in `pricing.json` mit Datum 2026-04 abgeglichen, Quelle verlinkt in `docs/pricing.md`, Auto-Reload-Test (File-Mtime) | S |
+| 2 | Settings als eigener Tab | Fünfter Tab in `TabBar` (Today/Month/Projects/Heatmap/Settings), Overlay-Code entfernt, Plan-Picker + Token-Limit + Auto-Start + Update-Check + API-Token (read-only) im Tab | M |
+| 3 | History-Tab: echte 30-Tage-Projektdaten | Neuer Range `range=30days` in `/v1/summary`, `MonthPanel`/`HistoryTab` zieht Top-Projekte aus echten 30 Tagen statt Monats-Proxy | M |
+| 4 | `export --output <file>` Polish (#20 follow-up) | Pfad-Validierung, Overwrite-Schutz (`--force`), atomarer Write (tmp + rename), Dokumentation in `docs/cli.md`, 3 Integrationstests | S |
+| 5 | Settings-Migration `config.json` v1 → v2 | Versions-Feld in Config, Migrations-Pfad mit Backup-Datei, kein Daten-Verlust bei Tab-Refactor | S |
+
+**Abhängigkeiten:** keine externen. Settings-Tab (#2) blockt #5; Range `30days`
+(#3) ist self-contained.
+
+**Definition of Done v1.3.0:** Alle fünf Punkte abgehakt, `cargo clippy --
+-D warnings` clean, Tests grün, `pricing.json` Datum aktuell, `1.3.0` getaggt.
+
+---
+
+### v1.4.0 — Visualisierung & Wahrnehmung
+
+> Theme: „Auf einen Blick sehen, wann du arbeitest."
+
+| # | Feature | Akzeptanzkriterium | Aufwand |
+|---|---------|--------------------|---------|
+| 1 | Wochen-Heatmap (7-Tage-Ausschnitt) | Neuer Sub-View in HeatmapPanel: 7 Tage × 24 h, Stunden-Buckets, Terrakotta-Intensität nach Tokens, Toggle `12 Wochen` ↔ `Diese Woche` | M |
+| 2 | API: `GET /v1/heatmap?granularity=hour&range=week` | 168 Buckets (7×24), korrekte Sidechain-Filterung wie `/v1/burn-rate` | S |
+| 3 | Heatmap-Tooltip | Hover-Tooltip mit Tag, Uhrzeit, Tokens, Kosten — pure CSS/SVG, keine Library | S |
+| 4 | Today-Tab: Stunden-Sparkline | Mini-Chart unter Today-Hero: 24-h-Verlauf der heutigen Tokens, ergänzt Burn-Rate-Sparkline aus v1.2.0 | S |
+
+**Abhängigkeiten:** v1.3.0 (#3) liefert Range-Architektur für `30days` —
+saubere Vorlage für `granularity=hour`.
+
+**Definition of Done v1.4.0:** Heatmap-Toggle funktioniert ohne Layout-Bruch
+(Fenster bleibt 360 px breit), Tooltip kein Flackern, `1.4.0` getaggt.
+
+---
+
+### v1.5.0 — Budget-Kontrolle
+
+> Theme: „Du wirst rechtzeitig gewarnt — nicht erst wenn's brennt."
+
+| # | Feature | Akzeptanzkriterium | Aufwand |
+|---|---------|--------------------|---------|
+| 1 | Konfigurierbare Budget-Schwellen | Settings-Tab: Schwellen als Liste (50/75/90/100 % Default), pro Schwelle Einzel-Toggle, persistiert in `config.json` | M |
+| 2 | Schwellen-Notifications | `useBlockNotifications` liest Schwellen aus Config statt hardcoded 80/100, feuert je Schwelle einmal pro Block (Baseline-Logik aus #18 bleibt) | S |
+| 3 | Wochen-/Monats-Budget (USD) | Optional: USD-Cap für Woche/Monat in Settings, eigene Notification-Reihe wenn überschritten | M |
+| 4 | Budget-Status im BlockPanel | Sichtbare „Next alert at X%" -Zeile, damit User Schwellen versteht ohne Settings öffnen zu müssen | S |
+
+**Abhängigkeiten:** v1.3.0 (#2) — Settings-Tab muss Liste-Editor unterstützen.
+
+**Definition of Done v1.5.0:** Schwellen sind editierbar + werden gefeuert,
+keine Doppel-Notifications pro Block, `1.5.0` getaggt.
+
+---
+
+### v1.6.0 — Onboarding & First-Run-Polish
+
+> Theme: „Beim ersten Start ist klar, was die App ist und wo der Token liegt."
+
+| # | Feature | Akzeptanzkriterium | Aufwand |
+|---|---------|--------------------|---------|
+| 1 | First-Run-Screen | Erkennung über `config.first_run_seen: bool`; 3-Step Wizard im Tray (Willkommen → Plan-Auswahl → Auto-Start-Opt-in) | M |
+| 2 | Empty-State, wenn keine JSONL gefunden | Statt blanker `0 tokens` ein Hinweis mit Pfad zu `~/.claude/projects` und Doku-Link | S |
+| 3 | API-Token-Anzeige + Copy-Button | Im Settings-Tab: Token + „Copy" + Hinweis „Für CLI/curl-Zugriff" | S |
+| 4 | Inline-Hilfe in Settings | Kurze Mikrocopy zu jedem Setting (Plan, Schwellen, Auto-Start) — pure Tooltips, keine Modals | S |
+
+**Abhängigkeiten:** v1.3.0 (#2) Settings-Tab; v1.5.0 (#1) Schwellen-UI.
+
+**Definition of Done v1.6.0:** Frischer Install führt durch Wizard, Empty-State
+sichtbar wenn `~/.claude/projects` leer, `1.6.0` getaggt.
+
+---
+
+### v1.7.0 — Auto-Update produktionsreif
+
+> Theme: „Updates kommen automatisch und sind verifizierbar."
+
+| # | Feature | Akzeptanzkriterium | Aufwand |
+|---|---------|--------------------|---------|
+| 1 | Echter GitHub-Releases-Endpoint | `tauri-plugin-updater` zeigt auf `https://github.com/jstin-cc/ignis/releases/latest/download/latest.json`, Platzhalter aus v1.0.0 ersetzt | S |
+| 2 | Update-Manifest-Generator | CI-Job/Script erzeugt `latest.json` (Version, Pub-Datum, Signatur, MSI/NSIS-URL) bei jedem `git tag v*` | M |
+| 3 | Code-Signing der Installer | Tauri-Updater-Signing-Key (ed25519) generiert, Public-Key embedded, Private-Key in GitHub Secrets, Installer signiert; ADR über Authenticode (defer auf v2.0 falls Cert-Kosten zu hoch) | M |
+| 4 | Release-Notes-Anzeige | Settings-Tab: „Update verfügbar" zeigt Changelog-Auszug aus Release-Body, „Install & Restart"-Button | S |
+| 5 | Rollback-Doku | `docs/release.md`: wie ein vergiftetes Release zurückrollen, Tag löschen, Manifest patchen | S |
+
+**Abhängigkeiten:** v1.6.0 (#3) Settings-Tab Update-Sektion.
+
+**Definition of Done v1.7.0:** Tag `v1.7.0-rc1` erzeugt valides Manifest, ein
+zweiter Test-Tag `v1.7.0-rc2` updatet `rc1`-Install ohne manuelle Intervention,
+`1.7.0` getaggt.
+
+---
+
+### v2.0.0 — Public-Release-Reife
+
+> Theme: „Stabil, dokumentiert, öffentlich. Externe können beitragen."
+
+**Was macht es zu einem Major-Release?**
+Bruch der Privatheit (Repo wird öffentlich), formale Stabilitäts-Garantien für
+HTTP-API-Schema (`/v1/*`-Endpoints versioniert + Deprecation-Policy), und ein
+Contributor-Onboarding-Pfad. Kein Tech-Stack-Wechsel.
+
+#### Pflicht (must-have für v2.0.0)
+
+| # | Feature | Akzeptanzkriterium | Aufwand |
+|---|---------|--------------------|---------|
+| 1 | Repo public schalten | `gh repo edit jstin-cc/ignis --visibility public`, Secrets-Audit (keine Tokens/Keys/Pfade), Issue-Templates (Bug/Feature/Question), Discussions an | S |
+| 2 | LICENSE | MIT oder Apache-2.0; Entscheidung in ADR; Header-Snippet in Quellen optional | S |
+| 3 | README mit Screenshots | Hero-Screenshot Tray, Feature-Liste, Install-Steps (MSI-Download), Quick-start CLI/API, Status-Tabelle, Lizenz-Badge, Build-Badge | M |
+| 4 | `CONTRIBUTING.md` + `CODE_OF_CONDUCT.md` | Branch-Strategie (main + feature-branches), PR-Template, Review-Checkliste, lokales Build-Setup, ADR-Prozess kurz erklärt | M |
+| 5 | API-Schema-Stabilität | `docs/api.md` markiert `/v1/*` als stabil, Deprecation-Policy (1 Minor-Release Vorlauf), `/v2/*`-Pfad-Reservation dokumentiert | S |
+| 6 | Stabilitäts-Audit | Manueller Test-Run aller Features auf frischer Win11-VM, Issue-Liste abgearbeitet, keine offenen P0/P1 in `BUGFIX-PROGRESS.md` | M |
+| 7 | Authenticode-Signing | Echtes Code-Signing-Cert oder dokumentierter Defer-Pfad mit SmartScreen-Workaround in README | M–L |
+| 8 | Versionierungs-Doku | `docs/release.md` erweitert: SemVer-Regeln, Major/Minor/Patch-Trigger, Changelog-Workflow | S |
+
+#### Nice-to-have (v2.0+ Backlog, kein Blocker)
+
+| # | Feature | Aufwand |
+|---|---------|---------|
+| A | Telemetrie-Opt-in (Crash-Reports lokal sammeln, manuell exportierbar) — bleibt opt-in, no-default | M |
+| B | Plugin-API-Stabilisierung — `Provider`-Trait als public extension point dokumentieren | M |
+| C | i18n-Vorbereitung (string-Extraktion, ohne zweite Sprache liefern) | M |
+| D | Screen-Reader-Audit Tray-UI | S |
+| E | MSIX-Bundle als zusätzliches Installer-Format | M |
+
+**Abhängigkeiten:** v1.7.0 muss stabil laufen (Auto-Update wird das primäre
+Distributions-Vehikel nach Public-Release).
+
+**Definition of Done v2.0.0:** Repo public, README mit Screenshots live,
+CONTRIBUTING merged, eine externe Person kann den Build laut Doku ohne Hilfe
+reproduzieren, `2.0.0` getaggt + GitHub Release publiziert.
+
+---
+
 ## Next — Anstehende Arbeiten
 
 ### v1.2.0 — Dashboard in Tray eingebettet ✅
@@ -22,11 +173,22 @@ Legende: `[x]` done · `[~]` in progress · `[ ]` todo · `[!]` blocked
 - [x] WeekSection nutzt echte Wochendaten (`range=week` statt Monats-Proxy)
 - [x] Version auf 1.2.0 gebumpt + getaggt
 
-### v1.3.0-Kandidaten
+### v1.3.0 — Datenwahrheit & Settings-Reife (in Arbeit)
 
-- [ ] Settings als eigener Tab (statt Overlay)
-- [ ] Wochen-Heatmap-Ansicht (7-Tage-Ausschnitt, detaillierter als 12-Wochen-Grid)
-- [ ] History-Tab: echte 30-Tage-Projektdaten (`range=30days`) statt Monats-Proxy
+Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
+
+- [ ] **#1 `pricing.json` re-verifizieren** — Werte gegen aktuelle Anthropic-Preisliste
+      abgleichen, Datum auf heute setzen, Quelle in `docs/pricing.md` dokumentieren,
+      Auto-Reload-Test ergänzen (**erster Schritt — sofort starten**)
+- [ ] #2 Settings als eigener Tab (statt Overlay)
+- [ ] #3 History-Tab: echte 30-Tage-Projektdaten (`range=30days`)
+- [ ] #4 `export --output <file>` Polish (Pfad-Validierung, `--force`, atomarer Write, Tests)
+- [ ] #5 Settings-Migration `config.json` v1 → v2
+
+### v1.4.0+ Backlog
+
+Reihenfolge und Inhalt siehe Roadmap-Abschnitt oben (v1.4.0 Heatmap-Wochenview,
+v1.5.0 Budget-Schwellen, v1.6.0 Onboarding, v1.7.0 Auto-Update prod, v2.0.0 Public).
 
 ### Lokale Hotfixes (nicht im Repo — nur Installations-Reparaturen)
 
