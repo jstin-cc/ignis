@@ -77,7 +77,10 @@ export function SettingsTab({ autoStart, plan, setPlan, setThresholds, setBudget
       {/* Auto-Start */}
       <section style={styles.section}>
         <div className="section-label" style={styles.sectionLabel}>Allgemein</div>
-        <label style={styles.row}>
+        <label
+          style={styles.row}
+          title="Ignis und ignis-api starten automatisch wenn du dich anmeldest — kein manueller Start nötig."
+        >
           <input
             type="checkbox"
             checked={autoStart.isEnabled}
@@ -91,7 +94,10 @@ export function SettingsTab({ autoStart, plan, setPlan, setThresholds, setBudget
       {/* Plan */}
       <section style={styles.section}>
         <div className="section-label" style={styles.sectionLabel}>Plan</div>
-        <div style={styles.row}>
+        <div
+          style={styles.row}
+          title="Pro: 44k tok · Max 5×: 88k tok · Max 20×: 220k tok pro 5-Stunden-Block. Custom: eigenes Limit."
+        >
           <span style={styles.label}>Modell</span>
           <select
             style={styles.select}
@@ -132,7 +138,10 @@ export function SettingsTab({ autoStart, plan, setPlan, setThresholds, setBudget
           </div>
         )}
 
-        <div style={styles.row}>
+        <div
+          style={styles.row}
+          title="Wie oft die Nutzungsdaten der Anthropic-API abgerufen werden. Kürzere Intervalle verbrauchen mehr Netzwerk."
+        >
           <span style={styles.label}>Aktualisierung</span>
           <select
             style={styles.select}
@@ -155,7 +164,15 @@ export function SettingsTab({ autoStart, plan, setPlan, setThresholds, setBudget
       <section style={styles.section}>
         <div className="section-label" style={styles.sectionLabel}>Benachrichtigungen</div>
         {FIXED_THRESHOLDS.map((t) => (
-          <label key={t} style={styles.row}>
+          <label
+            key={t}
+            style={styles.row}
+            title={
+              t < 100
+                ? `Windows-Notification wenn ${t}% des Plan-Token-Limits im aktiven 5h-Block verbraucht sind.`
+                : "Windows-Notification wenn der 5h-Abrechnungsblock vollständig abgeschlossen ist."
+            }
+          >
             <input
               type="checkbox"
               checked={plan.block_alert_thresholds.includes(t)}
@@ -172,7 +189,10 @@ export function SettingsTab({ autoStart, plan, setPlan, setThresholds, setBudget
       {/* Budget */}
       <section style={styles.section}>
         <div className="section-label" style={styles.sectionLabel}>Budget</div>
-        <div style={styles.row}>
+        <div
+          style={styles.row}
+          title="Notification wenn die Wochenkosten diesen USD-Betrag überschreiten. Leer = deaktiviert."
+        >
           <span style={styles.label}>Woche (USD)</span>
           <input
             type="number"
@@ -185,7 +205,10 @@ export function SettingsTab({ autoStart, plan, setPlan, setThresholds, setBudget
             onBlur={commitBudgets}
           />
         </div>
-        <div style={styles.row}>
+        <div
+          style={styles.row}
+          title="Notification wenn die Monatskosten diesen USD-Betrag überschreiten. Leer = deaktiviert."
+        >
           <span style={styles.label}>Monat (USD)</span>
           <input
             type="number"

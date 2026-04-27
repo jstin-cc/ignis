@@ -331,6 +331,23 @@ struct UpdateCheckResult {
 }
 
 #[tauri::command]
+fn get_first_run_seen() -> bool {
+    let Ok(path) = config_path() else { return false };
+    let Ok(val) = read_config_json(&path) else { return false };
+    val.get("first_run_seen")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false)
+}
+
+#[tauri::command]
+fn set_first_run_seen() -> Result<(), String> {
+    let path = config_path()?;
+    let mut val = read_config_json(&path)?;
+    val["first_run_seen"] = serde_json::json!(true);
+    write_config_json(&path, &val)
+}
+
+#[tauri::command]
 fn get_api_token() -> Result<String, String> {
     let appdata = std::env::var("APPDATA")
         .or_else(|_| std::env::var("HOME").map(|h| format!("{h}/.config")))
@@ -497,6 +514,8 @@ fn main() {
             set_autostart_enabled,
             check_for_update,
             get_api_token,
+            get_first_run_seen,
+            set_first_run_seen,
             get_plan_config,
             set_plan_config,
             set_alert_thresholds,

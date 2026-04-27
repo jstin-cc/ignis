@@ -275,10 +275,30 @@ Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
       überschrittene Schwelle aus `alertThresholds` > `block_token_pct`. Kein Eintrag
       wenn alle Schwellen überschritten.
 
-### v1.6.0+ Backlog
+### v1.6.0 — Onboarding & First-Run-Polish (in Arbeit)
 
-Reihenfolge und Inhalt siehe Roadmap-Abschnitt oben (v1.6.0 Onboarding,
-v1.7.0 Auto-Update prod, v2.0.0 Public).
+Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
+
+- [x] **#1 First-Run-Screen (2026-04-27)** — Neue Komponente `FirstRunWizard.tsx`
+      (3-Step: Willkommen → Plan-Auswahl → Auto-Start-Opt-in). Erkennung via
+      neuem Tauri-Command `get_first_run_seen`/`set_first_run_seen` (persistiert
+      `first_run_seen: bool` in `winusage/config.json`). `App.tsx` zeigt Wizard
+      als z-index-20-Overlay beim ersten Start; `handleWizardDone` speichert Plan
+      + Auto-Start, setzt Flag, blendet Wizard aus.
+- [x] **#2 Empty-State (2026-04-27)** — `TodaySection` zeigt `EmptyHint`-Box wenn
+      `last30Days.event_count === 0` und nicht am Laden. Inhalt: Pfad
+      `%USERPROFILE%\.claude\projects\`, Kurzanleitung "führe Claude Code aus".
+- [x] **#3 API-Token-Anzeige + Copy-Button** — Bereits in v1.3.0 implementiert
+      (SettingsTab: maskierter Token + "Kopieren"-Button).
+- [x] **#4 Inline-Hilfe in Settings (2026-04-27)** — `title`-Attribute auf allen
+      Settings-Zeilen: Auto-Start, Plan-Auswahl, Aktualisierungs-Intervall, jede
+      Schwellen-Checkbox, Wochen- und Monats-Budget. Browser-native Tooltips,
+      keine Library.
+
+### v1.7.0+ Backlog
+
+Reihenfolge und Inhalt siehe Roadmap-Abschnitt oben (v1.7.0 Auto-Update prod,
+v2.0.0 Public).
 
 ### Lokale Hotfixes (nicht im Repo — nur Installations-Reparaturen)
 
@@ -429,6 +449,13 @@ Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### [Unreleased]
+
+#### Added (v1.6.0)
+- First-Run-Wizard (3 Schritte: Willkommen → Plan → Auto-Start); Erkennung via
+  `first_run_seen`-Flag in Config (Tauri-Commands `get_first_run_seen`/`set_first_run_seen`).
+- Empty-State in `TodaySection` wenn `last30Days.event_count === 0`:
+  Hinweis mit Pfad `%USERPROFILE%\.claude\projects\`.
+- Inline-Hilfe in Settings: `title`-Attribute auf allen Zeilen (kein Flackern, keine Library).
 
 #### Added (v1.5.0)
 - Konfigurierbare Block-Alert-Schwellen (50/75/90/100 %, Default) im Settings-Tab;

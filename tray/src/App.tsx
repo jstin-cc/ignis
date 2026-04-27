@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUsageData } from "./useUsageData";
 import { useBlockNotifications } from "./hooks/useBlockNotifications";
 import { useAutoStart } from "./hooks/useAutoStart";
@@ -16,9 +16,10 @@ import { SessionSection } from "./components/ActiveSessionPanel";
 import { SettingsTab } from "./components/SettingsTab";
 import { Footer } from "./components/Footer";
 import { Dashboard } from './dashboard/Dashboard';
+import { FirstRunWizard } from "./components/FirstRunWizard";
 
 export function App() {
-  const { today, week, month, last30Days, activeSession, activeBlock, heatmap, hourlyHeatmapWeek, error } = useUsageData();
+  const { today, week, month, last30Days, activeSession, activeBlock, heatmap, hourlyHeatmapWeek, loading, error } = useUsageData();
   const { isEnabled, toggle } = useAutoStart();
   const { checking, result, error: updateError, checkForUpdate } = useUpdater();
   const { plan, setPlan, setThresholds, setBudgets } = usePlanConfig();
@@ -33,6 +34,30 @@ export function App() {
   );
   const [activeTab, setActiveTab] = useState<TabId>('today');
   const [dashboardOpen, setDashboardOpen] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
+
+  // Check first-run flag once on mount.
+  useEffect(() => {
+    import("@tauri-apps/api/core")
+      .then(({ invoke }) => invoke<boolean>("get_first_run_seen"))
+      .then((seen) => { if (!seen) setShowWizard(true); })
+      .catch(() => {/* dev mode — skip wizard */});
+  }, []);
+
+  const handleWizardDone = async (planKind: import("./types").PlanKind, autoStartEnabled: boolean) => {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("set_first_run_seen");
+      await invoke("set_plan_config", { kind: planKind, customTokenLimit: null, usagePollIntervalSecs: 60 });
+      if (autoStartEnabled) {
+        await invoke("set_autostart_enabled", { enabled: true });
+      }
+    } catch {
+      // dev mode — ignore
+    }
+    void setPlan(planKind);
+    setShowWizard(false);
+  };
 
   return (
     <div style={styles.shell}>
@@ -61,6 +86,9 @@ export function App() {
 
       {/* Content */}
       <div style={styles.content}>
+        {showWizard && (
+          <FirstRunWizard onDone={(pk, as) => void handleWizardDone(pk, as)} />
+        )}
         {dashboardOpen && (
           <Dashboard
             onClose={() => setDashboardOpen(false)}
@@ -80,7 +108,11 @@ export function App() {
 
         {activeTab === 'today' && (
           <>
-            <TodaySection data={today} hourlyWeek={hourlyHeatmapWeek} />
+            <TodaySection
+              data={today}
+              hourlyWeek={hourlyHeatmapWeek}
+              isEmpty={!loading && !error && (last30Days?.event_count ?? 1) === 0}
+            />
             <hr className="section-divider" />
             <WeekSection data={week} />
             <hr className="section-divider" />

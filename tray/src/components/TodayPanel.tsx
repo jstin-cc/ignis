@@ -5,6 +5,7 @@ import { Sparkline } from "../dashboard/charts/Sparkline";
 interface TodayPanelProps {
   data: SummaryResponse | null;
   hourlyWeek?: HeatmapHourBucket[];
+  isEmpty?: boolean;
 }
 
 /** Derive 24 hourly token values for today from the weekly 168-bucket data. */
@@ -21,7 +22,7 @@ function todayHourlyTokens(hourlyWeek: HeatmapHourBucket[]): number[] {
   return buckets;
 }
 
-export function TodaySection({ data, hourlyWeek = [] }: TodayPanelProps) {
+export function TodaySection({ data, hourlyWeek = [], isEmpty = false }: TodayPanelProps) {
   const hourlyTokens = todayHourlyTokens(hourlyWeek);
   const hasActivity = hourlyTokens.some((v) => v > 0);
 
@@ -41,9 +42,54 @@ export function TodaySection({ data, hourlyWeek = [] }: TodayPanelProps) {
           <Sparkline values={hourlyTokens} width={328} height={28} />
         </div>
       )}
+      {isEmpty && <EmptyHint />}
     </section>
   );
 }
+
+function EmptyHint() {
+  return (
+    <div style={emptyStyles.box}>
+      <span style={emptyStyles.title}>Noch keine Logs gefunden</span>
+      <span style={emptyStyles.body}>
+        Ignis liest JSONL-Logs aus:
+      </span>
+      <code style={emptyStyles.path}>%USERPROFILE%\.claude\projects\</code>
+      <span style={emptyStyles.body}>
+        Starte Claude Code und führe einen Task aus — Daten erscheinen automatisch.
+      </span>
+    </div>
+  );
+}
+
+const emptyStyles = {
+  box: {
+    marginTop: "12px",
+    padding: "10px 12px",
+    backgroundColor: "var(--bg-elevated)",
+    borderRadius: "6px",
+    border: "1px solid var(--border-subtle)",
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "6px",
+  },
+  title: {
+    fontSize: "12px",
+    fontWeight: 600,
+    color: "var(--text-secondary)",
+  },
+  body: {
+    fontSize: "11px",
+    color: "var(--text-muted)",
+    lineHeight: 1.4,
+  },
+  path: {
+    fontFamily: "var(--font-mono)",
+    fontSize: "10px",
+    color: "var(--accent)",
+    letterSpacing: "0.01em",
+  },
+} as const;
 
 /** @deprecated Verwende TodaySection */
 export function TodayPanel({ data, hourlyWeek }: TodayPanelProps) {
