@@ -26,7 +26,7 @@ function authHeaders(token: string): HeadersInit {
 }
 
 async function fetchSummary(
-  range: "today" | "week" | "month",
+  range: "today" | "week" | "month" | "30days",
   token: string,
   signal: AbortSignal,
 ): Promise<SummaryResponse> {
@@ -73,6 +73,7 @@ export function useUsageData(): UsageData {
     today: null,
     week: null,
     month: null,
+    last30Days: null,
     activeSession: null,
     activeBlock: null,
     heatmap: [],
@@ -95,17 +96,18 @@ export function useUsageData(): UsageData {
 
     const t = token ?? "";
     try {
-      const [today, week, month, activeSession, heatmap] = await Promise.all([
+      const [today, week, month, last30Days, activeSession, heatmap] = await Promise.all([
         fetchSummary("today", t, signal),
         fetchSummary("week", t, signal),
         fetchSummary("month", t, signal),
+        fetchSummary("30days", t, signal),
         fetchActiveSessions(t, signal),
         fetchHeatmap(t, signal),
       ]);
       clearTimeout(timeoutId);
       if (signal.aborted) return;
       const activeBlock: ActiveBlock | null = today.active_block ?? null;
-      setData({ today, week, month, activeSession, activeBlock, heatmap, loading: false, error: null });
+      setData({ today, week, month, last30Days, activeSession, activeBlock, heatmap, loading: false, error: null });
     } catch (err) {
       clearTimeout(timeoutId);
       if (err instanceof Error && err.name === "AbortError") {

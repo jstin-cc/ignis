@@ -46,7 +46,7 @@ Query-Parameter:
 
 | Name    | Werte                             | Default   | Bedeutung             |
 |---------|-----------------------------------|-----------|-----------------------|
-| `range` | `today` \| `week` \| `month` \| `all` | `today`   | Zeitfenster.          |
+| `range` | `today` \| `week` \| `month` \| `30days` \| `all` | `today`   | Zeitfenster. `30days` = rolling 30 Tage (heute + 29 vorangegangene); `month` = Kalender-Monat. |
 
 Response:
 

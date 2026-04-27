@@ -5,14 +5,14 @@ import { LineChart } from './charts/LineChart';
 import { useHistoryData } from './useHistoryData';
 
 interface HistoryTabProps {
-  month: SummaryResponse | null;
+  last30Days: SummaryResponse | null;
   heatmap: HeatmapDay[];
 }
 
-export function HistoryTab({ month, heatmap }: HistoryTabProps) {
+export function HistoryTab({ last30Days, heatmap }: HistoryTabProps) {
   const { weekComparison, costTrend30d } = useHistoryData(heatmap);
 
-  const topProjects = [...(month?.by_project ?? [])]
+  const topProjects = [...(last30Days?.by_project ?? [])]
     .sort((a, b) => parseFloat(b.total_cost_usd) - parseFloat(a.total_cost_usd))
     .slice(0, 8);
 
@@ -39,9 +39,9 @@ export function HistoryTab({ month, heatmap }: HistoryTabProps) {
 
       <hr className="section-divider" />
 
-      {/* TOP PROJECTS THIS MONTH */}
+      {/* TOP PROJECTS 30 DAYS */}
       <section style={styles.section}>
-        <div className="section-label">TOP PROJECTS THIS MONTH</div>
+        <div className="section-label">TOP PROJECTS 30 DAYS</div>
         {topProjects.length === 0 ? (
           <span style={styles.muted}>no data</span>
         ) : (

@@ -9,7 +9,7 @@ import { useBurnRate } from './useBurnRate';
 interface DashboardProps {
   onClose: () => void;
   today: SummaryResponse | null;
-  month: SummaryResponse | null;
+  last30Days: SummaryResponse | null;
   activeSession: Session | null;
   activeBlock: ActiveBlock | null;
   heatmap: HeatmapDay[];
@@ -18,7 +18,7 @@ interface DashboardProps {
 export function Dashboard({
   onClose,
   today,
-  month,
+  last30Days,
   activeSession,
   activeBlock,
   heatmap,
@@ -57,7 +57,7 @@ export function Dashboard({
             burnBuckets={buckets}
           />
         ) : (
-          <HistoryTab month={month} heatmap={heatmap} />
+          <HistoryTab last30Days={last30Days} heatmap={heatmap} />
         )}
       </div>
     </div>

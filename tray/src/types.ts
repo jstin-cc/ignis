@@ -116,6 +116,8 @@ export interface UsageData {
   today: SummaryResponse | null;
   week: SummaryResponse | null;
   month: SummaryResponse | null;
+  /** Rolling 30-day window (today + 29 preceding days). */
+  last30Days: SummaryResponse | null;
   activeSession: Session | null;
   activeBlock: ActiveBlock | null;
   heatmap: HeatmapDay[];

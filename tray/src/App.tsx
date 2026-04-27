@@ -18,7 +18,7 @@ import { Footer } from "./components/Footer";
 import { Dashboard } from './dashboard/Dashboard';
 
 export function App() {
-  const { today, week, month, activeSession, activeBlock, heatmap, error } = useUsageData();
+  const { today, week, month, last30Days, activeSession, activeBlock, heatmap, error } = useUsageData();
   useBlockNotifications(activeBlock);
   const { isEnabled, toggle } = useAutoStart();
   const { checking, result, error: updateError, checkForUpdate } = useUpdater();
@@ -58,7 +58,7 @@ export function App() {
           <Dashboard
             onClose={() => setDashboardOpen(false)}
             today={today}
-            month={month}
+            last30Days={last30Days}
             activeSession={activeSession}
             activeBlock={activeBlock}
             heatmap={heatmap}

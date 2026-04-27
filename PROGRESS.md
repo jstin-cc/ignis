@@ -196,7 +196,18 @@ Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
       `TabBar` auf 5 Tabs angepasst (`fontSize` 12 → 11px, `letterSpacing` 0.04
       → 0.03em). Vite-Build + tsc + ESLint clean. Tauri-Runtime-Test pending
       auf User-Seite (Tauri-Bridge nicht headless testbar).
-- [ ] #3 History-Tab: echte 30-Tage-Projektdaten (`range=30days`)
+- [x] **#3 History-Tab: echte 30-Tage-Projektdaten (2026-04-27)** — Neuer
+      Range `30days` in `/v1/summary` (rolling 30 Tage = heute + 29 vorangegangene,
+      midnight-aligned). `Snapshot` um Feld `last_30_days: Summary` erweitert,
+      `Windows::for_now` berechnet `last_30_days_start`, `build_snapshot`
+      akkumuliert parallel zu today/week/month inkl. session_count-Tracking.
+      `useUsageData` fetcht zusätzlich `range=30days`, `UsageData` um
+      `last30Days` erweitert. `HistoryTab` zieht Top-Projects jetzt aus echten
+      30 Tagen statt Monats-Proxy; Section-Label „TOP PROJECTS THIS MONTH" →
+      „TOP PROJECTS 30 DAYS"; ungenutzter `month`-Prop aus
+      `Dashboard`/`HistoryTab` entfernt. `docs/api.md` Range-Tabelle ergänzt.
+      Test `summary_range_30days_returns_200` neu, 63 Tests grün, clippy +
+      fmt + tsc + Vite + ESLint clean.
 - [ ] #4 `export --output <file>` Polish (Pfad-Validierung, `--force`, atomarer Write, Tests)
 - [ ] #5 Settings-Migration `config.json` v1 → v2
 
@@ -361,6 +372,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Drei neue Pricing-Tests in `src/pricing.rs`:
   `embedded_default_has_current_models`, `opus_47_pricing_matches_anthropic_2026_04`,
   `haiku_45_pricing_matches_anthropic_2026_04`.
+- Neuer Summary-Range `30days` (rolling 30 Tage) in `/v1/summary`;
+  `Snapshot.last_30_days`, `Windows::in_last_30_days()`, Test
+  `summary_range_30days_returns_200`.
 
 #### Changed
 - `pricing.json` re-verifiziert gegen platform.claude.com (Stand 2026-04-27):
@@ -374,6 +388,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `letterSpacing` 0.04 → 0.03em, `padding 0 2px` damit alle Labels sauber passen.
 - `App.tsx`: Settings-Overlay (`settingsOpen`-State, Overlay-Markup, ⚙-Button im
   Header) entfernt; Settings ausschließlich über den neuen Tab erreichbar.
+- `HistoryTab` zieht Top-Projects jetzt aus echten 30 Tagen statt Monats-Proxy;
+  Section-Label „TOP PROJECTS THIS MONTH" → „TOP PROJECTS 30 DAYS";
+  ungenutzter `month`-Prop aus `Dashboard`/`HistoryTab` entfernt.
+- `docs/api.md`: `range`-Tabelle um `30days` erweitert.
 
 ### [1.2.0] — 2026-04-24
 

@@ -29,12 +29,15 @@ pub fn build_snapshot(
     let mut today = Summary::default();
     let mut this_week = Summary::default();
     let mut this_month = Summary::default();
+    let mut last_30_days = Summary::default();
     let mut unpriced: HashSet<ModelId> = HashSet::new();
 
     // Track unique session IDs per project per window to compute session_count.
     let mut today_proj_sessions: HashMap<std::path::PathBuf, HashSet<String>> = HashMap::new();
     let mut week_proj_sessions: HashMap<std::path::PathBuf, HashSet<String>> = HashMap::new();
     let mut month_proj_sessions: HashMap<std::path::PathBuf, HashSet<String>> = HashMap::new();
+    let mut last_30_days_proj_sessions: HashMap<std::path::PathBuf, HashSet<String>> =
+        HashMap::new();
 
     for ev in events {
         let computed = pricing.compute_cost(ev);
@@ -87,6 +90,13 @@ pub fn build_snapshot(
                 .or_default()
                 .insert(ev.session_id.clone());
         }
+        if windows.in_last_30_days(ev.timestamp) {
+            accumulate_summary(&mut last_30_days, ev, cost);
+            last_30_days_proj_sessions
+                .entry(ev.project_path.clone())
+                .or_default()
+                .insert(ev.session_id.clone());
+        }
     }
 
     // Back-fill session_count from the tracked sets.
@@ -102,6 +112,11 @@ pub fn build_snapshot(
     }
     for (path, ids) in &month_proj_sessions {
         if let Some(proj) = this_month.by_project.get_mut(path) {
+            proj.session_count = ids.len() as u64;
+        }
+    }
+    for (path, ids) in &last_30_days_proj_sessions {
+        if let Some(proj) = last_30_days.by_project.get_mut(path) {
             proj.session_count = ids.len() as u64;
         }
     }
@@ -129,6 +144,7 @@ pub fn build_snapshot(
         today,
         this_week,
         this_month,
+        last_30_days,
         active_session,
         sessions: sessions_vec,
         active_block,
@@ -295,6 +311,7 @@ struct Windows {
     today_start: DateTime<Utc>,
     week_start: DateTime<Utc>,
     month_start: DateTime<Utc>,
+    last_30_days_start: DateTime<Utc>,
 }
 
 impl Windows {
@@ -309,12 +326,7 @@ impl Windows {
 
         // ISO week: Monday = day 0. chrono weekday().num_days_from_monday() gives 0=Mon..6=Sun.
         let days_since_monday = local.weekday().num_days_from_monday();
-        let week_start = Local
-            .with_ymd_and_hms(local.year(), local.month(), local.day(), 0, 0, 0)
-            .single()
-            .expect("midnight always exists")
-            .to_utc()
-            - chrono::Duration::days(days_since_monday as i64);
+        let week_start = today_start - chrono::Duration::days(days_since_monday as i64);
 
         let month_start = Local
             .with_ymd_and_hms(local.year(), local.month(), 1, 0, 0, 0)
@@ -322,10 +334,14 @@ impl Windows {
             .expect("first of month always exists")
             .to_utc();
 
+        // Rolling 30 days: today plus the 29 preceding days (midnight-aligned).
+        let last_30_days_start = today_start - chrono::Duration::days(29);
+
         Self {
             today_start,
             week_start,
             month_start,
+            last_30_days_start,
         }
     }
 
@@ -339,6 +355,10 @@ impl Windows {
 
     fn in_month(&self, ts: DateTime<Utc>) -> bool {
         ts >= self.month_start
+    }
+
+    fn in_last_30_days(&self, ts: DateTime<Utc>) -> bool {
+        ts >= self.last_30_days_start
     }
 }
 

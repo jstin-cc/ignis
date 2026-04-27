@@ -133,6 +133,10 @@ pub struct Snapshot {
     pub today: Summary,
     pub this_week: Summary,
     pub this_month: Summary,
+    /// Rolling 30-day window (last 30 calendar days, including today).
+    /// Used by the History view for top-projects-30-days; independent of
+    /// the calendar-month window in `this_month`.
+    pub last_30_days: Summary,
     /// Most recently active session, if any.
     pub active_session: Option<SessionState>,
     /// All known sessions, ordered by `last_seen` descending.

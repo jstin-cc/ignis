@@ -273,12 +273,13 @@ async fn summary_handler(
         "today" => &snap.today,
         "week" => &snap.this_week,
         "month" => &snap.this_month,
+        "30days" => &snap.last_30_days,
         "all" => &snap.this_month, // "all" falls back to this_month in MVP
         _ => {
             return error_response(
                 StatusCode::BAD_REQUEST,
                 "bad_request",
-                "Invalid 'range'. Use today | week | month | all.",
+                "Invalid 'range'. Use today | week | month | 30days | all.",
             )
         }
     };
@@ -535,6 +536,7 @@ mod tests {
             today: Summary::default(),
             this_week: Summary::default(),
             this_month: Summary::default(),
+            last_30_days: Summary::default(),
             active_session: None,
             sessions: vec![],
             active_block: None,
@@ -641,6 +643,14 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn summary_range_30days_returns_200() {
+        let app = router(make_state(""));
+        let (status, body) = get_json(app, "/v1/summary?range=30days").await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(body["range"], "30days");
+    }
+
+    #[tokio::test]
     async fn sessions_requires_auth_when_token_set() {
         let app = router(make_state("tok"));
         let (status, body) = get_json(app, "/v1/sessions").await;
@@ -702,6 +712,7 @@ mod tests {
             today: Summary::default(),
             this_week: Summary::default(),
             this_month: Summary::default(),
+            last_30_days: Summary::default(),
             active_session: None,
             sessions: vec![],
             active_block: None,
@@ -734,6 +745,7 @@ mod tests {
             today: summary,
             this_week: Summary::default(),
             this_month: Summary::default(),
+            last_30_days: Summary::default(),
             active_session: None,
             sessions: vec![],
             active_block: None,
