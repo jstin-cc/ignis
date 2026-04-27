@@ -67,6 +67,10 @@ export interface PlanConfig {
   kind: PlanKind;
   custom_token_limit: number | null;
   usage_poll_interval_secs: number;
+  /** Sorted list of block-token-% thresholds that trigger notifications. Default: [50,75,90,100] */
+  block_alert_thresholds: number[];
+  weekly_budget_usd: number | null;
+  monthly_budget_usd: number | null;
 }
 
 export interface SummaryResponse {

@@ -19,11 +19,18 @@ import { Dashboard } from './dashboard/Dashboard';
 
 export function App() {
   const { today, week, month, last30Days, activeSession, activeBlock, heatmap, hourlyHeatmapWeek, error } = useUsageData();
-  useBlockNotifications(activeBlock);
   const { isEnabled, toggle } = useAutoStart();
   const { checking, result, error: updateError, checkForUpdate } = useUpdater();
-  const { plan, setPlan } = usePlanConfig();
+  const { plan, setPlan, setThresholds, setBudgets } = usePlanConfig();
   const { usage: anthropicUsage, error: usageError } = useAnthropicUsage(plan.usage_poll_interval_secs);
+  useBlockNotifications(
+    activeBlock,
+    plan.block_alert_thresholds,
+    week?.total_cost_usd,
+    plan.weekly_budget_usd,
+    month?.total_cost_usd,
+    plan.monthly_budget_usd,
+  );
   const [activeTab, setActiveTab] = useState<TabId>('today');
   const [dashboardOpen, setDashboardOpen] = useState(false);
 
@@ -77,7 +84,7 @@ export function App() {
             <hr className="section-divider" />
             <WeekSection data={week} />
             <hr className="section-divider" />
-            <BlockPanel block={activeBlock} usage={anthropicUsage} usageError={usageError} />
+            <BlockPanel block={activeBlock} usage={anthropicUsage} usageError={usageError} alertThresholds={plan.block_alert_thresholds} />
             <hr className="section-divider" />
             <SessionSection session={activeSession} />
           </>
@@ -100,6 +107,8 @@ export function App() {
             autoStart={{ isEnabled, toggle }}
             plan={plan}
             setPlan={setPlan}
+            setThresholds={setThresholds}
+            setBudgets={setBudgets}
             updater={{ checking, result, error: updateError, checkForUpdate }}
           />
         )}

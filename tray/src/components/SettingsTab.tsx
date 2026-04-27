@@ -5,6 +5,8 @@ interface SettingsTabProps {
   autoStart: { isEnabled: boolean; toggle: () => Promise<void> };
   plan: PlanConfig;
   setPlan: (kind: PlanKind, customTokenLimit?: number, pollIntervalSecs?: number) => Promise<void>;
+  setThresholds: (thresholds: number[]) => Promise<void>;
+  setBudgets: (weekly: number | null, monthly: number | null) => Promise<void>;
   updater: {
     checking: boolean;
     result: { available: boolean; version: string } | null;
@@ -13,9 +15,17 @@ interface SettingsTabProps {
   };
 }
 
-export function SettingsTab({ autoStart, plan, setPlan, updater }: SettingsTabProps) {
+const FIXED_THRESHOLDS = [50, 75, 90, 100];
+
+export function SettingsTab({ autoStart, plan, setPlan, setThresholds, setBudgets, updater }: SettingsTabProps) {
   const [customLimitInput, setCustomLimitInput] = useState<string>(
     String(plan.custom_token_limit ?? 88000),
+  );
+  const [weeklyBudgetInput, setWeeklyBudgetInput] = useState<string>(
+    plan.weekly_budget_usd != null ? String(plan.weekly_budget_usd) : "",
+  );
+  const [monthlyBudgetInput, setMonthlyBudgetInput] = useState<string>(
+    plan.monthly_budget_usd != null ? String(plan.monthly_budget_usd) : "",
   );
   const [apiToken, setApiToken] = useState<string>("");
   const [tokenCopied, setTokenCopied] = useState(false);
@@ -30,6 +40,26 @@ export function SettingsTab({ autoStart, plan, setPlan, updater }: SettingsTabPr
   useEffect(() => {
     setCustomLimitInput(String(plan.custom_token_limit ?? 88000));
   }, [plan.custom_token_limit]);
+
+  useEffect(() => {
+    setWeeklyBudgetInput(plan.weekly_budget_usd != null ? String(plan.weekly_budget_usd) : "");
+    setMonthlyBudgetInput(plan.monthly_budget_usd != null ? String(plan.monthly_budget_usd) : "");
+  }, [plan.weekly_budget_usd, plan.monthly_budget_usd]);
+
+  const toggleThreshold = (t: number) => {
+    const active = plan.block_alert_thresholds;
+    const next = active.includes(t) ? active.filter((x) => x !== t) : [...active, t];
+    void setThresholds(next);
+  };
+
+  const commitBudgets = () => {
+    const weekly = parseFloat(weeklyBudgetInput);
+    const monthly = parseFloat(monthlyBudgetInput);
+    void setBudgets(
+      isFinite(weekly) && weekly > 0 ? weekly : null,
+      isFinite(monthly) && monthly > 0 ? monthly : null,
+    );
+  };
 
   const copyToken = async () => {
     if (!apiToken) return;
@@ -119,6 +149,56 @@ export function SettingsTab({ autoStart, plan, setPlan, updater }: SettingsTabPr
             <option value={600}>10 Minuten</option>
           </select>
         </div>
+      </section>
+
+      {/* Benachrichtigungen */}
+      <section style={styles.section}>
+        <div className="section-label" style={styles.sectionLabel}>Benachrichtigungen</div>
+        {FIXED_THRESHOLDS.map((t) => (
+          <label key={t} style={styles.row}>
+            <input
+              type="checkbox"
+              checked={plan.block_alert_thresholds.includes(t)}
+              onChange={() => toggleThreshold(t)}
+              style={styles.checkbox}
+            />
+            <span style={styles.label}>
+              {t < 100 ? `Block bei ${t}%` : "Block abgeschlossen (100%)"}
+            </span>
+          </label>
+        ))}
+      </section>
+
+      {/* Budget */}
+      <section style={styles.section}>
+        <div className="section-label" style={styles.sectionLabel}>Budget</div>
+        <div style={styles.row}>
+          <span style={styles.label}>Woche (USD)</span>
+          <input
+            type="number"
+            style={styles.input}
+            value={weeklyBudgetInput}
+            placeholder="—"
+            min={0}
+            step={1}
+            onChange={(e) => setWeeklyBudgetInput(e.target.value)}
+            onBlur={commitBudgets}
+          />
+        </div>
+        <div style={styles.row}>
+          <span style={styles.label}>Monat (USD)</span>
+          <input
+            type="number"
+            style={styles.input}
+            value={monthlyBudgetInput}
+            placeholder="—"
+            min={0}
+            step={1}
+            onChange={(e) => setMonthlyBudgetInput(e.target.value)}
+            onBlur={commitBudgets}
+          />
+        </div>
+        <p style={styles.hint}>Leer lassen um kein Budget zu setzen.</p>
       </section>
 
       {/* Updates */}

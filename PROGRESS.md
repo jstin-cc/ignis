@@ -250,10 +250,35 @@ Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
       `<Sparkline>` (328×28 px) wird unter Hero/Meta eingeblendet, nur wenn mindestens ein Bucket > 0.
       `useUsageData` fetcht zusätzlich `GET /v1/heatmap?granularity=hour&range=week`.
 
-### v1.5.0+ Backlog
+### v1.5.0 — Budget-Kontrolle (in Arbeit)
 
-Reihenfolge und Inhalt siehe Roadmap-Abschnitt oben (v1.5.0 Budget-Schwellen,
-v1.6.0 Onboarding, v1.7.0 Auto-Update prod, v2.0.0 Public).
+Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
+
+- [x] **#1 Konfigurierbare Budget-Schwellen (2026-04-27)** — `PlanConfig` um
+      `block_alert_thresholds: Vec<u8>` (Default `[50,75,90,100]`) erweitert.
+      `SettingsTab` bekommt neue Sektion "Benachrichtigungen" mit Checkboxen für
+      50/75/90/100 %. Neuer Tauri-Command `set_alert_thresholds`. `usePlanConfig`
+      liefert `setThresholds`. `DEFAULT_PLAN` mit neuen Feldern.
+- [x] **#2 Schwellen-Notifications (2026-04-27)** — `useBlockNotifications` erhält
+      `thresholds: number[]` statt hardcodierter 80/100. Schleife über sortierte
+      Schwellen: feuert einmalig pro Block-Crossing. 100% → "Block complete",
+      andere → "Block at X%". Basis-Logik (kein Fire auf erstem Frame) bleibt.
+- [x] **#3 Wochen-/Monats-Budget USD (2026-04-27)** — `PlanConfig` um
+      `weekly_budget_usd` und `monthly_budget_usd` (Option<f64>) erweitert.
+      Neuer Tauri-Command `set_budget_caps`. `SettingsTab` bekommt Sektion "Budget"
+      mit zwei Zahlenfeldern (leer = deaktiviert, blur = speichern). Neues Ref-basiertes
+      Crossing-Tracking in `useBlockNotifications`: feuert wenn Woche- oder Monatskosten
+      das Budget erstmals überschreiten (kein Fire beim ersten Aufruf = kein Störfeuer
+      wenn Budget bereits überschritten beim App-Start).
+- [x] **#4 Budget-Status im BlockPanel (2026-04-27)** — `FallbackBar` zeigt "Next alert:
+      X%"-Zeile (muted, 11px) unterhalb der Burn-Rate. Berechnet nächste noch nicht
+      überschrittene Schwelle aus `alertThresholds` > `block_token_pct`. Kein Eintrag
+      wenn alle Schwellen überschritten.
+
+### v1.6.0+ Backlog
+
+Reihenfolge und Inhalt siehe Roadmap-Abschnitt oben (v1.6.0 Onboarding,
+v1.7.0 Auto-Update prod, v2.0.0 Public).
 
 ### Lokale Hotfixes (nicht im Repo — nur Installations-Reparaturen)
 
@@ -405,7 +430,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### [Unreleased]
 
-#### Added
+#### Added (v1.5.0)
+- Konfigurierbare Block-Alert-Schwellen (50/75/90/100 %, Default) im Settings-Tab;
+  persistiert via neuem Tauri-Command `set_alert_thresholds`.
+- Wochen- und Monats-Budget-Caps (USD) in Settings; `set_budget_caps` speichert.
+  Notifications bei Crossing (Baseline auf erstem Frame → kein Störfeuer).
+- `FallbackBar` zeigt „Next alert: X%"-Zeile (kleinste noch nicht überschrittene Schwelle).
+- `useBlockNotifications` liest Schwellen aus `plan.block_alert_thresholds` statt
+  hardcoded 80/100.
+
+#### Added (v1.4.0)
 - `HeatmapPanel`: Toggle „12 Weeks" ↔ „This Week" — Wochen-Heatmap 7×24 h mit Terrakotta-
   Intensität nach Tokens; Tooltip (Tag, Uhrzeit, Tokens, Kosten); pure HTML `title`, keine Library.
 - API `GET /v1/heatmap?granularity=hour&range=week` — 168 stündliche Buckets (7 Tage × 24 h),

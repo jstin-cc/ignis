@@ -351,6 +351,9 @@ struct PlanConfigDto {
     kind: String,
     custom_token_limit: Option<u64>,
     usage_poll_interval_secs: u32,
+    block_alert_thresholds: Vec<u8>,
+    weekly_budget_usd: Option<f64>,
+    monthly_budget_usd: Option<f64>,
 }
 
 fn config_path() -> Result<std::path::PathBuf, String> {
@@ -362,11 +365,26 @@ fn config_path() -> Result<std::path::PathBuf, String> {
         .join("config.json"))
 }
 
+fn read_config_json(path: &std::path::Path) -> Result<serde_json::Value, String> {
+    if !path.exists() {
+        return Ok(serde_json::json!({}));
+    }
+    let raw = std::fs::read_to_string(path).map_err(|e| e.to_string())?;
+    serde_json::from_str(&raw).map_err(|e| e.to_string())
+}
+
+fn write_config_json(path: &std::path::Path, val: &serde_json::Value) -> Result<(), String> {
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    let json = serde_json::to_string_pretty(val).map_err(|e| e.to_string())?;
+    std::fs::write(path, json).map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 fn get_plan_config() -> Result<PlanConfigDto, String> {
     let path = config_path()?;
-    let raw = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
-    let val: serde_json::Value = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
+    let val = read_config_json(&path)?;
     let plan = val.get("plan");
     let kind = plan
         .and_then(|p| p.get("kind"))
@@ -380,10 +398,23 @@ fn get_plan_config() -> Result<PlanConfigDto, String> {
         .and_then(|p| p.get("usage_poll_interval_secs"))
         .and_then(|v| v.as_u64())
         .unwrap_or(60) as u32;
+    let block_alert_thresholds: Vec<u8> = plan
+        .and_then(|p| p.get("block_alert_thresholds"))
+        .and_then(|v| serde_json::from_value(v.clone()).ok())
+        .unwrap_or_else(|| vec![50, 75, 90, 100]);
+    let weekly_budget_usd = plan
+        .and_then(|p| p.get("weekly_budget_usd"))
+        .and_then(|v| v.as_f64());
+    let monthly_budget_usd = plan
+        .and_then(|p| p.get("monthly_budget_usd"))
+        .and_then(|v| v.as_f64());
     Ok(PlanConfigDto {
         kind,
         custom_token_limit,
         usage_poll_interval_secs,
+        block_alert_thresholds,
+        weekly_budget_usd,
+        monthly_budget_usd,
     })
 }
 
@@ -394,18 +425,45 @@ fn set_plan_config(
     usage_poll_interval_secs: Option<u32>,
 ) -> Result<(), String> {
     let path = config_path()?;
-    let raw = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
-    let mut val: serde_json::Value = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
-    let mut plan = serde_json::json!({ "kind": kind });
-    if let Some(limit) = custom_token_limit {
-        plan["custom_token_limit"] = serde_json::json!(limit);
+    let mut val = read_config_json(&path)?;
+    let plan = val.entry("plan").or_insert(serde_json::json!({}));
+    plan["kind"] = serde_json::json!(kind);
+    match custom_token_limit {
+        Some(limit) => plan["custom_token_limit"] = serde_json::json!(limit),
+        None => { plan.as_object_mut().map(|m| m.remove("custom_token_limit")); }
     }
     if let Some(secs) = usage_poll_interval_secs {
         plan["usage_poll_interval_secs"] = serde_json::json!(secs);
     }
-    val["plan"] = plan;
-    let json = serde_json::to_string_pretty(&val).map_err(|e| e.to_string())?;
-    std::fs::write(&path, json).map_err(|e| e.to_string())
+    write_config_json(&path, &val)
+}
+
+#[tauri::command]
+fn set_alert_thresholds(thresholds: Vec<u8>) -> Result<(), String> {
+    let path = config_path()?;
+    let mut val = read_config_json(&path)?;
+    val.entry("plan")
+        .or_insert(serde_json::json!({}))["block_alert_thresholds"] = serde_json::json!(thresholds);
+    write_config_json(&path, &val)
+}
+
+#[tauri::command]
+fn set_budget_caps(
+    weekly_usd: Option<f64>,
+    monthly_usd: Option<f64>,
+) -> Result<(), String> {
+    let path = config_path()?;
+    let mut val = read_config_json(&path)?;
+    let plan = val.entry("plan").or_insert(serde_json::json!({}));
+    match weekly_usd {
+        Some(v) => plan["weekly_budget_usd"] = serde_json::json!(v),
+        None => { plan.as_object_mut().map(|m| m.remove("weekly_budget_usd")); }
+    }
+    match monthly_usd {
+        Some(v) => plan["monthly_budget_usd"] = serde_json::json!(v),
+        None => { plan.as_object_mut().map(|m| m.remove("monthly_budget_usd")); }
+    }
+    write_config_json(&path, &val)
 }
 
 #[tauri::command]
@@ -441,6 +499,8 @@ fn main() {
             get_api_token,
             get_plan_config,
             set_plan_config,
+            set_alert_thresholds,
+            set_budget_caps,
             get_anthropic_usage,
         ])
         .setup(|app| {

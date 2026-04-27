@@ -6,6 +6,7 @@ interface BlockPanelProps {
   block: ActiveBlock | null;
   usage: AnthropicUsage | null;
   usageError?: string | null;
+  alertThresholds?: number[];
 }
 
 function errorMessage(err: string): string {
@@ -16,7 +17,7 @@ function errorMessage(err: string): string {
   return err;
 }
 
-export function BlockPanel({ block, usage, usageError }: BlockPanelProps) {
+export function BlockPanel({ block, usage, usageError, alertThresholds }: BlockPanelProps) {
   if (usage) {
     return <ThreeBarsPanel block={block} usage={usage} />;
   }
@@ -25,7 +26,7 @@ export function BlockPanel({ block, usage, usageError }: BlockPanelProps) {
       {usageError && (
         <div style={styles.usageErrorBanner}>{errorMessage(usageError)}</div>
       )}
-      <FallbackBar block={block} />
+      <FallbackBar block={block} alertThresholds={alertThresholds} />
     </>
   );
 }
@@ -132,7 +133,18 @@ function UsageRow({
 
 // ── Fallback single bar (JSONL token data) ────────────────────────────────────
 
-function FallbackBar({ block }: { block: ActiveBlock | null }) {
+function nextAlertThreshold(thresholds: number[], currentPct: number): number | null {
+  const sorted = [...thresholds].sort((a, b) => a - b);
+  return sorted.find((t) => t > currentPct) ?? null;
+}
+
+function FallbackBar({
+  block,
+  alertThresholds = [50, 75, 90, 100],
+}: {
+  block: ActiveBlock | null;
+  alertThresholds?: number[];
+}) {
   if (!block) {
     return (
       <section style={styles.panel}>
@@ -146,6 +158,7 @@ function FallbackBar({ block }: { block: ActiveBlock | null }) {
   const remaining = remainingTime(block.end);
   const burnRate = computeBurnRate(block);
   const cls = progressClass(tokenPct);
+  const nextAlert = nextAlertThreshold(alertThresholds, tokenPct);
 
   return (
     <section style={styles.panel}>
@@ -169,6 +182,9 @@ function FallbackBar({ block }: { block: ActiveBlock | null }) {
           </span>
         )}
       </div>
+      {nextAlert !== null && (
+        <span style={styles.nextAlert}>Next alert: {nextAlert}%</span>
+      )}
     </section>
   );
 }
@@ -276,5 +292,9 @@ const styles = {
     backgroundColor: "var(--bg-overlay)",
     borderBottom: "1px solid var(--border-subtle)",
     wordBreak: "break-all" as const,
+  },
+  nextAlert: {
+    fontSize: "11px",
+    color: "var(--text-muted)",
   },
 } as const;
