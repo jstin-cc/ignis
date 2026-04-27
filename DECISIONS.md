@@ -264,6 +264,27 @@ Nummerierung aufsteigend. Status: `Accepted` · `Superseded` · `Rejected` · `P
   (Sub-Agent-Calls verfälschen das Signal für den Haupt-Workflow). Route `/v1/burn-rate`
   in `src/api.rs`. Frontend-Hook `tray/src/dashboard/useBurnRate.ts` pollt 30s.
 
+## ADR-016 — Authenticode-Signierung auf v2.0 vertagen
+
+- **Datum:** 2026-04-27
+- **Status:** Accepted
+- **Kontext:** Windows SmartScreen blockiert unsignierte NSIS/MSI-Installer.
+  Ed25519-Signierung via Tauri-Updater schützt das Update-Manifest, löst aber
+  nicht das SmartScreen-Problem beim Erstinstall. Dafür ist ein Authenticode-
+  Zertifikat nötig (EV-Cert: ~300 €/Jahr; OV-Cert: ~100 €/Jahr).
+- **Alternativen:**
+  - (A) **Ed25519 only** — schützt Updates, SmartScreen zeigt Warnung beim Erstinstall.
+  - (B) OV-Authenticode sofort — kostet Geld und Setup-Aufwand bevor Nutzer-Feedback
+        vorliegt.
+  - (C) EV-Authenticode sofort — sofortige Reputation, aber teuer.
+- **Entscheidung:** (A) für MVP/v1.x. Ed25519 via `TAURI_SIGNING_PRIVATE_KEY` Secret
+  in GitHub Actions. Authenticode erst ab v2.0 wenn Release-Pipeline stabil läuft
+  und sich bezahlte Nutzer ergeben.
+- **Begründung:** SmartScreen-Warnung ist akzeptierbar für Early-Adopter (technisch
+  versierte Nutzer). Premature Investition in Zertifikat bindet Budget ohne Nutzen.
+- **Folgen:** Nutzer müssen beim Erstinstall „Weitere Infos → Trotzdem ausführen"
+  klicken. In `docs/release.md` dokumentieren. Revisit bei v2.0-Planung.
+
 ## ADR-015 — ignis-watch (TUI) entfernen
 
 - **Datum:** 2026-04-24

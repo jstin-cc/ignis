@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release:
+    name: Build & publish release
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install stable Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-release-
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: tray/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: tray
+        run: npm ci
+
+      - name: Build ignis-api sidecar
+        run: cargo build --release --bin ignis-api
+
+      - name: Copy sidecar binary
+        run: copy target\release\ignis-api.exe tray\src-tauri\binaries\ignis-api-x86_64-pc-windows-msvc.exe
+
+      - name: Build & bundle Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: tray
+          tagName: ${{ github.ref_name }}
+          releaseName: "Ignis ${{ github.ref_name }}"
+          releaseBody: |
+            See the [PROGRESS.md](https://github.com/jstin-cc/ignis/blob/main/PROGRESS.md) for changes.
+          releaseDraft: false
+          prerelease: false
+          includeUpdaterJson: true

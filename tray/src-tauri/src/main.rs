@@ -328,6 +328,7 @@ fn set_autostart_enabled(app: tauri::AppHandle, enabled: bool) -> Result<(), Str
 struct UpdateCheckResult {
     available: bool,
     version: String,
+    body: Option<String>,
 }
 
 #[tauri::command]
@@ -443,14 +444,22 @@ fn set_plan_config(
 ) -> Result<(), String> {
     let path = config_path()?;
     let mut val = read_config_json(&path)?;
-    let plan = val.entry("plan").or_insert(serde_json::json!({}));
-    plan["kind"] = serde_json::json!(kind);
-    match custom_token_limit {
-        Some(limit) => plan["custom_token_limit"] = serde_json::json!(limit),
-        None => { plan.as_object_mut().map(|m| m.remove("custom_token_limit")); }
-    }
-    if let Some(secs) = usage_poll_interval_secs {
-        plan["usage_poll_interval_secs"] = serde_json::json!(secs);
+    {
+        let plan = val
+            .as_object_mut()
+            .ok_or_else(|| "config is not an object".to_owned())?
+            .entry("plan")
+            .or_insert(serde_json::json!({}));
+        plan["kind"] = serde_json::json!(kind);
+        match custom_token_limit {
+            Some(limit) => plan["custom_token_limit"] = serde_json::json!(limit),
+            None => {
+                plan.as_object_mut().map(|m| m.remove("custom_token_limit"));
+            }
+        }
+        if let Some(secs) = usage_poll_interval_secs {
+            plan["usage_poll_interval_secs"] = serde_json::json!(secs);
+        }
     }
     write_config_json(&path, &val)
 }
@@ -459,8 +468,14 @@ fn set_plan_config(
 fn set_alert_thresholds(thresholds: Vec<u8>) -> Result<(), String> {
     let path = config_path()?;
     let mut val = read_config_json(&path)?;
-    val.entry("plan")
-        .or_insert(serde_json::json!({}))["block_alert_thresholds"] = serde_json::json!(thresholds);
+    {
+        let plan = val
+            .as_object_mut()
+            .ok_or_else(|| "config is not an object".to_owned())?
+            .entry("plan")
+            .or_insert(serde_json::json!({}));
+        plan["block_alert_thresholds"] = serde_json::json!(thresholds);
+    }
     write_config_json(&path, &val)
 }
 
@@ -471,14 +486,24 @@ fn set_budget_caps(
 ) -> Result<(), String> {
     let path = config_path()?;
     let mut val = read_config_json(&path)?;
-    let plan = val.entry("plan").or_insert(serde_json::json!({}));
-    match weekly_usd {
-        Some(v) => plan["weekly_budget_usd"] = serde_json::json!(v),
-        None => { plan.as_object_mut().map(|m| m.remove("weekly_budget_usd")); }
-    }
-    match monthly_usd {
-        Some(v) => plan["monthly_budget_usd"] = serde_json::json!(v),
-        None => { plan.as_object_mut().map(|m| m.remove("monthly_budget_usd")); }
+    {
+        let plan = val
+            .as_object_mut()
+            .ok_or_else(|| "config is not an object".to_owned())?
+            .entry("plan")
+            .or_insert(serde_json::json!({}));
+        match weekly_usd {
+            Some(v) => plan["weekly_budget_usd"] = serde_json::json!(v),
+            None => {
+                plan.as_object_mut().map(|m| m.remove("weekly_budget_usd"));
+            }
+        }
+        match monthly_usd {
+            Some(v) => plan["monthly_budget_usd"] = serde_json::json!(v),
+            None => {
+                plan.as_object_mut().map(|m| m.remove("monthly_budget_usd"));
+            }
+        }
     }
     write_config_json(&path, &val)
 }
@@ -489,13 +514,29 @@ async fn check_for_update(app: tauri::AppHandle) -> Result<UpdateCheckResult, St
     match updater.check().await.map_err(|e| e.to_string())? {
         Some(update) => Ok(UpdateCheckResult {
             available: true,
+            body: update.body.clone(),
             version: update.version,
         }),
         None => Ok(UpdateCheckResult {
             available: false,
             version: String::new(),
+            body: None,
         }),
     }
+}
+
+#[tauri::command]
+async fn install_update(app: tauri::AppHandle) -> Result<(), String> {
+    let updater = app.updater_builder().build().map_err(|e| e.to_string())?;
+    let update = updater
+        .check()
+        .await
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| "Kein Update verfügbar".to_owned())?;
+    update
+        .download_and_install(|_, _| {}, || {})
+        .await
+        .map_err(|e| e.to_string())
 }
 
 fn main() {
@@ -513,6 +554,7 @@ fn main() {
             get_autostart_enabled,
             set_autostart_enabled,
             check_for_update,
+            install_update,
             get_api_token,
             get_first_run_seen,
             set_first_run_seen,

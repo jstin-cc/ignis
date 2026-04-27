@@ -9,9 +9,11 @@ interface SettingsTabProps {
   setBudgets: (weekly: number | null, monthly: number | null) => Promise<void>;
   updater: {
     checking: boolean;
-    result: { available: boolean; version: string } | null;
+    installing: boolean;
+    result: { available: boolean; version: string; body: string | null } | null;
     error: string | null;
     checkForUpdate: () => Promise<void>;
+    installUpdate: () => Promise<void>;
   };
 }
 
@@ -231,13 +233,13 @@ export function SettingsTab({ autoStart, plan, setPlan, setThresholds, setBudget
           <button
             className="btn btn--secondary"
             style={styles.btn}
-            disabled={updater.checking}
+            disabled={updater.checking || updater.installing}
             onClick={() => void updater.checkForUpdate()}
           >
             {updater.checking ? "Prüfe…" : "Updates prüfen"}
           </button>
           {updater.result && (
-            <span style={styles.statusAccent}>
+            <span style={updater.result.available ? styles.statusAccent : styles.statusMuted}>
               {updater.result.available ? `v${updater.result.version} verfügbar` : "Aktuell"}
             </span>
           )}
@@ -245,6 +247,19 @@ export function SettingsTab({ autoStart, plan, setPlan, setThresholds, setBudget
             <span style={styles.statusMuted}>kein Server</span>
           )}
         </div>
+        {updater.result?.available && updater.result.body && (
+          <pre style={styles.releaseNotes}>{updater.result.body}</pre>
+        )}
+        {updater.result?.available && (
+          <button
+            className="btn btn--primary"
+            style={styles.btnInstall}
+            disabled={updater.installing}
+            onClick={() => void updater.installUpdate()}
+          >
+            {updater.installing ? "Installiere…" : "Installieren & Neu starten"}
+          </button>
+        )}
       </section>
 
       {/* API-Token */}
@@ -359,5 +374,33 @@ const styles = {
     color: "var(--text-muted)",
     margin: "4px 0 0",
     lineHeight: 1.4,
+  },
+  releaseNotes: {
+    fontSize: "11px",
+    color: "var(--text-secondary)",
+    backgroundColor: "var(--bg-elevated)",
+    border: "1px solid var(--border-subtle)",
+    borderRadius: "4px",
+    padding: "6px 8px",
+    margin: "2px 0 0",
+    whiteSpace: "pre-wrap" as const,
+    wordBreak: "break-word" as const,
+    fontFamily: "var(--font-sans)",
+    lineHeight: 1.5,
+    maxHeight: "120px",
+    overflowY: "auto" as const,
+  },
+  btnInstall: {
+    marginTop: "2px",
+    fontSize: "12px",
+    padding: "4px 12px",
+    fontFamily: "var(--font-sans)",
+    backgroundColor: "var(--accent)",
+    color: "#fff",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontWeight: 600,
+    alignSelf: "flex-start" as const,
   },
 } as const;

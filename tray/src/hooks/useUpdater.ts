@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 interface UpdateCheckResult {
   available: boolean;
   version: string;
+  body: string | null;
 }
 
 async function invokeCheckForUpdate(): Promise<UpdateCheckResult> {
@@ -14,8 +15,14 @@ async function invokeCheckForUpdate(): Promise<UpdateCheckResult> {
   }
 }
 
+async function invokeInstallUpdate(): Promise<void> {
+  const { invoke } = await import("@tauri-apps/api/core");
+  await invoke("install_update");
+}
+
 export function useUpdater() {
   const [checking, setChecking] = useState(false);
+  const [installing, setInstalling] = useState(false);
   const [result, setResult] = useState<UpdateCheckResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,5 +40,17 @@ export function useUpdater() {
     }
   }, []);
 
-  return { checking, result, error, checkForUpdate };
+  const installUpdate = useCallback(async () => {
+    setInstalling(true);
+    setError(null);
+    try {
+      await invokeInstallUpdate();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      setInstalling(false);
+    }
+    // On success Tauri restarts the app — no setInstalling(false) needed.
+  }, []);
+
+  return { checking, installing, result, error, checkForUpdate, installUpdate };
 }

@@ -21,7 +21,7 @@ import { FirstRunWizard } from "./components/FirstRunWizard";
 export function App() {
   const { today, week, month, last30Days, activeSession, activeBlock, heatmap, hourlyHeatmapWeek, loading, error } = useUsageData();
   const { isEnabled, toggle } = useAutoStart();
-  const { checking, result, error: updateError, checkForUpdate } = useUpdater();
+  const { checking, installing, result, error: updateError, checkForUpdate, installUpdate } = useUpdater();
   const { plan, setPlan, setThresholds, setBudgets } = usePlanConfig();
   const { usage: anthropicUsage, error: usageError } = useAnthropicUsage(plan.usage_poll_interval_secs);
   useBlockNotifications(
@@ -141,7 +141,7 @@ export function App() {
             setPlan={setPlan}
             setThresholds={setThresholds}
             setBudgets={setBudgets}
-            updater={{ checking, result, error: updateError, checkForUpdate }}
+            updater={{ checking, installing, result, error: updateError, checkForUpdate, installUpdate }}
           />
         )}
       </div>

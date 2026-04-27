@@ -295,10 +295,33 @@ Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
       Schwellen-Checkbox, Wochen- und Monats-Budget. Browser-native Tooltips,
       keine Library.
 
-### v1.7.0+ Backlog
+### v1.7.0 — Auto-Update produktionsreif (in Arbeit)
 
-Reihenfolge und Inhalt siehe Roadmap-Abschnitt oben (v1.7.0 Auto-Update prod,
-v2.0.0 Public).
+Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
+
+- [x] **#1+#2+#3 Endpoint, Release-Workflow, Signing (2026-04-27)** — Endpoint in
+      `tauri.conf.json` zeigt auf `jstin-cc/ignis/releases/latest/download/latest.json`
+      (war schon korrekt). `.github/workflows/release.yml` mit `tauri-apps/tauri-action@v0`:
+      triggt auf `v*`-Tags, baut `ignis-api`-Sidecar, bundelt NSIS+MSI, erstellt GitHub
+      Release mit `latest.json` (Update-Manifest). Signing via `TAURI_SIGNING_PRIVATE_KEY` +
+      `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` GitHub Secrets (ed25519). ADR-016: Authenticode
+      vertagt auf v2.0. **Schlüssel noch nicht generiert — User muss `cargo tauri signer generate`
+      ausführen und Pubkey in `tauri.conf.json` eintragen (siehe `docs/release.md`).**
+- [x] **#4 Release-Notes-Anzeige + Install-Button (2026-04-27)** — `UpdateCheckResult`
+      um `body: Option<String>` erweitert (Tauri-Command + Frontend-Typ). Neuer Tauri-Command
+      `install_update` (re-check + `download_and_install`). `useUpdater` um `installing`-State
+      und `installUpdate`-Callback erweitert. `SettingsTab` zeigt Release-Body als `<pre>`
+      (max 120px, scrollbar) und "Installieren & Neu starten"-Button wenn Update verfügbar.
+      Bugfix: `set_plan_config`/`set_alert_thresholds`/`set_budget_caps` verwendeten
+      `val.entry()` auf `serde_json::Value` (kein `.entry()`-Trait) — korrigiert auf
+      `val.as_object_mut()?.entry()`.
+- [x] **#5 Rollback-Doku (2026-04-27)** — `docs/release.md`: Release-Prozess Schritt für
+      Schritt, Signing-Key-Setup (einmalig), Rollback-Prozedur (Tag löschen, Release archivieren,
+      `latest.json` patchen, Hotfix-Release), SmartScreen-Hinweis.
+
+### v2.0.0 Backlog
+
+Reihenfolge und Inhalt siehe Roadmap-Abschnitt oben (v2.0.0 Public).
 
 ### Lokale Hotfixes (nicht im Repo — nur Installations-Reparaturen)
 
@@ -449,6 +472,21 @@ Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### [Unreleased]
+
+#### Added (v1.7.0)
+- `.github/workflows/release.yml`: Release-Workflow (triggt auf `v*`-Tags), baut
+  `ignis-api`-Sidecar, NSIS+MSI-Bundle, GitHub Release + `latest.json` Update-Manifest
+  via `tauri-apps/tauri-action@v0`. Signing via `TAURI_SIGNING_PRIVATE_KEY` Secret (ed25519).
+- `SettingsTab`: Release-Notes als `<pre>` (max 120px, scrollbar) + „Installieren & Neu starten"-
+  Button wenn Update verfügbar. `useUpdater` um `installing`-State und `installUpdate` erweitert.
+- `UpdateCheckResult` um `body: Option<String>` erweitert (Tauri-Command + Frontend-Typ).
+- Neuer Tauri-Command `install_update`: re-check + `download_and_install`, App-Neustart via Tauri.
+- ADR-016: Authenticode-Signing vertagt auf v2.0 (Kosten/Nutzen; SmartScreen-Hinweis in `docs/release.md`).
+- `docs/release.md`: Release-Prozess, Signing-Key-Setup, Rollback-Prozedur, SmartScreen-Hinweis.
+
+#### Fixed (v1.7.0)
+- `set_plan_config`/`set_alert_thresholds`/`set_budget_caps`: `val.entry()` auf `serde_json::Value`
+  kompilierte nicht (kein Entry-Trait auf `Value`). Korrigiert auf `val.as_object_mut()?.entry()`.
 
 #### Added (v1.6.0)
 - First-Run-Wizard (3 Schritte: Willkommen → Plan → Auto-Start); Erkennung via
