@@ -4,7 +4,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 use ignis_core::{build_snapshot, scan_all, Config, ModelUsage, PricingTable, Summary};
 use rust_decimal::Decimal;
 use std::io::{self, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Parser)]
 #[command(name = "ignis", about = "Claude Code usage tracker", version)]
@@ -46,7 +46,10 @@ enum Command {
         period: ExportPeriod,
         /// Write output to FILE instead of stdout.
         #[arg(short = 'o', long)]
-        output: Option<std::path::PathBuf>,
+        output: Option<PathBuf>,
+        /// Overwrite output file if it already exists.
+        #[arg(long)]
+        force: bool,
     },
 }
 
@@ -71,6 +74,7 @@ fn main() -> anyhow::Result<()> {
             format,
             period,
             output,
+            force,
         } => {
             let (label, summary) = match period {
                 ExportPeriod::Today => ("today", &snap.today),
@@ -78,8 +82,8 @@ fn main() -> anyhow::Result<()> {
                 ExportPeriod::Month => ("month", &snap.this_month),
             };
             match format {
-                ExportFormat::Json => export_json(label, summary, output.as_deref())?,
-                ExportFormat::Csv => export_csv(label, summary, output.as_deref())?,
+                ExportFormat::Json => export_json(label, summary, output.as_deref(), force)?,
+                ExportFormat::Csv => export_csv(label, summary, output.as_deref(), force)?,
             }
         }
     }
@@ -207,18 +211,47 @@ fn summary_output_total(summary: &Summary) -> u64 {
         .sum()
 }
 
-fn open_output(path: Option<&Path>) -> anyhow::Result<Box<dyn Write>> {
-    match path {
-        Some(p) => {
-            let f = std::fs::File::create(p)
-                .with_context(|| format!("failed to create output file '{}'", p.display()))?;
-            Ok(Box::new(f))
+/// Writes `content` to `path` atomically (via `.ignis_tmp` + rename), or to stdout if
+/// `path` is `None`. Errors if `path` already exists and `force` is false.
+fn write_output(path: Option<&Path>, force: bool, content: &[u8]) -> anyhow::Result<()> {
+    let Some(p) = path else {
+        io::stdout().write_all(content)?;
+        return Ok(());
+    };
+
+    if let Some(parent) = p.parent() {
+        if !parent.as_os_str().is_empty() && !parent.exists() {
+            anyhow::bail!("directory '{}' does not exist", parent.display());
         }
-        None => Ok(Box::new(io::stdout())),
     }
+
+    if !force && p.exists() {
+        anyhow::bail!(
+            "file '{}' already exists — use --force to overwrite",
+            p.display()
+        );
+    }
+
+    let tmp = p.with_extension("ignis_tmp");
+    std::fs::write(&tmp, content)
+        .with_context(|| format!("failed to write '{}'", tmp.display()))?;
+    std::fs::rename(&tmp, p).map_err(|e| {
+        let _ = std::fs::remove_file(&tmp);
+        anyhow::anyhow!(
+            "failed to rename '{}' -> '{}': {e}",
+            tmp.display(),
+            p.display()
+        )
+    })?;
+    Ok(())
 }
 
-fn export_json(period: &str, summary: &Summary, output: Option<&Path>) -> anyhow::Result<()> {
+fn export_json(
+    period: &str,
+    summary: &Summary,
+    output: Option<&Path>,
+    force: bool,
+) -> anyhow::Result<()> {
     let by_model: Vec<_> = summary
         .by_model
         .iter()
@@ -252,22 +285,71 @@ fn export_json(period: &str, summary: &Summary, output: Option<&Path>) -> anyhow
         "by_model":        by_model,
         "by_project":      by_project,
     });
-    let mut w = open_output(output)?;
-    writeln!(w, "{}", serde_json::to_string_pretty(&out)?)?;
-    Ok(())
+    let content = format!("{}\n", serde_json::to_string_pretty(&out)?);
+    write_output(output, force, content.as_bytes())
 }
 
-fn export_csv(period: &str, summary: &Summary, output: Option<&Path>) -> anyhow::Result<()> {
-    let mut w = open_output(output)?;
-    writeln!(w, "period,model,input_tokens,output_tokens,cost_usd")?;
+fn export_csv(
+    period: &str,
+    summary: &Summary,
+    output: Option<&Path>,
+    force: bool,
+) -> anyhow::Result<()> {
+    let mut buf = String::from("period,model,input_tokens,output_tokens,cost_usd\n");
     let mut rows: Vec<_> = summary.by_model.iter().collect();
     rows.sort_by_key(|(id, _)| id.0.as_str());
     for (id, u) in rows {
-        writeln!(
-            w,
-            "{},{},{},{},{}",
+        buf.push_str(&format!(
+            "{},{},{},{},{}\n",
             period, id.0, u.input_tokens, u.output_tokens, u.cost_usd
-        )?;
+        ));
     }
-    Ok(())
+    write_output(output, force, buf.as_bytes())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ignis_core::Summary;
+
+    fn empty_summary() -> Summary {
+        Summary::default()
+    }
+
+    #[test]
+    fn export_json_creates_new_file() {
+        let path = std::env::temp_dir().join("ignis_test_export_new.json");
+        let _ = std::fs::remove_file(&path);
+
+        export_json("today", &empty_summary(), Some(&path), false).unwrap();
+
+        assert!(path.exists());
+        let text = std::fs::read_to_string(&path).unwrap();
+        assert!(text.contains("\"period\""));
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn export_json_refuses_overwrite_without_force() {
+        let path = std::env::temp_dir().join("ignis_test_export_guard.json");
+        std::fs::write(&path, b"original").unwrap();
+
+        let err = export_json("today", &empty_summary(), Some(&path), false).unwrap_err();
+        assert!(err.to_string().contains("already exists"));
+        assert_eq!(std::fs::read(&path).unwrap(), b"original");
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn export_json_force_overwrites_existing_file() {
+        let path = std::env::temp_dir().join("ignis_test_export_force.json");
+        std::fs::write(&path, b"old").unwrap();
+
+        export_json("today", &empty_summary(), Some(&path), true).unwrap();
+
+        let text = std::fs::read_to_string(&path).unwrap();
+        assert!(text.contains("\"period\""));
+        assert!(!text.contains("old"));
+        let _ = std::fs::remove_file(&path);
+    }
 }

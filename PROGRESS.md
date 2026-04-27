@@ -208,7 +208,14 @@ Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
       `Dashboard`/`HistoryTab` entfernt. `docs/api.md` Range-Tabelle ergänzt.
       Test `summary_range_30days_returns_200` neu, 63 Tests grün, clippy +
       fmt + tsc + Vite + ESLint clean.
-- [ ] #4 `export --output <file>` Polish (Pfad-Validierung, `--force`, atomarer Write, Tests)
+- [x] **#4 `export --output <file>` Polish (2026-04-27)** — Neues Flag `--force`
+      in `ignis export`; `open_output` → `write_output` mit atomarem Write (schreibt
+      in `<file>.ignis_tmp`, dann rename), Overwrite-Schutz (Fehler wenn Datei
+      existiert und kein `--force`), Pfad-Validierung (Parent-Dir muss existieren).
+      3 Unit-Tests in `src/bin/ignis.rs` (#[cfg(test)]): `export_json_creates_new_file`,
+      `export_json_refuses_overwrite_without_force`, `export_json_force_overwrites_existing_file`.
+      Neue Doku `docs/cli.md` (Subcommand-Übersicht, export-Details, JSON-Schema,
+      Beispiele). 66 Tests gesamt (63 lib + 3 bin), clippy + fmt clean.
 - [ ] #5 Settings-Migration `config.json` v1 → v2
 
 ### v1.4.0+ Backlog
@@ -375,6 +382,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Neuer Summary-Range `30days` (rolling 30 Tage) in `/v1/summary`;
   `Snapshot.last_30_days`, `Windows::in_last_30_days()`, Test
   `summary_range_30days_returns_200`.
+- `ignis export --force`: Overwrite-Schutz + atomarer Write (tmp + rename) +
+  Pfad-Validierung; 3 Unit-Tests in `src/bin/ignis.rs`.
+- `docs/cli.md`: neues CLI-Referenz-Dokument mit Subcommand-Übersicht,
+  export-Details, JSON-Schema und Beispielen.
 
 #### Changed
 - `pricing.json` re-verifiziert gegen platform.claude.com (Stand 2026-04-27):
