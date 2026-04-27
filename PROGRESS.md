@@ -381,6 +381,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### [Unreleased]
 
+_(noch keine Einträge)_
+
+---
+
+### [1.3.0] — 2026-04-27
+
 #### Added
 - Settings als fünfter Tab im Tray (`SettingsTab.tsx`) mit Sektionen Allgemein,
   Plan, Updates, API-Token (read-only, maskiert + Copy-Button).
@@ -521,7 +527,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Initial scaffolding: Dokumentation, ADR-001–011, Single-Crate-Layout.
 
-[Unreleased]: https://github.com/jstin-cc/ignis/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/jstin-cc/ignis/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/jstin-cc/ignis/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/jstin-cc/ignis/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/jstin-cc/ignis/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/jstin-cc/ignis/compare/v0.2.0...v1.0.0
 [0.2.0]: https://github.com/jstin-cc/ignis/compare/v0.1.0-mvp...v0.2.0
