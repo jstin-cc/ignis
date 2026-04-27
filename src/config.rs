@@ -19,6 +19,13 @@ pub struct PlanConfig {
     pub kind: PlanKind,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub custom_token_limit: Option<u64>,
+    /// How often the Tray-UI polls Anthropic's OAuth usage endpoint (seconds).
+    #[serde(default = "default_poll_interval_secs")]
+    pub usage_poll_interval_secs: u32,
+}
+
+fn default_poll_interval_secs() -> u32 {
+    60
 }
 
 impl Default for PlanConfig {
@@ -26,6 +33,7 @@ impl Default for PlanConfig {
         PlanConfig {
             kind: PlanKind::Max5,
             custom_token_limit: None,
+            usage_poll_interval_secs: default_poll_interval_secs(),
         }
     }
 }
@@ -61,6 +69,9 @@ pub enum ConfigError {
         source: serde_json::Error,
     },
 }
+
+/// Bumped when `StoredConfig` gains new required fields.
+const CURRENT_CONFIG_VERSION: u32 = 2;
 
 /// Runtime configuration for Ignis.
 #[derive(Clone, Debug)]
@@ -107,6 +118,8 @@ impl Config {
 
 #[derive(Serialize, Deserialize)]
 struct StoredConfig {
+    #[serde(default)]
+    config_version: u32,
     claude_projects_dir: String,
     api_token: String,
     #[serde(default)]
@@ -143,15 +156,35 @@ fn load_file(path: &Path) -> Result<Config, ConfigError> {
         path: path.to_owned(),
         source: e,
     })?;
-    let stored: StoredConfig = serde_json::from_str(&raw).map_err(|e| ConfigError::Parse {
+    let mut stored: StoredConfig = serde_json::from_str(&raw).map_err(|e| ConfigError::Parse {
         path: path.to_owned(),
         source: e,
     })?;
+
+    if stored.config_version < CURRENT_CONFIG_VERSION {
+        migrate(&mut stored, path, &raw);
+    }
+
     Ok(Config {
         claude_projects_dir: PathBuf::from(stored.claude_projects_dir),
         api_token: stored.api_token,
         plan: stored.plan,
     })
+}
+
+/// Migrate `stored` from an older version to `CURRENT_CONFIG_VERSION`.
+///
+/// Writes a backup of the old file before overwriting. Best-effort: migration
+/// failures are logged to stderr but never crash the app (graceful degradation).
+fn migrate(stored: &mut StoredConfig, path: &Path, original_raw: &str) {
+    // Backup first — never silently discard user data.
+    let backup = path.with_extension(format!("v{}.bak", stored.config_version));
+    let _ = std::fs::write(&backup, original_raw.as_bytes());
+
+    // v0 / v1 → v2: plan gains usage_poll_interval_secs (default already applied
+    // by serde, nothing to copy).  Just bump the version and re-persist.
+    stored.config_version = CURRENT_CONFIG_VERSION;
+    let _ = save_file_stored(stored, path);
 }
 
 fn save_file(cfg: &Config, path: &Path) -> Result<(), ConfigError> {
@@ -162,11 +195,22 @@ fn save_file(cfg: &Config, path: &Path) -> Result<(), ConfigError> {
         })?;
     }
     let stored = StoredConfig {
+        config_version: CURRENT_CONFIG_VERSION,
         claude_projects_dir: cfg.claude_projects_dir.to_string_lossy().into_owned(),
         api_token: cfg.api_token.clone(),
         plan: cfg.plan.clone(),
     };
-    let json = serde_json::to_string_pretty(&stored).expect("StoredConfig always serializes");
+    save_file_stored(&stored, path)
+}
+
+fn save_file_stored(stored: &StoredConfig, path: &Path) -> Result<(), ConfigError> {
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| ConfigError::Io {
+            path: parent.to_owned(),
+            source: e,
+        })?;
+    }
+    let json = serde_json::to_string_pretty(stored).expect("StoredConfig always serializes");
     std::fs::write(path, json).map_err(|e| ConfigError::Io {
         path: path.to_owned(),
         source: e,
@@ -226,6 +270,62 @@ mod tests {
         // We just verify load() does not return an error.
         let result = Config::load();
         assert!(result.is_ok(), "Config::load() failed: {:?}", result.err());
+    }
+
+    #[test]
+    fn v1_config_without_version_field_gets_default_plan_fields() {
+        let raw = r#"{"claude_projects_dir":"C:\\x","api_token":"abc","plan":{"kind":"pro"}}"#;
+        let stored: StoredConfig = serde_json::from_str(raw).unwrap();
+        assert_eq!(stored.config_version, 0);
+        assert_eq!(stored.plan.usage_poll_interval_secs, 60);
+    }
+
+    #[test]
+    fn migration_creates_backup_and_upgrades_version() {
+        let dir = std::env::temp_dir();
+        let path = dir.join("ignis_test_config_migrate.json");
+        let backup = path.with_extension("v0.bak");
+        let _ = std::fs::remove_file(&path);
+        let _ = std::fs::remove_file(&backup);
+
+        let v1 = r#"{"claude_projects_dir":"C:\\x","api_token":"tok","plan":{"kind":"max5"}}"#;
+        std::fs::write(&path, v1).unwrap();
+
+        let cfg = load_file(&path).unwrap();
+        assert_eq!(cfg.plan.usage_poll_interval_secs, 60);
+
+        // backup must exist with original content
+        let bak_content = std::fs::read_to_string(&backup).unwrap();
+        assert_eq!(bak_content, v1);
+
+        // migrated file must have config_version = 2
+        let migrated_raw = std::fs::read_to_string(&path).unwrap();
+        let migrated: StoredConfig = serde_json::from_str(&migrated_raw).unwrap();
+        assert_eq!(migrated.config_version, CURRENT_CONFIG_VERSION);
+
+        let _ = std::fs::remove_file(&path);
+        let _ = std::fs::remove_file(&backup);
+    }
+
+    #[test]
+    fn v2_config_loads_without_creating_backup() {
+        let dir = std::env::temp_dir();
+        let path = dir.join("ignis_test_config_v2.json");
+        let backup = path.with_extension("v2.bak");
+        let _ = std::fs::remove_file(&path);
+        let _ = std::fs::remove_file(&backup);
+
+        let v2 = r#"{"config_version":2,"claude_projects_dir":"C:\\x","api_token":"tok","plan":{"kind":"max5","usage_poll_interval_secs":120}}"#;
+        std::fs::write(&path, v2).unwrap();
+
+        let cfg = load_file(&path).unwrap();
+        assert_eq!(cfg.plan.usage_poll_interval_secs, 120);
+        assert!(
+            !backup.exists(),
+            "backup must not be created for up-to-date config"
+        );
+
+        let _ = std::fs::remove_file(&path);
     }
 
     #[test]

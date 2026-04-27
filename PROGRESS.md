@@ -216,7 +216,15 @@ Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
       `export_json_refuses_overwrite_without_force`, `export_json_force_overwrites_existing_file`.
       Neue Doku `docs/cli.md` (Subcommand-Übersicht, export-Details, JSON-Schema,
       Beispiele). 66 Tests gesamt (63 lib + 3 bin), clippy + fmt clean.
-- [ ] #5 Settings-Migration `config.json` v1 → v2
+- [x] **#5 Settings-Migration `config.json` v1 → v2 (2026-04-27)** — `config_version: u32`
+      (default 0) zu `StoredConfig` hinzugefügt; `PlanConfig` um
+      `usage_poll_interval_secs: u32` (default 60, `#[serde(default = "…")]`) erweitert.
+      Migration: `load_file` erkennt `config_version < 2`, erstellt Backup
+      `config.json.v0.bak` (oder `.v1.bak`), setzt Version auf 2, schreibt neu —
+      Best-effort, kein Crash bei Fehler. `save_file` schreibt immer `config_version: 2`.
+      3 neue Tests in `config::tests`: `v1_config_without_version_field_gets_default_plan_fields`,
+      `migration_creates_backup_and_upgrades_version`, `v2_config_loads_without_creating_backup`.
+      69 Tests gesamt (66 lib + 3 bin), clippy + fmt clean.
 
 ### v1.4.0+ Backlog
 
@@ -386,6 +394,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Pfad-Validierung; 3 Unit-Tests in `src/bin/ignis.rs`.
 - `docs/cli.md`: neues CLI-Referenz-Dokument mit Subcommand-Übersicht,
   export-Details, JSON-Schema und Beispielen.
+- `config_version: u32` in `StoredConfig`, `usage_poll_interval_secs: u32` in
+  `PlanConfig`; automatische Migration v1 → v2 mit Backup-Datei.
 
 #### Changed
 - `pricing.json` re-verifiziert gegen platform.claude.com (Stand 2026-04-27):
