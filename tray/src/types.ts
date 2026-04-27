@@ -112,6 +112,12 @@ export interface HeatmapDay {
   cost_usd: string;
 }
 
+export interface HeatmapHourBucket {
+  hour_start: string;
+  tokens: number;
+  cost_usd: string;
+}
+
 export interface UsageData {
   today: SummaryResponse | null;
   week: SummaryResponse | null;
@@ -121,6 +127,8 @@ export interface UsageData {
   activeSession: Session | null;
   activeBlock: ActiveBlock | null;
   heatmap: HeatmapDay[];
+  /** Hourly buckets for the current ISO week (7×24 = 168 items, Mon h0 first). */
+  hourlyHeatmapWeek: HeatmapHourBucket[];
   loading: boolean;
   error: string | null;
 }

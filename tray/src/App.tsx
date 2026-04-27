@@ -18,7 +18,7 @@ import { Footer } from "./components/Footer";
 import { Dashboard } from './dashboard/Dashboard';
 
 export function App() {
-  const { today, week, month, last30Days, activeSession, activeBlock, heatmap, error } = useUsageData();
+  const { today, week, month, last30Days, activeSession, activeBlock, heatmap, hourlyHeatmapWeek, error } = useUsageData();
   useBlockNotifications(activeBlock);
   const { isEnabled, toggle } = useAutoStart();
   const { checking, result, error: updateError, checkForUpdate } = useUpdater();
@@ -73,7 +73,7 @@ export function App() {
 
         {activeTab === 'today' && (
           <>
-            <TodaySection data={today} />
+            <TodaySection data={today} hourlyWeek={hourlyHeatmapWeek} />
             <hr className="section-divider" />
             <WeekSection data={week} />
             <hr className="section-divider" />
@@ -92,7 +92,7 @@ export function App() {
         )}
 
         {activeTab === 'heatmap' && (
-          <HeatmapPanel days={heatmap} />
+          <HeatmapPanel days={heatmap} hourlyWeek={hourlyHeatmapWeek} />
         )}
 
         {activeTab === 'settings' && (

@@ -107,6 +107,17 @@ pub struct BurnRateBucket {
     pub cost_usd: Decimal,
 }
 
+/// One-hour bucket for the weekly activity heatmap (7×24 = 168 entries).
+///
+/// `hour_start` is the UTC timestamp of the local hour boundary.
+/// Sidechain events are excluded.
+#[derive(Clone, Debug)]
+pub struct HeatmapHourBucket {
+    pub hour_start: DateTime<Utc>,
+    pub tokens: u64,
+    pub cost_usd: Decimal,
+}
+
 /// One 5-hour billing window inferred from event timestamps.
 ///
 /// Claude Code bills in rolling 5-hour windows. A new block starts with the first
@@ -149,4 +160,7 @@ pub struct Snapshot {
     pub heatmap: Vec<HeatmapDay>,
     /// Per-minute token/cost buckets for the last 30 minutes (burn-rate sparkline).
     pub burn_rate: Vec<BurnRateBucket>,
+    /// Hourly token/cost buckets for the current ISO week (7×24 = 168 entries, Mon h0 first).
+    /// Sidechain events excluded.
+    pub hourly_heatmap_week: Vec<HeatmapHourBucket>,
 }

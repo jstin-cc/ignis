@@ -6,6 +6,7 @@ import type {
   Session,
   ActiveBlock,
   HeatmapDay,
+  HeatmapHourBucket,
 } from "./types";
 
 const API_BASE = "http://127.0.0.1:7337";
@@ -66,6 +67,20 @@ async function fetchHeatmap(token: string, signal: AbortSignal): Promise<Heatmap
   return resp.json() as Promise<HeatmapDay[]>;
 }
 
+async function fetchHourlyHeatmap(
+  token: string,
+  signal: AbortSignal,
+): Promise<HeatmapHourBucket[]> {
+  const resp = await fetch(`${API_BASE}/v1/heatmap?granularity=hour&range=week`, {
+    headers: authHeaders(token),
+    signal,
+  });
+  if (!resp.ok) {
+    throw new Error(`heatmap?granularity=hour returned ${resp.status}`);
+  }
+  return resp.json() as Promise<HeatmapHourBucket[]>;
+}
+
 export function useUsageData(): UsageData {
   const [token, setToken] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -77,6 +92,7 @@ export function useUsageData(): UsageData {
     activeSession: null,
     activeBlock: null,
     heatmap: [],
+    hourlyHeatmapWeek: [],
     loading: true,
     error: null,
   });
@@ -96,18 +112,31 @@ export function useUsageData(): UsageData {
 
     const t = token ?? "";
     try {
-      const [today, week, month, last30Days, activeSession, heatmap] = await Promise.all([
-        fetchSummary("today", t, signal),
-        fetchSummary("week", t, signal),
-        fetchSummary("month", t, signal),
-        fetchSummary("30days", t, signal),
-        fetchActiveSessions(t, signal),
-        fetchHeatmap(t, signal),
-      ]);
+      const [today, week, month, last30Days, activeSession, heatmap, hourlyHeatmapWeek] =
+        await Promise.all([
+          fetchSummary("today", t, signal),
+          fetchSummary("week", t, signal),
+          fetchSummary("month", t, signal),
+          fetchSummary("30days", t, signal),
+          fetchActiveSessions(t, signal),
+          fetchHeatmap(t, signal),
+          fetchHourlyHeatmap(t, signal),
+        ]);
       clearTimeout(timeoutId);
       if (signal.aborted) return;
       const activeBlock: ActiveBlock | null = today.active_block ?? null;
-      setData({ today, week, month, last30Days, activeSession, activeBlock, heatmap, loading: false, error: null });
+      setData({
+        today,
+        week,
+        month,
+        last30Days,
+        activeSession,
+        activeBlock,
+        heatmap,
+        hourlyHeatmapWeek,
+        loading: false,
+        error: null,
+      });
     } catch (err) {
       clearTimeout(timeoutId);
       if (err instanceof Error && err.name === "AbortError") {

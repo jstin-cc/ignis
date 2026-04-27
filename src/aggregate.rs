@@ -1,6 +1,6 @@
 use crate::model::{
-    BurnRateBucket, HeatmapDay, ModelId, ModelUsage, SessionBlock, SessionState, Snapshot, Summary,
-    UsageEvent,
+    BurnRateBucket, HeatmapDay, HeatmapHourBucket, ModelId, ModelUsage, SessionBlock, SessionState,
+    Snapshot, Summary, UsageEvent,
 };
 use crate::pricing::PricingTable;
 use chrono::{DateTime, Datelike, Duration, Local, NaiveDate, TimeZone, Utc};
@@ -138,6 +138,7 @@ pub fn build_snapshot(
     let today_local = now.with_timezone(&Local).date_naive();
     let heatmap = daily_costs(events, pricing, today_local);
     let burn_rate = build_burn_rate(events, pricing, now);
+    let hourly_heatmap_week = build_hourly_heatmap(events, pricing, now);
 
     Snapshot {
         taken_at: now,
@@ -151,6 +152,7 @@ pub fn build_snapshot(
         pricing_warnings,
         heatmap,
         burn_rate,
+        hourly_heatmap_week,
     }
 }
 
@@ -265,6 +267,57 @@ pub fn billing_blocks(events: &[UsageEvent], pricing: &PricingTable) -> Vec<Sess
     }
 
     blocks
+}
+
+/// Builds 7×24 = 168 hourly buckets covering the current ISO week (Mon 00:00 local → Sun 23:00 local).
+///
+/// Sidechain events are excluded (sub-agent calls inflate raw counts).
+/// Empty hours get zero values. Returns buckets sorted ascending (Mon h0 first).
+pub fn build_hourly_heatmap(
+    events: &[UsageEvent],
+    pricing: &PricingTable,
+    now: DateTime<Utc>,
+) -> Vec<HeatmapHourBucket> {
+    const BUCKET_COUNT: i64 = 7 * 24;
+
+    let local_now = now.with_timezone(&Local);
+    let days_since_monday = local_now.weekday().num_days_from_monday() as i64;
+
+    // Monday 00:00 local → UTC.
+    let week_start_local = Local
+        .with_ymd_and_hms(local_now.year(), local_now.month(), local_now.day(), 0, 0, 0)
+        .single()
+        .expect("midnight is always valid")
+        - Duration::days(days_since_monday);
+    let week_start = week_start_local.to_utc();
+    let week_end = week_start + Duration::days(7);
+
+    let mut buckets: Vec<HeatmapHourBucket> = (0..BUCKET_COUNT)
+        .map(|i| HeatmapHourBucket {
+            hour_start: week_start + Duration::hours(i),
+            tokens: 0,
+            cost_usd: Decimal::ZERO,
+        })
+        .collect();
+
+    for ev in events {
+        if ev.is_sidechain {
+            continue;
+        }
+        if ev.timestamp < week_start || ev.timestamp >= week_end {
+            continue;
+        }
+        let idx = (ev.timestamp - week_start).num_hours();
+        if !(0..BUCKET_COUNT).contains(&idx) {
+            continue;
+        }
+        let b = &mut buckets[idx as usize];
+        b.tokens +=
+            ev.input_tokens + ev.output_tokens + ev.cache_read_tokens + ev.cache_creation_tokens;
+        b.cost_usd += pricing.compute_cost(ev).cost_usd;
+    }
+
+    buckets
 }
 
 /// Return the block whose window contains `now`, if any.
@@ -626,5 +679,52 @@ mod tests {
         let blocks = billing_blocks(&[ev], &pricing());
         let active = active_block_at(&blocks, t0 + chrono::Duration::hours(6));
         assert!(active.is_none());
+    }
+
+    // ── build_hourly_heatmap() ────────────────────────────────────────────────
+
+    #[test]
+    fn hourly_heatmap_has_168_buckets() {
+        let buckets = build_hourly_heatmap(&[], &pricing(), now());
+        assert_eq!(buckets.len(), 168);
+    }
+
+    #[test]
+    fn hourly_heatmap_buckets_span_full_week() {
+        let buckets = build_hourly_heatmap(&[], &pricing(), now());
+        let first = buckets[0].hour_start;
+        let last = buckets[167].hour_start;
+        assert_eq!(
+            (last - first).num_hours(),
+            167,
+            "first and last bucket must be 167 hours apart"
+        );
+    }
+
+    #[test]
+    fn hourly_heatmap_counts_tokens_for_week_event() {
+        let ev = make_event("s1", "claude-sonnet-4-6", ts_this_week_not_today(), 100, 50);
+        let buckets = build_hourly_heatmap(&[ev], &pricing(), now());
+        let total_tokens: u64 = buckets.iter().map(|b| b.tokens).sum();
+        // 100 input + 50 output = 150 tokens in the bucket
+        assert_eq!(total_tokens, 150);
+    }
+
+    #[test]
+    fn hourly_heatmap_excludes_sidechain_events() {
+        let mut ev = make_event("s1", "claude-sonnet-4-6", ts_today(), 100, 50);
+        ev.is_sidechain = true;
+        let buckets = build_hourly_heatmap(&[ev], &pricing(), now());
+        let total_tokens: u64 = buckets.iter().map(|b| b.tokens).sum();
+        assert_eq!(total_tokens, 0);
+    }
+
+    #[test]
+    fn hourly_heatmap_excludes_events_outside_week() {
+        // ts_last_month is well outside the current ISO week
+        let ev = make_event("s1", "claude-sonnet-4-6", ts_last_month(), 100, 50);
+        let buckets = build_hourly_heatmap(&[ev], &pricing(), now());
+        let total_tokens: u64 = buckets.iter().map(|b| b.tokens).sum();
+        assert_eq!(total_tokens, 0);
     }
 }

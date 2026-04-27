@@ -1,4 +1,4 @@
-use crate::model::{ModelId, ModelUsage, Snapshot, Summary};
+use crate::model::{HeatmapHourBucket, ModelId, ModelUsage, Snapshot, Summary};
 use axum::{
     extract::{Query, State},
     http::{header, HeaderMap, HeaderValue, Method, StatusCode},
@@ -449,13 +449,40 @@ async fn not_found_handler() -> Response {
 
 // ── /v1/heatmap ───────────────────────────────────────────────────────────────
 
+#[derive(Deserialize)]
+struct HeatmapQuery {
+    granularity: Option<String>,
+    range: Option<String>,
+}
+
 #[derive(Serialize)]
 struct HeatmapDayDto {
     date: String,
     cost_usd: String,
 }
 
-async fn heatmap_handler(headers: HeaderMap, State(state): State<ApiState>) -> Response {
+#[derive(Serialize)]
+struct HeatmapHourDto {
+    hour_start: DateTime<Utc>,
+    tokens: u64,
+    cost_usd: String,
+}
+
+impl From<&HeatmapHourBucket> for HeatmapHourDto {
+    fn from(b: &HeatmapHourBucket) -> Self {
+        HeatmapHourDto {
+            hour_start: b.hour_start,
+            tokens: b.tokens,
+            cost_usd: b.cost_usd.to_string(),
+        }
+    }
+}
+
+async fn heatmap_handler(
+    headers: HeaderMap,
+    State(state): State<ApiState>,
+    Query(params): Query<HeatmapQuery>,
+) -> Response {
     if let Err(e) = check_auth(&headers, &state.api_token) {
         return *e;
     }
@@ -463,15 +490,43 @@ async fn heatmap_handler(headers: HeaderMap, State(state): State<ApiState>) -> R
         return *e;
     }
     let snap = state.read_snapshot();
-    let days: Vec<HeatmapDayDto> = snap
-        .heatmap
-        .iter()
-        .map(|d| HeatmapDayDto {
-            date: d.date.format("%Y-%m-%d").to_string(),
-            cost_usd: d.cost_usd.to_string(),
-        })
-        .collect();
-    Json(days).into_response()
+
+    match params.granularity.as_deref() {
+        Some("hour") => {
+            match params.range.as_deref().unwrap_or("week") {
+                "week" => {
+                    let hours: Vec<HeatmapHourDto> =
+                        snap.hourly_heatmap_week.iter().map(Into::into).collect();
+                    Json(hours).into_response()
+                }
+                other => error_response(
+                    StatusCode::BAD_REQUEST,
+                    "bad_request",
+                    if other == "today" {
+                        "range=today not supported; use granularity=hour&range=week and filter client-side"
+                    } else {
+                        "Invalid 'range' for granularity=hour. Use 'week'."
+                    },
+                ),
+            }
+        }
+        None | Some("day") => {
+            let days: Vec<HeatmapDayDto> = snap
+                .heatmap
+                .iter()
+                .map(|d| HeatmapDayDto {
+                    date: d.date.format("%Y-%m-%d").to_string(),
+                    cost_usd: d.cost_usd.to_string(),
+                })
+                .collect();
+            Json(days).into_response()
+        }
+        _ => error_response(
+            StatusCode::BAD_REQUEST,
+            "bad_request",
+            "Invalid 'granularity'. Use 'day' or 'hour'.",
+        ),
+    }
 }
 
 // ── /v1/burn-rate ─────────────────────────────────────────────────────────────
@@ -531,19 +586,12 @@ mod tests {
     use tower::ServiceExt;
 
     fn empty_snapshot() -> Snapshot {
-        Snapshot {
-            taken_at: Utc.with_ymd_and_hms(2026, 4, 17, 12, 0, 0).unwrap(),
-            today: Summary::default(),
-            this_week: Summary::default(),
-            this_month: Summary::default(),
-            last_30_days: Summary::default(),
-            active_session: None,
-            sessions: vec![],
-            active_block: None,
-            pricing_warnings: vec![],
-            heatmap: vec![],
-            burn_rate: vec![],
-        }
+        let pricing = crate::PricingTable::embedded_default().expect("embedded pricing");
+        crate::build_snapshot(
+            &[],
+            &pricing,
+            Utc.with_ymd_and_hms(2026, 4, 17, 12, 0, 0).unwrap(),
+        )
     }
 
     fn make_state(token: &str) -> ApiState {
@@ -719,6 +767,7 @@ mod tests {
             pricing_warnings: vec![ModelId::from("claude-unknown-99")],
             heatmap: vec![],
             burn_rate: vec![],
+            hourly_heatmap_week: vec![],
         };
         state.update_snapshot(new_snap);
 
@@ -727,6 +776,31 @@ mod tests {
         let warnings = body["warnings"].as_array().unwrap();
         assert_eq!(warnings.len(), 1);
         assert!(warnings[0].as_str().unwrap().contains("claude-unknown-99"));
+    }
+
+    #[tokio::test]
+    async fn heatmap_granularity_hour_week_returns_168_items() {
+        let app = router(make_state(""));
+        let (status, body) = get_json(app, "/v1/heatmap?granularity=hour&range=week").await;
+        assert_eq!(status, StatusCode::OK);
+        assert!(body.is_array());
+        assert_eq!(body.as_array().unwrap().len(), 168);
+    }
+
+    #[tokio::test]
+    async fn heatmap_granularity_day_returns_array() {
+        let app = router(make_state(""));
+        let (status, body) = get_json(app, "/v1/heatmap?granularity=day").await;
+        assert_eq!(status, StatusCode::OK);
+        assert!(body.is_array());
+    }
+
+    #[tokio::test]
+    async fn heatmap_invalid_granularity_returns_400() {
+        let app = router(make_state(""));
+        let (status, body) = get_json(app, "/v1/heatmap?granularity=minute").await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        assert_eq!(body["error"]["code"], "bad_request");
     }
 
     // Verify Decimal amounts serialize as strings, not floats.
@@ -752,6 +826,7 @@ mod tests {
             pricing_warnings: vec![],
             heatmap: vec![],
             burn_rate: vec![],
+            hourly_heatmap_week: vec![],
         };
         state.update_snapshot(snap);
         let app = router(state);

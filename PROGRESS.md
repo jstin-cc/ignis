@@ -226,10 +226,34 @@ Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
       `migration_creates_backup_and_upgrades_version`, `v2_config_loads_without_creating_backup`.
       69 Tests gesamt (66 lib + 3 bin), clippy + fmt clean.
 
-### v1.4.0+ Backlog
+### v1.4.0 — Visualisierung & Wahrnehmung (in Arbeit)
 
-Reihenfolge und Inhalt siehe Roadmap-Abschnitt oben (v1.4.0 Heatmap-Wochenview,
-v1.5.0 Budget-Schwellen, v1.6.0 Onboarding, v1.7.0 Auto-Update prod, v2.0.0 Public).
+Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
+
+- [x] **#1 Wochen-Heatmap 7×24 (2026-04-27)** — Toggle "12 Wochen" ↔ "This Week" in
+      `HeatmapPanel`. Neue `WeekView`-Komponente: 7 Zeilen (Mon–Sun) × 24 Spalten, Terrakotta-
+      Intensität basierend auf Tokens (nicht Kosten), `title`-Tooltip mit Tag/Uhrzeit/Tokens/Kosten.
+      Zellen 11×11 px, Gap 1 px → 287 px breit, passt in 360 px-Fenster. Toggle-Button oben rechts.
+- [x] **#2 API `GET /v1/heatmap?granularity=hour&range=week` (2026-04-27)** — Neuer
+      Struct `HeatmapHourBucket` in `model.rs`, Feld `hourly_heatmap_week: Vec<HeatmapHourBucket>`
+      in `Snapshot`. Neue Funktion `build_hourly_heatmap` in `aggregate.rs`: 168 Buckets (7 Tage ×
+      24 h), ISO-Woche von Montag 00:00 lokal, Sidechain-Events ausgeschlossen. API-Handler
+      erweitert um `HeatmapQuery { granularity, range }`: `granularity=hour&range=week` → 168
+      `HeatmapHourDto`-Einträge; `granularity=day` → bisheriges Tages-Verhalten; ungültige Werte →
+      400. 3 neue API-Tests, 5 neue Aggregate-Tests. 77 Tests gesamt (74 lib + 3 bin), clippy + fmt clean.
+- [x] **#3 Heatmap-Tooltip (2026-04-27)** — Natives `title`-Attribut in der WeekView mit
+      `"Mon 14:00–15:00\n12.3k tok · $0.0432"`. Kein Flackern, keine externe Library,
+      kein Layout-Bruch.
+- [x] **#4 Today-Tab Stunden-Sparkline (2026-04-27)** — `TodaySection` erhält optionalen Prop
+      `hourlyWeek: HeatmapHourBucket[]`. `todayHourlyTokens()` filtert die 168 Woche-Buckets auf
+      den heutigen Tag (via `toLocaleDateString("en-CA")`), extrahiert 24 Stunden-Werte. Bestehende
+      `<Sparkline>` (328×28 px) wird unter Hero/Meta eingeblendet, nur wenn mindestens ein Bucket > 0.
+      `useUsageData` fetcht zusätzlich `GET /v1/heatmap?granularity=hour&range=week`.
+
+### v1.5.0+ Backlog
+
+Reihenfolge und Inhalt siehe Roadmap-Abschnitt oben (v1.5.0 Budget-Schwellen,
+v1.6.0 Onboarding, v1.7.0 Auto-Update prod, v2.0.0 Public).
 
 ### Lokale Hotfixes (nicht im Repo — nur Installations-Reparaturen)
 
@@ -381,7 +405,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### [Unreleased]
 
-_(noch keine Einträge)_
+#### Added
+- `HeatmapPanel`: Toggle „12 Weeks" ↔ „This Week" — Wochen-Heatmap 7×24 h mit Terrakotta-
+  Intensität nach Tokens; Tooltip (Tag, Uhrzeit, Tokens, Kosten); pure HTML `title`, keine Library.
+- API `GET /v1/heatmap?granularity=hour&range=week` — 168 stündliche Buckets (7 Tage × 24 h),
+  Sidechain-gefiltert, serialisiert als `HeatmapHourDto { hour_start, tokens, cost_usd }`.
+- `TodaySection`: 24-h-Stunden-Sparkline unter Hero/Meta — leitet Stunden-Tokens aus
+  wöchentlichem Heatmap-Fetch ab, blendet Sparkline ein wenn Activity > 0.
+- 8 neue Tests (5 aggregate, 3 api): `hourly_heatmap_has_168_buckets`,
+  `hourly_heatmap_buckets_span_full_week`, `hourly_heatmap_counts_tokens_for_week_event`,
+  `hourly_heatmap_excludes_sidechain_events`, `hourly_heatmap_excludes_events_outside_week`,
+  `heatmap_granularity_hour_week_returns_168_items`, `heatmap_granularity_day_returns_array`,
+  `heatmap_invalid_granularity_returns_400`. 77 Tests gesamt (74 lib + 3 bin).
 
 ---
 
