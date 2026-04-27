@@ -1,4 +1,4 @@
-export type TabId = 'today' | 'month' | 'projects' | 'heatmap';
+export type TabId = 'today' | 'month' | 'projects' | 'heatmap' | 'settings';
 
 interface TabBarProps {
   active: TabId;
@@ -10,6 +10,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'month',    label: 'Month' },
   { id: 'projects', label: 'Projects' },
   { id: 'heatmap',  label: 'Heatmap' },
+  { id: 'settings', label: 'Settings' },
 ];
 
 export function TabBar({ active, onChange }: TabBarProps) {
@@ -45,14 +46,15 @@ const styles = {
   tab: {
     flex: 1,
     height: '100%',
+    padding: '0 2px',
     background: 'transparent',
     border: 'none',
     borderRadius: 0,
     fontFamily: 'var(--font-sans)',
-    fontSize: '12px',
+    fontSize: '11px',
     fontWeight: 500,
     textTransform: 'uppercase' as const,
-    letterSpacing: '0.04em',
+    letterSpacing: '0.03em',
     cursor: 'pointer',
     transition: 'color 120ms',
   },

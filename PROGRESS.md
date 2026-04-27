@@ -187,7 +187,15 @@ Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
       `haiku_45_pricing_matches_anthropic_2026_04`. Auto-Reload als Akzeptanzkriterium
       gestrichen — widerspricht ADR-004 (`include_str!`-embedded). 11 Pricing-Tests grün,
       62 Tests gesamt, Clippy + fmt clean.
-- [ ] #2 Settings als eigener Tab (statt Overlay)
+- [x] **#2 Settings als eigener Tab (2026-04-27)** — Fünfter Tab in `TabBar`
+      (Today/Month/Projects/Heatmap/Settings). Neue Komponente
+      `tray/src/components/SettingsTab.tsx` mit Sektionen Allgemein
+      (Auto-Start), Plan (Picker + Custom-Token-Limit + Polling-Interval),
+      Updates (Update-Check), API-Token (read-only, maskiert mit Copy-Button).
+      Settings-Overlay-Markup + ⚙-Header-Button aus `App.tsx` entfernt.
+      `TabBar` auf 5 Tabs angepasst (`fontSize` 12 → 11px, `letterSpacing` 0.04
+      → 0.03em). Vite-Build + tsc + ESLint clean. Tauri-Runtime-Test pending
+      auf User-Seite (Tauri-Bridge nicht headless testbar).
 - [ ] #3 History-Tab: echte 30-Tage-Projektdaten (`range=30days`)
 - [ ] #4 `export --output <file>` Polish (Pfad-Validierung, `--force`, atomarer Write, Tests)
 - [ ] #5 Settings-Migration `config.json` v1 → v2
@@ -347,6 +355,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### [Unreleased]
 
+#### Added
+- Settings als fünfter Tab im Tray (`SettingsTab.tsx`) mit Sektionen Allgemein,
+  Plan, Updates, API-Token (read-only, maskiert + Copy-Button).
+- Drei neue Pricing-Tests in `src/pricing.rs`:
+  `embedded_default_has_current_models`, `opus_47_pricing_matches_anthropic_2026_04`,
+  `haiku_45_pricing_matches_anthropic_2026_04`.
+
 #### Changed
 - `pricing.json` re-verifiziert gegen platform.claude.com (Stand 2026-04-27):
   Opus 4.7/4.6 input $15 → $5, output $75 → $25 (cache_read $1.50 → $0.50,
@@ -355,11 +370,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   cache_write_5m $1.00 → $1.25, cache_write_1h $1.60 → $2.00);
   Sonnet 4.6 unverändert. `source`-Feld in `pricing.json` ergänzt.
 - `docs/pricing.md` §7: Verifikations-Historie + verlinkte Primärquelle.
-
-#### Added
-- Drei neue Pricing-Tests in `src/pricing.rs`:
-  `embedded_default_has_current_models`, `opus_47_pricing_matches_anthropic_2026_04`,
-  `haiku_45_pricing_matches_anthropic_2026_04`.
+- `TabBar.tsx`: 5 Tabs (Today/Month/Projects/Heatmap/Settings); `fontSize` 12 → 11px,
+  `letterSpacing` 0.04 → 0.03em, `padding 0 2px` damit alle Labels sauber passen.
+- `App.tsx`: Settings-Overlay (`settingsOpen`-State, Overlay-Markup, ⚙-Button im
+  Header) entfernt; Settings ausschließlich über den neuen Tab erreichbar.
 
 ### [1.2.0] — 2026-04-24
 

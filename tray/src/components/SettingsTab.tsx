@@ -1,0 +1,260 @@
+import { useEffect, useState } from "react";
+import type { PlanConfig, PlanKind } from "../types";
+
+interface SettingsTabProps {
+  autoStart: { isEnabled: boolean; toggle: () => Promise<void> };
+  plan: PlanConfig;
+  setPlan: (kind: PlanKind, customTokenLimit?: number, pollIntervalSecs?: number) => Promise<void>;
+  updater: {
+    checking: boolean;
+    result: { available: boolean; version: string } | null;
+    error: string | null;
+    checkForUpdate: () => Promise<void>;
+  };
+}
+
+export function SettingsTab({ autoStart, plan, setPlan, updater }: SettingsTabProps) {
+  const [customLimitInput, setCustomLimitInput] = useState<string>(
+    String(plan.custom_token_limit ?? 88000),
+  );
+  const [apiToken, setApiToken] = useState<string>("");
+  const [tokenCopied, setTokenCopied] = useState(false);
+
+  useEffect(() => {
+    void import("@tauri-apps/api/core")
+      .then(({ invoke }) => invoke<string>("get_api_token"))
+      .then((t) => setApiToken(t))
+      .catch(() => setApiToken(""));
+  }, []);
+
+  useEffect(() => {
+    setCustomLimitInput(String(plan.custom_token_limit ?? 88000));
+  }, [plan.custom_token_limit]);
+
+  const copyToken = async () => {
+    if (!apiToken) return;
+    try {
+      await navigator.clipboard.writeText(apiToken);
+      setTokenCopied(true);
+      setTimeout(() => setTokenCopied(false), 1500);
+    } catch {
+      // ignore — clipboard not available in some contexts
+    }
+  };
+
+  return (
+    <div style={styles.panel}>
+      {/* Auto-Start */}
+      <section style={styles.section}>
+        <div className="section-label" style={styles.sectionLabel}>Allgemein</div>
+        <label style={styles.row}>
+          <input
+            type="checkbox"
+            checked={autoStart.isEnabled}
+            onChange={() => void autoStart.toggle()}
+            style={styles.checkbox}
+          />
+          <span style={styles.label}>Auto-Start bei Windows-Login</span>
+        </label>
+      </section>
+
+      {/* Plan */}
+      <section style={styles.section}>
+        <div className="section-label" style={styles.sectionLabel}>Plan</div>
+        <div style={styles.row}>
+          <span style={styles.label}>Modell</span>
+          <select
+            style={styles.select}
+            value={plan.kind}
+            onChange={(e) => {
+              const kind = e.target.value as PlanKind;
+              if (kind !== "custom") {
+                void setPlan(kind);
+              } else {
+                void setPlan(kind, plan.custom_token_limit ?? 88000);
+              }
+            }}
+          >
+            <option value="pro">Pro (44k tokens)</option>
+            <option value="max5">Max 5× (88k tokens)</option>
+            <option value="max20">Max 20× (220k tokens)</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+
+        {plan.kind === "custom" && (
+          <div style={styles.row}>
+            <span style={styles.label}>Token-Limit</span>
+            <input
+              type="number"
+              style={styles.input}
+              value={customLimitInput}
+              min={1000}
+              step={1000}
+              onChange={(e) => setCustomLimitInput(e.target.value)}
+              onBlur={() => {
+                const limit = parseInt(customLimitInput, 10);
+                if (!isNaN(limit) && limit > 0) {
+                  void setPlan("custom", limit);
+                }
+              }}
+            />
+          </div>
+        )}
+
+        <div style={styles.row}>
+          <span style={styles.label}>Aktualisierung</span>
+          <select
+            style={styles.select}
+            value={plan.usage_poll_interval_secs}
+            onChange={(e) => {
+              const secs = parseInt(e.target.value, 10);
+              void setPlan(plan.kind, plan.custom_token_limit ?? undefined, secs);
+            }}
+          >
+            <option value={30}>30 Sekunden</option>
+            <option value={60}>1 Minute</option>
+            <option value={120}>2 Minuten</option>
+            <option value={300}>5 Minuten</option>
+            <option value={600}>10 Minuten</option>
+          </select>
+        </div>
+      </section>
+
+      {/* Updates */}
+      <section style={styles.section}>
+        <div className="section-label" style={styles.sectionLabel}>Updates</div>
+        <div style={styles.row}>
+          <button
+            className="btn btn--secondary"
+            style={styles.btn}
+            disabled={updater.checking}
+            onClick={() => void updater.checkForUpdate()}
+          >
+            {updater.checking ? "Prüfe…" : "Updates prüfen"}
+          </button>
+          {updater.result && (
+            <span style={styles.statusAccent}>
+              {updater.result.available ? `v${updater.result.version} verfügbar` : "Aktuell"}
+            </span>
+          )}
+          {updater.error && (
+            <span style={styles.statusMuted}>kein Server</span>
+          )}
+        </div>
+      </section>
+
+      {/* API-Token */}
+      <section style={styles.section}>
+        <div className="section-label" style={styles.sectionLabel}>API-Token</div>
+        <div style={styles.row}>
+          <code style={styles.tokenCode}>
+            {apiToken ? maskToken(apiToken) : "—"}
+          </code>
+          <button
+            className="btn btn--secondary"
+            style={styles.btn}
+            disabled={!apiToken}
+            onClick={() => void copyToken()}
+          >
+            {tokenCopied ? "Kopiert" : "Kopieren"}
+          </button>
+        </div>
+        <p style={styles.hint}>
+          Read-only. Für CLI/curl-Zugriff auf 127.0.0.1:7337.
+        </p>
+      </section>
+    </div>
+  );
+}
+
+function maskToken(token: string): string {
+  if (token.length <= 8) return token;
+  return `${token.slice(0, 4)}…${token.slice(-4)}`;
+}
+
+const styles = {
+  panel: {
+    padding: "8px 16px 16px",
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "16px",
+  },
+  section: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "6px",
+  },
+  sectionLabel: {
+    marginBottom: "2px",
+  },
+  row: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    minHeight: "24px",
+  },
+  label: {
+    fontSize: "13px",
+    color: "var(--text-secondary)",
+    flex: 1,
+  },
+  checkbox: {
+    accentColor: "var(--accent)",
+    width: "14px",
+    height: "14px",
+    cursor: "pointer",
+  },
+  select: {
+    flex: 1,
+    fontSize: "12px",
+    padding: "3px 6px",
+    backgroundColor: "var(--bg-elevated)",
+    border: "1px solid var(--border-subtle)",
+    borderRadius: "4px",
+    color: "var(--text-secondary)",
+    cursor: "pointer",
+    fontFamily: "var(--font-sans)",
+  },
+  input: {
+    flex: 1,
+    fontSize: "12px",
+    padding: "3px 6px",
+    backgroundColor: "var(--bg-elevated)",
+    border: "1px solid var(--border-subtle)",
+    borderRadius: "4px",
+    color: "var(--text-secondary)",
+    fontFamily: "var(--font-sans)",
+    width: "80px",
+  },
+  btn: {
+    fontSize: "12px",
+    padding: "3px 8px",
+    fontFamily: "var(--font-sans)",
+  },
+  statusAccent: {
+    fontSize: "12px",
+    color: "var(--accent)",
+  },
+  statusMuted: {
+    fontSize: "12px",
+    color: "var(--text-muted)",
+  },
+  tokenCode: {
+    flex: 1,
+    fontFamily: "var(--font-mono)",
+    fontSize: "12px",
+    color: "var(--text-secondary)",
+    backgroundColor: "var(--bg-elevated)",
+    padding: "4px 8px",
+    borderRadius: "4px",
+    border: "1px solid var(--border-subtle)",
+    letterSpacing: "0.02em",
+  },
+  hint: {
+    fontSize: "11px",
+    color: "var(--text-muted)",
+    margin: "4px 0 0",
+    lineHeight: 1.4,
+  },
+} as const;
