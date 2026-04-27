@@ -25,14 +25,15 @@ Oberfläche für Inkonsistenzen.
 ```jsonc
 {
   "version": 1,
-  "updated": "2026-04-17",
+  "updated": "2026-04-27",
+  "source": "https://platform.claude.com/docs/en/about-claude/models/overview",
   "models": {
     "claude-opus-4-7": {
-      "input_per_mtok":        "15.00",
-      "output_per_mtok":       "75.00",
-      "cache_read_per_mtok":    "1.50",
-      "cache_write_5m_per_mtok":"18.75",
-      "cache_write_1h_per_mtok":"30.00"
+      "input_per_mtok":         "5.00",
+      "output_per_mtok":       "25.00",
+      "cache_read_per_mtok":    "0.50",
+      "cache_write_5m_per_mtok":"6.25",
+      "cache_write_1h_per_mtok":"10.00"
     },
     "claude-sonnet-4-6": {
       "input_per_mtok":         "3.00",
@@ -50,11 +51,7 @@ Oberfläche für Inkonsistenzen.
 - `cache_write_5m` vs. `cache_write_1h` spiegeln die unterschiedlichen TTL-Preise
   (siehe `docs/jsonl-format.md` §7).
 - `version` ist ein Integer-Zähler für Format-Migrationen (aktuell `1`).
-
-> **Platzhalter-Werte im Repository.** Die konkreten Zahlen oben sind **Beispielwerte**
-> zur Schema-Illustration. Das tatsächliche `pricing.json` wird vor dem ersten echten
-> Release (v0.1.0-mvp) mit Werten aus der offiziellen Anthropic-Preisliste befüllt
-> und bei jedem Release reviewt.
+- `updated` und `source` werden bei jeder Re-Verifizierung aktualisiert (siehe §7).
 
 ---
 
@@ -134,11 +131,21 @@ Unter-Buchung konfrontiert.
 
 Pricing-Updates sind Teil jedes App-Releases:
 
-- Vor jedem Release `src/pricing.json` gegen die offizielle Anthropic-Preisliste abgleichen.
-- Neue Modelle: ADR oder zumindest `CHANGELOG.md`-Eintrag.
+- Vor jedem Release `src/pricing.json` gegen die offizielle Anthropic-Preisliste
+  abgleichen. Primärquelle: <https://platform.claude.com/docs/en/about-claude/models/overview>
+  (Pricing-Spalte). 1h-Cache-Write-Preise: <https://platform.claude.com/docs/en/build-with-claude/prompt-caching>.
+- `updated`-Feld auf das Verifikations-Datum setzen, `source`-Feld auf die genutzte URL.
+- Neue Modelle: ADR oder zumindest `PROGRESS.md`-Changelog-Eintrag.
 - Entfernte Modelle: **nicht entfernen** — historische Events brauchen weiterhin ihre
   Preise. Modelle markieren wir höchstens als `"deprecated": true` (optional, Format-
   Erweiterung).
+
+### Verifikations-Historie
+
+| Datum | Verifiziert von | Geänderte Modelle | Quelle |
+|---|---|---|---|
+| 2026-04-27 | v1.3.0 | Opus 4.7/4.6 (15/75 → 5/25), Haiku 4.5 (0.80/4.00 → 1.00/5.00) | platform.claude.com |
+| 2026-04-20 | v1.0.0 | Initiale Werte für Opus 4.7, Opus 4.6, Sonnet 4.6, Haiku 4.5 | docs.anthropic.com |
 
 ---
 

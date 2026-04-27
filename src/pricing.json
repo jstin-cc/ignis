@@ -1,21 +1,22 @@
 {
   "version": 1,
-  "updated": "2026-04-20",
-  "note": "Preise verifiziert per 2026-04-20. pricing.json aktualisieren und App-Version bumpen, wenn Anthropic die Preise ändert.",
+  "updated": "2026-04-27",
+  "source": "https://platform.claude.com/docs/en/about-claude/models/overview",
+  "note": "Preise verifiziert per 2026-04-27 gegen platform.claude.com/docs (Models Overview + Prompt Caching). pricing.json aktualisieren und App-Version bumpen, wenn Anthropic die Preise ändert.",
   "models": {
     "claude-opus-4-7": {
-      "input_per_mtok":         "15.00",
-      "output_per_mtok":        "75.00",
-      "cache_read_per_mtok":     "1.50",
-      "cache_write_5m_per_mtok": "18.75",
-      "cache_write_1h_per_mtok": "30.00"
+      "input_per_mtok":          "5.00",
+      "output_per_mtok":        "25.00",
+      "cache_read_per_mtok":     "0.50",
+      "cache_write_5m_per_mtok": "6.25",
+      "cache_write_1h_per_mtok":"10.00"
     },
     "claude-opus-4-6": {
-      "input_per_mtok":         "15.00",
-      "output_per_mtok":        "75.00",
-      "cache_read_per_mtok":     "1.50",
-      "cache_write_5m_per_mtok": "18.75",
-      "cache_write_1h_per_mtok": "30.00"
+      "input_per_mtok":          "5.00",
+      "output_per_mtok":        "25.00",
+      "cache_read_per_mtok":     "0.50",
+      "cache_write_5m_per_mtok": "6.25",
+      "cache_write_1h_per_mtok":"10.00"
     },
     "claude-sonnet-4-6": {
       "input_per_mtok":          "3.00",
@@ -25,11 +26,11 @@
       "cache_write_1h_per_mtok": "6.00"
     },
     "claude-haiku-4-5": {
-      "input_per_mtok":          "0.80",
-      "output_per_mtok":         "4.00",
-      "cache_read_per_mtok":     "0.08",
-      "cache_write_5m_per_mtok": "1.00",
-      "cache_write_1h_per_mtok": "1.60"
+      "input_per_mtok":          "1.00",
+      "output_per_mtok":         "5.00",
+      "cache_read_per_mtok":     "0.10",
+      "cache_write_5m_per_mtok": "1.25",
+      "cache_write_1h_per_mtok": "2.00"
     }
   }
 }

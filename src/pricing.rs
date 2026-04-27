@@ -185,6 +185,60 @@ mod tests {
     }
 
     #[test]
+    fn embedded_default_has_current_models() {
+        let t = table();
+        for id in [
+            "claude-opus-4-7",
+            "claude-opus-4-6",
+            "claude-sonnet-4-6",
+            "claude-haiku-4-5",
+        ] {
+            assert!(
+                t.models.contains_key(id),
+                "pricing.json missing required model '{id}'"
+            );
+        }
+    }
+
+    #[test]
+    fn opus_47_pricing_matches_anthropic_2026_04() {
+        let t = table();
+        let p = t
+            .lookup(&ModelId::from("claude-opus-4-7"))
+            .expect("opus-4-7 must be priced");
+        assert_eq!(p.input_per_mtok, Decimal::from_str("5.00").unwrap());
+        assert_eq!(p.output_per_mtok, Decimal::from_str("25.00").unwrap());
+        assert_eq!(p.cache_read_per_mtok, Decimal::from_str("0.50").unwrap());
+        assert_eq!(
+            p.cache_write_5m_per_mtok,
+            Decimal::from_str("6.25").unwrap()
+        );
+        assert_eq!(
+            p.cache_write_1h_per_mtok,
+            Decimal::from_str("10.00").unwrap()
+        );
+    }
+
+    #[test]
+    fn haiku_45_pricing_matches_anthropic_2026_04() {
+        let t = table();
+        let p = t
+            .lookup(&ModelId::from("claude-haiku-4-5"))
+            .expect("haiku-4-5 must be priced");
+        assert_eq!(p.input_per_mtok, Decimal::from_str("1.00").unwrap());
+        assert_eq!(p.output_per_mtok, Decimal::from_str("5.00").unwrap());
+        assert_eq!(p.cache_read_per_mtok, Decimal::from_str("0.10").unwrap());
+        assert_eq!(
+            p.cache_write_5m_per_mtok,
+            Decimal::from_str("1.25").unwrap()
+        );
+        assert_eq!(
+            p.cache_write_1h_per_mtok,
+            Decimal::from_str("2.00").unwrap()
+        );
+    }
+
+    #[test]
     fn exact_match_lookup() {
         let t = table();
         assert!(t.lookup(&ModelId::from("claude-sonnet-4-6")).is_some());

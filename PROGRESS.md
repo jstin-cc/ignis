@@ -177,9 +177,16 @@ reproduzieren, `2.0.0` getaggt + GitHub Release publiziert.
 
 Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
 
-- [ ] **#1 `pricing.json` re-verifizieren** — Werte gegen aktuelle Anthropic-Preisliste
-      abgleichen, Datum auf heute setzen, Quelle in `docs/pricing.md` dokumentieren,
-      Auto-Reload-Test ergänzen (**erster Schritt — sofort starten**)
+- [x] **#1 `pricing.json` re-verifiziert (2026-04-27)** — Werte gegen platform.claude.com
+      abgeglichen: Opus 4.7/4.6 von $15/$75 → $5/$25 (−66 %), Haiku 4.5 von $0.80/$4 →
+      $1/$5 (+25 %), Sonnet 4.6 unverändert. Cache-Read- und Cache-Write-5m/1h-Preise
+      mit aktualisiert. `source`-Feld in `pricing.json` ergänzt. `docs/pricing.md`:
+      Beispiel-Snippet aktualisiert, Platzhalter-Note entfernt, §7 um Verifikations-
+      Historie erweitert. Drei neue Tests in `src/pricing.rs`: `embedded_default_has_current_models`
+      (vier Pflicht-Modelle vorhanden), `opus_47_pricing_matches_anthropic_2026_04`,
+      `haiku_45_pricing_matches_anthropic_2026_04`. Auto-Reload als Akzeptanzkriterium
+      gestrichen — widerspricht ADR-004 (`include_str!`-embedded). 11 Pricing-Tests grün,
+      62 Tests gesamt, Clippy + fmt clean.
 - [ ] #2 Settings als eigener Tab (statt Overlay)
 - [ ] #3 History-Tab: echte 30-Tage-Projektdaten (`range=30days`)
 - [ ] #4 `export --output <file>` Polish (Pfad-Validierung, `--force`, atomarer Write, Tests)
@@ -339,6 +346,20 @@ Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### [Unreleased]
+
+#### Changed
+- `pricing.json` re-verifiziert gegen platform.claude.com (Stand 2026-04-27):
+  Opus 4.7/4.6 input $15 → $5, output $75 → $25 (cache_read $1.50 → $0.50,
+  cache_write_5m $18.75 → $6.25, cache_write_1h $30 → $10);
+  Haiku 4.5 input $0.80 → $1.00, output $4 → $5 (cache_read $0.08 → $0.10,
+  cache_write_5m $1.00 → $1.25, cache_write_1h $1.60 → $2.00);
+  Sonnet 4.6 unverändert. `source`-Feld in `pricing.json` ergänzt.
+- `docs/pricing.md` §7: Verifikations-Historie + verlinkte Primärquelle.
+
+#### Added
+- Drei neue Pricing-Tests in `src/pricing.rs`:
+  `embedded_default_has_current_models`, `opus_47_pricing_matches_anthropic_2026_04`,
+  `haiku_45_pricing_matches_anthropic_2026_04`.
 
 ### [1.2.0] — 2026-04-24
 
