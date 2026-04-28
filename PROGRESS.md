@@ -528,6 +528,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `.github/ISSUE_TEMPLATE/`: Bug, Feature, Question — drei Templates für Public-Repo.
 - Repo `jstin-cc/ignis` war bereits public; Authenticode: won't fix (ADR-016 / kein Cert).
 - Stabilitäts-Audit bestanden: alle Features getestet, keine P0/P1.
+- `docs/screenshots/`: tray-today.png, tray-heatmap.png, tray-settings.png — live in README.
 
 #### Added (v1.7.0)
 - `.github/workflows/release.yml`: Release-Workflow (triggt auf `v*`-Tags), baut
