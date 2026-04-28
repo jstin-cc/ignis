@@ -346,13 +346,15 @@ Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
 - [x] **#8 Versionierungs-Doku (2026-04-28)** — `docs/release.md` um
       SemVer-Regeln-Abschnitt erweitert: MAJOR/MINOR/PATCH-Trigger-Tabelle,
       Definition von Breaking Change, Changelog-Workflow (Unreleased → getaggt).
-- [ ] **#1 Repo public schalten** — `gh repo edit jstin-cc/ignis --visibility public`;
-      Secrets-Audit, Issue-Templates, Discussions an. Braucht User-Aktion.
+- [x] **#1 Repo public schalten (2026-04-28)** — Repo `jstin-cc/ignis` war bereits
+      public. Issue-Templates Bug/Feature/Question unter `.github/ISSUE_TEMPLATE/`
+      angelegt. Discussions: manuell in GitHub-Repo-Settings aktivierbar (UI-Only).
 - [ ] **#6 Stabilitäts-Audit** — manueller Test-Run aller Features auf
       frischer Win11-VM; keine offenen P0/P1. Braucht User-Aktion.
-- [ ] **#7 Authenticode-Signing** — OV-/EV-Cert oder dokumentierter Defer.
-      ADR-016 sagt Revisit bei v2.0; SmartScreen-Workaround in README bereits
-      dokumentiert. Braucht Entscheidung: Cert kaufen oder defer auf v2.1.
+- [-] **#7 Authenticode-Signing** — kein Cert (Kosten nicht gerechtfertigt vor
+      erstem Nutzer-Feedback). SmartScreen-Workaround „Weitere Infos → Trotzdem
+      ausführen" ist in README und `docs/release.md` dokumentiert. ADR-016
+      deckt die Entscheidung ab. Defer auf unbestimmt.
 
 ### Lokale Hotfixes (nicht im Repo — nur Installations-Reparaturen)
 
@@ -504,7 +506,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### [Unreleased]
 
-#### Added (v2.0.0 prep)
+#### Added (v2.0.0 prep — 2026-04-28)
 - `LICENSE` — MIT, Copyright 2026 Justin Strittmatter. ADR-017 dokumentiert Wahl.
 - `CONTRIBUTING.md` — Branch-Strategie, PR-Prozess, Review-Checkliste, Build-Setup,
   ADR-Prozess-Template.
@@ -517,6 +519,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `docs/release.md` SemVer-Regeln: MAJOR/MINOR/PATCH-Trigger, Breaking-Change-Definition,
   Changelog-Workflow.
 - ADR-017 — MIT-Lizenz (in `DECISIONS.md`).
+- `.github/ISSUE_TEMPLATE/`: Bug, Feature, Question — drei Templates für Public-Repo.
+- Repo `jstin-cc/ignis` war bereits public; Authenticode: won't fix (ADR-016 / kein Cert).
 
 #### Added (v1.7.0)
 - `.github/workflows/release.yml`: Release-Workflow (triggt auf `v*`-Tags), baut
