@@ -94,7 +94,8 @@ fn write_tokens(access_token: &str, refresh_token: &str, expires_at: i64) -> Res
 
 async fn do_refresh(client: &reqwest::Client, refresh_token: &str) -> Result<OAuthEntry, String> {
     const CLIENT_ID: &str = "9d1c250a-e61b-44d9-88ed-5944d1962f5e";
-    const SCOPE: &str = "user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload";
+    const SCOPE: &str =
+        "user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload";
 
     let body = serde_json::json!({
         "grant_type": "refresh_token",
@@ -226,10 +227,19 @@ fn parse_extra(v: &serde_json::Value) -> Option<ExtraUsage> {
     if v.is_null() || !v.is_object() {
         return None;
     }
-    let is_enabled = v.get("is_enabled").and_then(|x| x.as_bool()).unwrap_or(false);
+    let is_enabled = v
+        .get("is_enabled")
+        .and_then(|x| x.as_bool())
+        .unwrap_or(false);
     // Credits may be integer or float in the JSON response.
-    let used_cents = v.get("used_credits").and_then(|x| x.as_f64()).unwrap_or(0.0);
-    let limit_cents = v.get("monthly_limit").and_then(|x| x.as_f64()).unwrap_or(0.0);
+    let used_cents = v
+        .get("used_credits")
+        .and_then(|x| x.as_f64())
+        .unwrap_or(0.0);
+    let limit_cents = v
+        .get("monthly_limit")
+        .and_then(|x| x.as_f64())
+        .unwrap_or(0.0);
     let is_unlimited = limit_cents <= 0.0;
     let pct = if !is_unlimited && limit_cents > 0.0 {
         ((used_cents / limit_cents * 100.0).clamp(0.0, 100.0)) as u8
@@ -333,8 +343,12 @@ struct UpdateCheckResult {
 
 #[tauri::command]
 fn get_first_run_seen() -> bool {
-    let Ok(path) = config_path() else { return false };
-    let Ok(val) = read_config_json(&path) else { return false };
+    let Ok(path) = config_path() else {
+        return false;
+    };
+    let Ok(val) = read_config_json(&path) else {
+        return false;
+    };
     val.get("first_run_seen")
         .and_then(|v| v.as_bool())
         .unwrap_or(false)
@@ -342,24 +356,18 @@ fn get_first_run_seen() -> bool {
 
 #[tauri::command]
 fn set_first_run_seen() -> Result<(), String> {
-    let path = config_path()?;
-    let mut val = read_config_json(&path)?;
-    val["first_run_seen"] = serde_json::json!(true);
-    write_config_json(&path, &val)
+    mutate_config_json(|val| {
+        val["first_run_seen"] = serde_json::json!(true);
+        Ok(())
+    })
 }
 
 #[tauri::command]
 fn get_api_token() -> Result<String, String> {
-    let appdata = std::env::var("APPDATA")
-        .or_else(|_| std::env::var("HOME").map(|h| format!("{h}/.config")))
-        .map_err(|e| e.to_string())?;
-    let path = std::path::PathBuf::from(appdata)
-        .join("ignis")
-        .join("config.json");
-    let raw = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
-    let val: serde_json::Value = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
-    val["api_token"]
-        .as_str()
+    let path = config_path()?;
+    let val = read_config_json(&path)?;
+    val.get("api_token")
+        .and_then(|v| v.as_str())
         .map(|s| s.to_owned())
         .ok_or_else(|| "api_token not found in config".to_owned())
 }
@@ -374,13 +382,15 @@ struct PlanConfigDto {
     monthly_budget_usd: Option<f64>,
 }
 
-fn config_path() -> Result<std::path::PathBuf, String> {
-    let appdata = std::env::var("APPDATA")
+fn appdata_root() -> Result<std::path::PathBuf, String> {
+    let raw = std::env::var("APPDATA")
         .or_else(|_| std::env::var("HOME").map(|h| format!("{h}/.config")))
         .map_err(|e| e.to_string())?;
-    Ok(std::path::PathBuf::from(appdata)
-        .join("winusage")
-        .join("config.json"))
+    Ok(std::path::PathBuf::from(raw))
+}
+
+fn config_path() -> Result<std::path::PathBuf, String> {
+    Ok(appdata_root()?.join("ignis").join("config.json"))
 }
 
 fn read_config_json(path: &std::path::Path) -> Result<serde_json::Value, String> {
@@ -397,6 +407,99 @@ fn write_config_json(path: &std::path::Path, val: &serde_json::Value) -> Result<
     }
     let json = serde_json::to_string_pretty(val).map_err(|e| e.to_string())?;
     std::fs::write(path, json).map_err(|e| e.to_string())
+}
+
+/// Read → mutate → write the canonical Tray-Host config.
+/// `f` receives the parsed JSON value (always an object). On `Err`, no write happens.
+fn mutate_config_json<F>(f: F) -> Result<(), String>
+where
+    F: FnOnce(&mut serde_json::Value) -> Result<(), String>,
+{
+    let path = config_path()?;
+    let mut val = read_config_json(&path)?;
+    if !val.is_object() {
+        val = serde_json::json!({});
+    }
+    f(&mut val)?;
+    write_config_json(&path, &val)
+}
+
+/// Helper: ensure `plan`-sub-object exists and pass it as `&mut Map` to `f`.
+fn mutate_plan<F>(f: F) -> Result<(), String>
+where
+    F: FnOnce(&mut serde_json::Map<String, serde_json::Value>) -> Result<(), String>,
+{
+    mutate_config_json(|val| {
+        let obj = val
+            .as_object_mut()
+            .ok_or_else(|| "config root is not an object".to_owned())?;
+        let plan = obj
+            .entry("plan")
+            .or_insert_with(|| serde_json::json!({}))
+            .as_object_mut()
+            .ok_or_else(|| "config.plan is not an object".to_owned())?;
+        f(plan)
+    })
+}
+
+/// Pre-v2.0.1 the Tray host wrote plan/threshold/budget/first_run_seen into
+/// `%APPDATA%\winusage\config.json`, while the core read its config from
+/// `%APPDATA%\ignis\config.json`. Result: settings never reached the core.
+/// On startup we merge legacy fields into the canonical ignis-config (target
+/// wins on collisions) and rename the legacy file to `.bak`. Best-effort —
+/// failure is logged and ignored, never crashes the host.
+fn migrate_legacy_config() {
+    let Ok(root) = appdata_root() else { return };
+    let legacy = root.join("winusage").join("config.json");
+    if !legacy.exists() {
+        return;
+    }
+    let target = match config_path() {
+        Ok(p) => p,
+        Err(_) => return,
+    };
+
+    let legacy_raw = match std::fs::read_to_string(&legacy) {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("legacy-config read failed: {e}");
+            return;
+        }
+    };
+    let legacy_val: serde_json::Value = match serde_json::from_str(&legacy_raw) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("legacy-config parse failed: {e}");
+            return;
+        }
+    };
+
+    let mut target_val = read_config_json(&target).unwrap_or_else(|_| serde_json::json!({}));
+    if !target_val.is_object() {
+        target_val = serde_json::json!({});
+    }
+
+    if let (Some(legacy_obj), Some(target_obj)) =
+        (legacy_val.as_object(), target_val.as_object_mut())
+    {
+        for key in ["plan", "first_run_seen"] {
+            if let Some(v) = legacy_obj.get(key) {
+                target_obj
+                    .entry(key.to_owned())
+                    .or_insert_with(|| v.clone());
+            }
+        }
+    }
+
+    if let Err(e) = write_config_json(&target, &target_val) {
+        eprintln!("legacy-config merge write failed: {e}");
+        return;
+    }
+
+    let bak = legacy.with_file_name("config.json.bak");
+    if let Err(e) = std::fs::rename(&legacy, &bak) {
+        eprintln!("legacy-config rename to .bak failed: {e}");
+    }
 }
 
 #[tauri::command]
@@ -442,70 +545,55 @@ fn set_plan_config(
     custom_token_limit: Option<u64>,
     usage_poll_interval_secs: Option<u32>,
 ) -> Result<(), String> {
-    let path = config_path()?;
-    let mut val = read_config_json(&path)?;
-    {
-        let plan = val
-            .as_object_mut()
-            .ok_or_else(|| "config is not an object".to_owned())?
-            .entry("plan")
-            .or_insert(serde_json::json!({}));
-        plan["kind"] = serde_json::json!(kind);
+    mutate_plan(|plan| {
+        plan.insert("kind".into(), serde_json::json!(kind));
         match custom_token_limit {
-            Some(limit) => plan["custom_token_limit"] = serde_json::json!(limit),
+            Some(limit) => {
+                plan.insert("custom_token_limit".into(), serde_json::json!(limit));
+            }
             None => {
-                plan.as_object_mut().map(|m| m.remove("custom_token_limit"));
+                plan.remove("custom_token_limit");
             }
         }
         if let Some(secs) = usage_poll_interval_secs {
-            plan["usage_poll_interval_secs"] = serde_json::json!(secs);
+            plan.insert("usage_poll_interval_secs".into(), serde_json::json!(secs));
         }
-    }
-    write_config_json(&path, &val)
+        Ok(())
+    })
 }
 
 #[tauri::command]
 fn set_alert_thresholds(thresholds: Vec<u8>) -> Result<(), String> {
-    let path = config_path()?;
-    let mut val = read_config_json(&path)?;
-    {
-        let plan = val
-            .as_object_mut()
-            .ok_or_else(|| "config is not an object".to_owned())?
-            .entry("plan")
-            .or_insert(serde_json::json!({}));
-        plan["block_alert_thresholds"] = serde_json::json!(thresholds);
-    }
-    write_config_json(&path, &val)
+    mutate_plan(|plan| {
+        plan.insert(
+            "block_alert_thresholds".into(),
+            serde_json::json!(thresholds),
+        );
+        Ok(())
+    })
 }
 
 #[tauri::command]
-fn set_budget_caps(
-    weekly_usd: Option<f64>,
-    monthly_usd: Option<f64>,
-) -> Result<(), String> {
-    let path = config_path()?;
-    let mut val = read_config_json(&path)?;
-    {
-        let plan = val
-            .as_object_mut()
-            .ok_or_else(|| "config is not an object".to_owned())?
-            .entry("plan")
-            .or_insert(serde_json::json!({}));
+fn set_budget_caps(weekly_usd: Option<f64>, monthly_usd: Option<f64>) -> Result<(), String> {
+    mutate_plan(|plan| {
         match weekly_usd {
-            Some(v) => plan["weekly_budget_usd"] = serde_json::json!(v),
+            Some(v) => {
+                plan.insert("weekly_budget_usd".into(), serde_json::json!(v));
+            }
             None => {
-                plan.as_object_mut().map(|m| m.remove("weekly_budget_usd"));
+                plan.remove("weekly_budget_usd");
             }
         }
         match monthly_usd {
-            Some(v) => plan["monthly_budget_usd"] = serde_json::json!(v),
+            Some(v) => {
+                plan.insert("monthly_budget_usd".into(), serde_json::json!(v));
+            }
             None => {
-                plan.as_object_mut().map(|m| m.remove("monthly_budget_usd"));
+                plan.remove("monthly_budget_usd");
             }
         }
-    }
-    write_config_json(&path, &val)
+        Ok(())
+    })
 }
 
 #[tauri::command]
@@ -540,6 +628,7 @@ async fn install_update(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 fn main() {
+    migrate_legacy_config();
     let api_child = spawn_api();
 
     let app = tauri::Builder::default()

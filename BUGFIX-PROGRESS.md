@@ -237,3 +237,4 @@ Reihenfolge der Fixes (Empfehlung aus Review):
 2026-04-20 · #19+#20 · winusage: NO_COLOR-Spec, export --output · 0ee5b3d
 2026-04-20 · #16 · aggregate: sidechain_cost_usd + sidechain_event_count in Summary (ADR-012) · e3b8877
 2026-04-24 · #27 · ignis-api als externalBin + beforeBuildCommand; ignis-watch entfernt (ADR-015) · (pending)
+2026-04-28 · A1+C5 · Tray-Config-Pfad winusage→ignis vereinheitlicht, mutate_config_json/mutate_plan-Helper, Migration für Legacy-winusage-config.json · (siehe Commit)

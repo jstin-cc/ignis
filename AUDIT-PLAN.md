@@ -15,7 +15,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 
 ## P0 — Defekte, falsche Daten oder kaputte UX
 
-### [ ] A1 — Tray schreibt Plan/Schwellen/Budget in falsche Config-Datei
+### [x] A1 — Tray schreibt Plan/Schwellen/Budget in falsche Config-Datei
 
 - **Bereich:** Bug · Tray-Host
 - **Datei:** `tray/src-tauri/src/main.rs:377-384` (`config_path()`)
@@ -302,7 +302,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 - **Aufwand:** M (zusammen)
 - **Reihenfolge:** Niedrige Prio.
 
-### [ ] C5 — Lange Tauri-Commands für Config-Mutation
+### [x] C5 — Lange Tauri-Commands für Config-Mutation
 
 - **Bereich:** Code-Qualität
 - **Datei:** `tray/src-tauri/src/main.rs` (mehrere `set_*`-Commands)

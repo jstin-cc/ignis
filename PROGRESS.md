@@ -518,6 +518,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Panic-Pfade in Produktion (B7) u. a. Phase 2 startet erst nach
   expliziter Freigabe.
 
+#### Fixed
+- **A1 + C5 (2026-04-28)** — Tray-Host schreibt nicht länger nach
+  `%APPDATA%\winusage\config.json` während der Core aus
+  `%APPDATA%\ignis\config.json` liest. `config_path()` zeigt jetzt
+  einheitlich auf `ignis`. Plan-, Threshold-, Budget- und
+  First-Run-Settings landen damit in der vom Core gelesenen Datei.
+  Neue Helper `mutate_config_json` und `mutate_plan` ersetzen das
+  Read→Modify→Write-Boilerplate in vier `set_*`-Commands. Beim Start
+  läuft `migrate_legacy_config()`: vorhandene Legacy-Felder
+  (`plan`, `first_run_seen`) werden in die ignis-Config gemerged
+  (Target gewinnt bei Kollision), die alte Datei nach
+  `config.json.bak` umbenannt. Best-effort, keine Crashes.
+  74 Lib-Tests grün, clippy + fmt clean (workspace + tray/src-tauri).
+
 ---
 
 ### [2.0.0] — 2026-04-28
