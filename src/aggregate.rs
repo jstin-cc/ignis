@@ -285,7 +285,14 @@ pub fn build_hourly_heatmap(
 
     // Monday 00:00 local → UTC.
     let week_start_local = Local
-        .with_ymd_and_hms(local_now.year(), local_now.month(), local_now.day(), 0, 0, 0)
+        .with_ymd_and_hms(
+            local_now.year(),
+            local_now.month(),
+            local_now.day(),
+            0,
+            0,
+            0,
+        )
         .single()
         .expect("midnight is always valid")
         - Duration::days(days_since_monday);

@@ -46,7 +46,9 @@ jobs:
         run: cargo build --release --bin ignis-api
 
       - name: Copy sidecar binary
-        run: copy target\release\ignis-api.exe tray\src-tauri\binaries\ignis-api-x86_64-pc-windows-msvc.exe
+        run: |
+          New-Item -ItemType Directory -Force -Path tray\src-tauri\binaries | Out-Null
+          Copy-Item target\release\ignis-api.exe tray\src-tauri\binaries\ignis-api-x86_64-pc-windows-msvc.exe
 
       - name: Build & bundle Tauri app
         uses: tauri-apps/tauri-action@v0

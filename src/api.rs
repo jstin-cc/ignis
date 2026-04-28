@@ -492,24 +492,22 @@ async fn heatmap_handler(
     let snap = state.read_snapshot();
 
     match params.granularity.as_deref() {
-        Some("hour") => {
-            match params.range.as_deref().unwrap_or("week") {
-                "week" => {
-                    let hours: Vec<HeatmapHourDto> =
-                        snap.hourly_heatmap_week.iter().map(Into::into).collect();
-                    Json(hours).into_response()
-                }
-                other => error_response(
-                    StatusCode::BAD_REQUEST,
-                    "bad_request",
-                    if other == "today" {
-                        "range=today not supported; use granularity=hour&range=week and filter client-side"
-                    } else {
-                        "Invalid 'range' for granularity=hour. Use 'week'."
-                    },
-                ),
+        Some("hour") => match params.range.as_deref().unwrap_or("week") {
+            "week" => {
+                let hours: Vec<HeatmapHourDto> =
+                    snap.hourly_heatmap_week.iter().map(Into::into).collect();
+                Json(hours).into_response()
             }
-        }
+            other => error_response(
+                StatusCode::BAD_REQUEST,
+                "bad_request",
+                if other == "today" {
+                    "range=today not supported; use granularity=hour&range=week and filter client-side"
+                } else {
+                    "Invalid 'range' for granularity=hour. Use 'week'."
+                },
+            ),
+        },
         None | Some("day") => {
             let days: Vec<HeatmapDayDto> = snap
                 .heatmap
