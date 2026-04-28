@@ -319,9 +319,40 @@ Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
       Schritt, Signing-Key-Setup (einmalig), Rollback-Prozedur (Tag löschen, Release archivieren,
       `latest.json` patchen, Hotfix-Release), SmartScreen-Hinweis.
 
-### v2.0.0 Backlog
+### v2.0.0 — Public-Release-Reife (in Arbeit)
 
-Reihenfolge und Inhalt siehe Roadmap-Abschnitt oben (v2.0.0 Public).
+Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
+
+- [x] **#2 LICENSE (2026-04-28)** — MIT-Lizenz; `LICENSE`-Datei im Repo-Root.
+      ADR-017 in `DECISIONS.md` dokumentiert Entscheidung (MIT vs. Apache-2.0
+      vs. GPL; Begründung: permissiv, kein Patent-Risiko, passt zum Entwickler-Tool).
+- [x] **#3 README mit Screenshots-Struktur (2026-04-28)** — Vollständige
+      Neufassung von `README.md`: CI- und License-Badge, Feature-Tabelle,
+      Install-Steps (MSI-Download + SmartScreen-Hinweis), Quick-start (CLI +
+      Tray + API), Config-Tabelle, HTTP-API-Schnellreferenz, Status-Tabelle
+      (v1.7.0-Stand, ignis-watch entfernt), Architektur-Übersicht, Links zu
+      CONTRIBUTING + CODE_OF_CONDUCT. Screenshot-Platzhalter vorhanden —
+      echte Screenshots werden nach erstem Public-Build eingesetzt.
+- [x] **#4 CONTRIBUTING.md + CODE_OF_CONDUCT.md (2026-04-28)** —
+      `CONTRIBUTING.md`: Branch-Strategie (main + feature/fix/docs), PR-Prozess,
+      Review-Checkliste, lokales Build-Setup (Rust + Node + Tauri + WebView2),
+      Code-Stil-Kurzfassung, ADR-Prozess mit Template.
+      `CODE_OF_CONDUCT.md`: Contributor Covenant 2.1; Kontakt-Mail eingetragen.
+- [x] **#5 API-Schema-Stabilität (2026-04-28)** — `docs/api.md` §4 vollständig
+      überarbeitet: `/v1/*` ab v2.0.0 stabil markiert, Tabelle erlaubter vs.
+      brechender Änderungen, Deprecation-Policy (1 Minor-Release Vorlauf,
+      `health`-Response-Feld `"deprecations"`), `/v2/*`-Pfad-Reservation
+      dokumentiert.
+- [x] **#8 Versionierungs-Doku (2026-04-28)** — `docs/release.md` um
+      SemVer-Regeln-Abschnitt erweitert: MAJOR/MINOR/PATCH-Trigger-Tabelle,
+      Definition von Breaking Change, Changelog-Workflow (Unreleased → getaggt).
+- [ ] **#1 Repo public schalten** — `gh repo edit jstin-cc/ignis --visibility public`;
+      Secrets-Audit, Issue-Templates, Discussions an. Braucht User-Aktion.
+- [ ] **#6 Stabilitäts-Audit** — manueller Test-Run aller Features auf
+      frischer Win11-VM; keine offenen P0/P1. Braucht User-Aktion.
+- [ ] **#7 Authenticode-Signing** — OV-/EV-Cert oder dokumentierter Defer.
+      ADR-016 sagt Revisit bei v2.0; SmartScreen-Workaround in README bereits
+      dokumentiert. Braucht Entscheidung: Cert kaufen oder defer auf v2.1.
 
 ### Lokale Hotfixes (nicht im Repo — nur Installations-Reparaturen)
 
@@ -472,6 +503,20 @@ Details und Abhängigkeitsgraph: `PLAN-UEBERARBEITUNG.md`
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### [Unreleased]
+
+#### Added (v2.0.0 prep)
+- `LICENSE` — MIT, Copyright 2026 Justin Strittmatter. ADR-017 dokumentiert Wahl.
+- `CONTRIBUTING.md` — Branch-Strategie, PR-Prozess, Review-Checkliste, Build-Setup,
+  ADR-Prozess-Template.
+- `CODE_OF_CONDUCT.md` — Contributor Covenant 2.1.
+- `README.md` vollständig neu: CI/License-Badge, Feature-Tabelle, Install-Steps,
+  Quick-start (CLI + Tray + API), Config-Tabelle, HTTP-API-Schnellreferenz,
+  Status-Tabelle v1.7.0, Architektur-Baum, SmartScreen-Hinweis.
+- `docs/api.md` §4 Stabilitäts-Garantie: `/v1/*` ab v2.0 stabil, Deprecation-Policy,
+  `/v2/*`-Reservation.
+- `docs/release.md` SemVer-Regeln: MAJOR/MINOR/PATCH-Trigger, Breaking-Change-Definition,
+  Changelog-Workflow.
+- ADR-017 — MIT-Lizenz (in `DECISIONS.md`).
 
 #### Added (v1.7.0)
 - `.github/workflows/release.yml`: Release-Workflow (triggt auf `v*`-Tags), baut

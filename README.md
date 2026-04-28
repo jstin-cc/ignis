@@ -1,87 +1,171 @@
 # Ignis
 
+[![CI](https://github.com/jstin-cc/ignis/actions/workflows/ci.yml/badge.svg)](https://github.com/jstin-cc/ignis/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Windows-native local usage tracker for Claude Code. Reads JSONL logs from
 `%USERPROFILE%\.claude\projects\` and surfaces token consumption, cost and
-session status via three interfaces:
+session status — entirely local, no cloud, no account.
 
-1. **System-Tray app** (Tauri 2 + React 18.3) — primary UI. Spawns the HTTP API
-   internally; nothing else to start.
-2. **Terminal CLI** (`ignis daily`, `ignis monthly`, `ignis session`,
-   `ignis export`).
-3. **Live TUI** (`ignis-watch`) — ratatui-based dashboard with burn-rate,
-   billing-block progress and by-model breakdown.
-4. **Local HTTP API** on `127.0.0.1:7337` for statuslines, editor plugins and scripts.
+---
 
-All data stays local. No cloud, no telemetry, no account.
+<!-- Screenshot: tray panel open, Today-tab visible -->
+> **Screenshot coming soon** — run `npm run tauri dev` in `tray/` to see the
+> live UI.
 
-## Status
+---
 
-**v1.1.0 (2026-04-23).** Tray-UI redesigned: TabBar navigation, Design-System
-tokens (IBM Plex fonts), CSS-based progress bars with colour thresholds,
-and port-conflict safety for the auto-spawned API.
+## Features
 
-| Module | State |
-|---|---|
-| `src/model.rs` · `parser.rs` · `pricing.rs` · `aggregate.rs` | ✅ |
-| `src/scanner.rs` — full + delta scan, NTFS file-identity | ✅ |
-| `src/provider.rs` — `Provider` trait + `ClaudeCodeProvider` (ADR-012) | ✅ |
-| CLI: `ignis daily / monthly / session / scan / export` | ✅ |
-| Live TUI: `ignis-watch` (burn-rate, 5 h billing blocks) | ✅ |
-| HTTP API: `/health`, `/v1/summary`, `/v1/sessions`, `/v1/heatmap` + CORS | ✅ |
-| Tray app: TabBar (Today / Month / Projects / Heatmap) | ✅ |
-| Tray: Usage-Balken (5h-Block, Woche, Extra) via Anthropic OAuth | ✅ |
-| Tray: Plan-Settings (Pro / Max5 / Max20 / Custom) im ⚙-Overlay | ✅ |
-| Tray: auto-spawns `ignis-api`, Port-7337-Konflikt-Check | ✅ |
-| Tray: notifications (80 % / 100 % block), auto-start, auto-update | ✅ |
-| Installer (MSI + NSIS via Tauri Bundler) | ✅ |
+| Interface | What you get |
+|-----------|-------------|
+| **System-tray app** | Today / Month / Projects / Heatmap / Settings tabs. Spawns the API internally — nothing extra to start. |
+| **CLI** (`ignis`) | `daily`, `monthly`, `session`, `scan`, `export` subcommands. Copy-pasteable output. |
+| **Local HTTP API** | `127.0.0.1:7337` with Bearer-token auth. Stable `/v1/*` endpoints for statuslines, editor plugins and scripts. |
 
-See `PROGRESS.md` for the full phase breakdown,
-`DECISIONS.md` for architecture decisions (ADR-001 – ADR-013), and
-`CHANGELOG.md` for release notes.
+**Highlights**
 
-## Quick start (dev)
+- 5-hour billing-block progress bar with configurable alert thresholds (50 / 75 / 90 / 100 %)
+- Week × 24 h heatmap with per-hour token intensity
+- Budget caps (weekly / monthly USD) with crossing notifications
+- Auto-update via GitHub Releases (ed25519-signed manifests)
+- First-run wizard; empty-state hint when no JSONL found
+- Export to JSON or CSV (`ignis export --format json --output report.json`)
+
+---
+
+## Install
+
+Download the latest NSIS installer from
+[**GitHub Releases**](https://github.com/jstin-cc/ignis/releases/latest).
+
+> **SmartScreen notice:** Ignis installers are signed with an ed25519 key for
+> the auto-updater but do not yet carry an Authenticode certificate. Windows
+> SmartScreen will show a warning on first install. Click **"More info → Run
+> anyway"** to proceed. See [ADR-016](DECISIONS.md) for the rationale.
+
+---
+
+## Quick start — development
+
+### Prerequisites
+
+| Tool | Minimum version |
+|------|----------------|
+| Rust | 1.75 |
+| Node | 20 LTS |
+| WebView2 | ships with Windows 11 |
 
 ```powershell
-# Requires Rust 1.75+
-cargo test                          # 57 tests, all green
-cargo run --example scan            # full scan → JSON summary on stdout
-cargo run --bin ignis -- daily      # today's usage as ASCII table
-cargo run --bin ignis-watch         # live TUI (q to quit, d/m for views)
-cargo run --bin ignis-api           # start HTTP API on 127.0.0.1:7337
+# Core library + CLI
+cargo test                                    # 77 tests, all green
+cargo run --bin ignis -- daily                # today's usage
+
+# HTTP API (port 7337)
+cargo run --bin ignis-api
+
+# Tray app (hot-reload)
+cd tray
+npm ci
+npm run tauri dev
 ```
 
-## Tray app (Windows)
+### Release build + installer
 
 ```powershell
 cd tray
-npm install
-npm run build                        # build the React frontend
-cd src-tauri
-cargo build --release                # or: npm run tauri build  (adds MSI + NSIS)
+npm ci
+npm run tauri build    # MSI + NSIS under tray/src-tauri/target/release/bundle/
 ```
 
-The resulting `ignis-tray.exe` spawns `ignis-api.exe` as a child process
-on startup and terminates it on quit — no manual backend launch required
-(see ADR-013). `ignis-api.exe` is looked up next to the tray binary or under
-`target/release` during development.
-
-Requires [Tauri prerequisites](https://tauri.app/start/prerequisites/) (WebView2, Rust, Node).
-
-### Tray controls
-
-- **Left-click tray icon** — toggle panel visibility
-- **Right-click tray icon → Quit** — terminate the app (the window ✕-button only hides)
-- **Header drag-region** — reposition the panel
-- **Dashboard button** — launches `ignis-watch` in a new console
-- **CLI button** — copies `ignis` to the clipboard
+---
 
 ## Configuration
 
-`%APPDATA%\ignis\config.json` — holds the auto-generated `api_token` (32 hex
-chars, `getrandom`) and the Claude-projects directory. Created on first run of
-either `ignis-api` or the tray.
+`%APPDATA%\ignis\config.json` — created automatically on first run.
 
-## Repository
+| Key | Default | Description |
+|-----|---------|-------------|
+| `api_token` | auto-generated | 32-byte hex Bearer token for `/v1/*` |
+| `plan` | `max5` | Claude plan (pro / max5 / max20 / custom) |
+| `block_alert_thresholds` | `[50,75,90,100]` | % thresholds for block notifications |
+| `weekly_budget_usd` | `null` | Optional weekly cost cap |
+| `monthly_budget_usd` | `null` | Optional monthly cost cap |
+| `auto_start` | `false` | Launch at Windows login |
 
-Private (`jstin-cc/ignis`). Tech stack, constraints and design decisions
-are documented in `CLAUDE.md` and `docs/`.
+---
+
+## HTTP API — quick reference
+
+```
+GET http://127.0.0.1:7337/health
+GET http://127.0.0.1:7337/v1/summary?range=today|week|month|30days|all
+GET http://127.0.0.1:7337/v1/sessions?limit=100&active=true
+GET http://127.0.0.1:7337/v1/heatmap?granularity=day|hour&range=12weeks|week
+GET http://127.0.0.1:7337/v1/burn-rate
+```
+
+All `/v1/*` endpoints require `Authorization: Bearer <token>`.
+Monetary values are **strings** (not floats) to preserve decimal precision.
+Full schema: [`docs/api.md`](docs/api.md).
+
+---
+
+## Status
+
+**v1.7.0 (2026-04-27).** Auto-Update production-ready; v1.3–v1.7 features shipped.
+
+| Module | State |
+|--------|-------|
+| Core: `model` · `parser` · `pricing` · `aggregate` · `scanner` · `config` | ✅ |
+| `src/provider.rs` — `Provider` trait + `ClaudeCodeProvider` (ADR-012) | ✅ |
+| CLI: `ignis daily / monthly / session / scan / export` | ✅ |
+| HTTP API: `/health`, `/v1/summary`, `/v1/sessions`, `/v1/heatmap`, `/v1/burn-rate` | ✅ |
+| Tray: TabBar (Today / Month / Projects / Heatmap / Settings) | ✅ |
+| Tray: Wochen-Heatmap 7×24 h + Today-Sparkline | ✅ |
+| Tray: Budget-Schwellen + Notifications | ✅ |
+| Tray: First-Run-Wizard + Empty-State | ✅ |
+| Tray: Anthropic OAuth usage bars (5 h block / week / extra) | ✅ |
+| Tray: Plan settings (Pro / Max5 / Max20 / Custom) | ✅ |
+| Tray: Auto-spawns `ignis-api`, port-7337 conflict check | ✅ |
+| Tray: Auto-update + Release-Notes + Install button | ✅ |
+| Installer (MSI + NSIS via Tauri Bundler) | ✅ |
+| CI (Windows runner: fmt + clippy + test) | ✅ |
+
+---
+
+## Architecture
+
+```
+ignis (CLI binary)
+ignis-api (HTTP API binary, spawned by tray)
+├── src/lib.rs          — public API of ignis-core
+│   ├── model.rs        — data types
+│   ├── parser.rs       — JSONL line parser
+│   ├── pricing.rs      — embedded pricing table
+│   ├── aggregate.rs    — snapshot builder
+│   ├── scanner.rs      — file walker + incremental scan
+│   ├── provider.rs     — Provider trait
+│   └── config.rs       — config.json I/O
+└── src/api.rs          — Axum router
+
+tray/
+├── src-tauri/          — Tauri host (Rust)
+└── src/                — React 18.3 + TypeScript frontend
+```
+
+Key decisions: [`DECISIONS.md`](DECISIONS.md) (ADR-001 – ADR-016).
+Full phase breakdown: [`PROGRESS.md`](PROGRESS.md).
+
+---
+
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md). By participating you agree to the
+[Code of Conduct](CODE_OF_CONDUCT.md).
+
+---
+
+## License
+
+[MIT](LICENSE) © 2026 Justin Strittmatter

@@ -202,12 +202,31 @@ erst dann werden entsprechende CORS-Header pro Allowed-Origin ausgeliefert.
 
 ---
 
-## 4. Versionierung
+## 4. Stabilität und Versionierung
 
-- Path-Präfix `/v1/`. Breaking Changes ziehen `/v2/` nach; `/v1/` bleibt so lange
-  parallel erhalten, bis keine Clients mehr darauf zugreifen (wir loggen Hits).
-- Additive Änderungen (neue Felder) sind innerhalb `/v1/` erlaubt — Clients müssen
-  unbekannte Felder tolerieren.
+Ab **v2.0.0** sind alle `/v1/*`-Endpoints **stabil**.
+
+| Änderungsart | Erlaubt in `/v1/`? | Folge |
+|---|---|---|
+| Neues Feld in Response | Ja | Clients müssen unbekannte Felder tolerieren |
+| Neuer optionaler Query-Parameter | Ja | Rückwärtskompatibel |
+| Entfernen oder Umbenennen eines Felds | Nein | Erfordert `/v2/` |
+| Semantikänderung eines bestehenden Felds | Nein | Erfordert `/v2/` |
+| Neuer Pflicht-Parameter | Nein | Erfordert `/v2/` |
+
+### Deprecation-Policy
+
+Breaking Changes werden **mindestens einen Minor-Release** im Voraus angekündigt:
+
+1. Das bestehende Verhalten bleibt in `/v1/` erhalten.
+2. Die Deprecation wird in `PROGRESS.md` (Changelog) und in der `/health`-Response
+   unter `"deprecations"` dokumentiert.
+3. Im nächsten Minor-Release wird das neue Verhalten unter `/v2/` eingeführt.
+4. `/v1/` wird parallel betrieben bis alle bekannten Clients migriert sind.
+
+### Pfad-Reservation
+
+`/v2/*` ist für zukünftige Breaking Changes reserviert und noch nicht implementiert.
 
 ---
 

@@ -70,6 +70,34 @@ git tag vx.y.(z+1)
 git push origin vx.y.(z+1)
 ```
 
+## SemVer-Regeln
+
+Ignis folgt [Semantic Versioning 2.0.0](https://semver.org/).
+
+| Versions-Typ | Wann |
+|---|---|
+| **MAJOR** (`x+1.0.0`) | Breaking Changes an `/v1/*`-API-Schema, Entfernen von CLI-Subcommands oder -Flags, Wechsel des Config-Formats ohne Migrations-Pfad |
+| **MINOR** (`x.y+1.0`) | Neue API-Endpoints, neue CLI-Subcommands/-Flags, neue UI-Features — stets rückwärtskompatibel |
+| **PATCH** (`x.y.z+1`) | Bug-Fixes, Security-Patches, Dokumentations-Updates ohne Verhaltensänderung |
+
+### Changelog-Workflow
+
+1. Neue Einträge kommen unter `### [Unreleased]` in `PROGRESS.md`.
+2. Beim Taggen wird `[Unreleased]` → `[x.y.z] — YYYY-MM-DD` umbenannt.
+3. Der `[Unreleased]`-Link am Ende der Datei wird auf den neuen Tag angepasst.
+
+### Was ist ein Breaking Change?
+
+- Feld aus API-Response entfernt oder umbenannt
+- HTTP-Statuscode eines Endpoints geändert
+- CLI-Flag entfernt oder Semantik geändert
+- `config.json`-Schlüssel entfernt ohne automatische Migration
+
+Additive Änderungen (neues Feld, neuer optionaler Parameter, neue Zeile in CLI-Output)
+sind **kein** Breaking Change und erfordern nur ein Minor-Bump.
+
+---
+
 ## SmartScreen-Hinweis (bis v2.0)
 
 Installer sind mit Ed25519 für den Tauri-Updater signiert, aber **nicht** mit

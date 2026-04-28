@@ -264,6 +264,26 @@ Nummerierung aufsteigend. Status: `Accepted` · `Superseded` · `Rejected` · `P
   (Sub-Agent-Calls verfälschen das Signal für den Haupt-Workflow). Route `/v1/burn-rate`
   in `src/api.rs`. Frontend-Hook `tray/src/dashboard/useBurnRate.ts` pollt 30s.
 
+## ADR-017 — MIT-Lizenz
+
+- **Datum:** 2026-04-28
+- **Status:** Accepted
+- **Kontext:** Für den Public-Release (v2.0.0) wird eine OSI-anerkannte Lizenz
+  benötigt. Zur Wahl stehen MIT, Apache-2.0 und die GPL-Familie.
+- **Alternativen:**
+  - (A) **MIT** — kurz, permissiv, maximale Kompatibilität, kein Patent-Grant nötig.
+  - (B) Apache-2.0 — expliziter Patent-Grant, aber längerer Lizenztext; sinnvoll
+        wenn Patent-Risiken ein Thema sind.
+  - (C) GPL-3.0 — Copyleft; schränkt kommerzielle Einbettung ein, passt nicht
+        zum Ziel-Publikum (Entwickler, die das Tool scripten wollen).
+- **Entscheidung:** (A) MIT.
+- **Begründung:** Ignis ist ein lokales Entwickler-Werkzeug. Der Quellcode enthält
+  keine Patent-Risiken, die Apache-2.0 rechtfertigen würden. MIT ist die
+  Minimaliste-Lizenz, die Open-Source-Anforderungen erfüllt und jeden Use-Case
+  (Plugin-Integration, Forking, kommerzielle Einbettung) erlaubt.
+- **Folgen:** `LICENSE`-Datei mit MIT-Text und Copyright „2026 Justin Strittmatter"
+  im Repo-Root. Keine Lizenz-Header in Quell-Dateien erforderlich (MIT-Konvention).
+
 ## ADR-016 — Authenticode-Signierung auf v2.0 vertagen
 
 - **Datum:** 2026-04-27
