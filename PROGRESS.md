@@ -508,6 +508,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### [Unreleased]
 
+#### Added
+- `AUDIT-PLAN.md` — Post-v2.0-Audit (Phase 1, lead_engineer). Priorisierte
+  Liste aller gefundenen Punkte (P0/P1/P2): u. a. Config-Pfad-Mismatch
+  `winusage`/`ignis` im Tray-Host (A1), `ignis-api` nutzt `scan_all` statt
+  `scan_incremental` (A2), Auto-Updater-Pubkey ist Platzhalter (A3),
+  Versions-Drift über vier Manifeste (A4), doppelte ADR-Nummer 012 (B1),
+  tote `ratatui`/`crossterm`-Deps (B5), tote `apps/tray-ui/`-Spuren (B3),
+  Panic-Pfade in Produktion (B7) u. a. Phase 2 startet erst nach
+  expliziter Freigabe.
+
 ---
 
 ### [2.0.0] — 2026-04-28
