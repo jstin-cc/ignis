@@ -101,7 +101,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 
 ## P1 — Stale Dokumentation, Code-Hygiene, Robustheit
 
-### [ ] B1 — Doppelte ADR-Nummer 012 in `DECISIONS.md`
+### [x] B1 — Doppelte ADR-Nummer 012 in `DECISIONS.md`
 
 - **Bereich:** Dokumentation
 - **Datei:** `DECISIONS.md:152` (Provider-Trait, 2026-04-20) und
@@ -117,7 +117,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 - **Aufwand:** S
 - **Reihenfolge:** Sofort umsetzbar, blockiert nichts.
 
-### [ ] B2 — `BUGFIX-PROGRESS.md` referenziert tote Pfade
+### [x] B2 — `BUGFIX-PROGRESS.md` referenziert tote Pfade
 
 - **Bereich:** Dokumentation
 - **Datei:** `BUGFIX-PROGRESS.md` (mehrere Stellen, u. a. #7, #19, #5, #10)
@@ -133,7 +133,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 - **Aufwand:** S
 - **Reihenfolge:** Nach B1.
 
-### [ ] B3 — Tote `apps/tray-ui/`-Doku-Spuren
+### [x] B3 — Tote `apps/tray-ui/`-Doku-Spuren
 
 - **Bereich:** Projektstruktur
 - **Dateien:** `apps/tray-ui/` (nur `.gitkeep`, `tokens.css`, untracktes
@@ -149,7 +149,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 - **Aufwand:** S
 - **Reihenfolge:** Nach B2 (rein doku-/dateibewegend).
 
-### [ ] B4 — Stale `.gitignore`-Einträge + fehlende Build-Artefakt-Regel
+### [x] B4 — Stale `.gitignore`-Einträge + fehlende Build-Artefakt-Regel
 
 - **Bereich:** Projektstruktur
 - **Datei:** `.gitignore`
@@ -280,7 +280,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 - **Aufwand:** S
 - **Reihenfolge:** Nach C1.
 
-### [ ] C3 — `BUGFIX-PROGRESS.md` Done-Log endet auf `(pending)`
+### [x] C3 — `BUGFIX-PROGRESS.md` Done-Log endet auf `(pending)`
 
 - **Bereich:** Dokumentation
 - **Datei:** `BUGFIX-PROGRESS.md:239`
@@ -322,7 +322,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 - **Aufwand:** S
 - **Reihenfolge:** Im selben Commit wie A1.
 
-### [ ] C6 — ADR-005-Doku referenziert `winusage`-Pfad
+### [x] C6 — ADR-005-Doku referenziert `winusage`-Pfad
 
 - **Bereich:** Dokumentation
 - **Datei:** `DECISIONS.md:82`
@@ -335,7 +335,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 - **Aufwand:** S
 - **Reihenfolge:** Mit B1.
 
-### [ ] C7 — README-Status-Tabelle auf 2.0.0 hieven
+### [x] C7 — README-Status-Tabelle auf 2.0.0 hieven
 
 - **Bereich:** Dokumentation
 - **Datei:** `README.md` (Status-Tabelle, laut `PROGRESS.md` auf

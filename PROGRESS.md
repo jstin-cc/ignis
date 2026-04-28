@@ -508,6 +508,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### [Unreleased]
 
+#### Fixed (Phase 2.2+2.3 Audit-Items, 2026-04-28)
+- **C7** — README Status-Tabelle auf v2.0.0 gebracht (war noch v1.7.0-Beschriftung).
+- **B1+C6** — `DECISIONS.md` numerisch sortiert (001→018); zweite ADR-012 (Sidechain) →
+  ADR-018; ADR-005 Token-Speicherort auf `%APPDATA%\ignis\config.json#api_token` aktualisiert.
+- **B2** — `BUGFIX-PROGRESS.md`: Pfad-Migrations-Hinweis für alte `winusage*`-Pfade ergänzt.
+- **B3** — `apps/tray-ui/` gelöscht (toter Plan-Stub); Doku-Verweise in `implementer.md`,
+  `CONTRIBUTING.md` und `DESIGN.md` auf `tray/src/` aktualisiert.
+- **B4** — `.gitignore`: `apps/tray-ui/`-Einträge und `/winusage-data/` entfernt;
+  `tray/src-tauri/binaries/*.exe` hinzugefügt.
+- **C3** — Done-Log `#27` in `BUGFIX-PROGRESS.md`: `(pending)` durch echte Hashes ersetzt.
+
 #### Added
 - `AUDIT-PLAN.md` — Post-v2.0-Audit (Phase 1, lead_engineer). Priorisierte
   Liste aller gefundenen Punkte (P0/P1/P2): u. a. Config-Pfad-Mismatch

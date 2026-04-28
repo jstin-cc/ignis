@@ -117,7 +117,7 @@ Full schema: [`docs/api.md`](docs/api.md).
 
 ## Status
 
-**v1.7.0 (2026-04-27).** Auto-Update production-ready; v1.3–v1.7 features shipped.
+**v2.0.0 (2026-04-28).** Public release — stable API, CONTRIBUTING, full audit pass.
 
 | Module | State |
 |--------|-------|
