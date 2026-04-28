@@ -519,6 +519,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   expliziter Freigabe.
 
 #### Fixed
+- **A2 + B8 (2026-04-28)** — `ignis-api`-Hintergrund-Loop nutzt jetzt
+  `scan_incremental` statt `scan_all`. ADR-011-konform: unveränderte
+  Files werden nicht mehr ab Byte 0 neu eingelesen. Rotations-sichere
+  UUID-Dedup über `HashSet<String>` verhindert Doppel-Counting bei
+  Rotationen. Wenn nichts neu ist, wird der bestehende Snapshot
+  unverändert weitergenutzt (nur Plan-Limit wird refreshed). B8: Bei
+  `spawn_blocking`-Panic wird der Fehler geloggt und der alte Snapshot
+  bleibt erhalten — kein stilles Reset auf 0 Events mehr. 74 Lib- + 3
+  Bin-Tests grün, clippy + fmt clean.
+
 - **A1 + C5 (2026-04-28)** — Tray-Host schreibt nicht länger nach
   `%APPDATA%\winusage\config.json` während der Core aus
   `%APPDATA%\ignis\config.json` liest. `config_path()` zeigt jetzt

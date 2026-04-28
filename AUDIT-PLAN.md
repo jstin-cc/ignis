@@ -35,7 +35,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 - **Aufwand:** S
 - **Reihenfolge:** Zuerst (P0, blockiert valide Settings).
 
-### [ ] A2 — `ignis-api` re-scannt jede 30 s das gesamte Logverzeichnis
+### [x] A2 — `ignis-api` re-scannt jede 30 s das gesamte Logverzeichnis
 
 - **Bereich:** Performance · Backend
 - **Datei:** `src/bin/ignis-api.rs:70` (Background-Tick)
@@ -214,7 +214,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 - **Aufwand:** S
 - **Reihenfolge:** Nach B6.
 
-### [ ] B8 — `unwrap_or_default()` schluckt `spawn_blocking`-Fehler still
+### [x] B8 — `unwrap_or_default()` schluckt `spawn_blocking`-Fehler still
 
 - **Bereich:** Code-Qualität · Beobachtbarkeit
 - **Datei:** `src/bin/ignis-api.rs:71-72`

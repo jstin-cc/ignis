@@ -1,7 +1,11 @@
 use anyhow::Context;
 use chrono::Utc;
-use ignis_core::{api::ApiState, build_snapshot, scan_all, Config, PricingTable};
+use ignis_core::{
+    api::ApiState, build_snapshot, scan_all, scan_incremental, Config, FilePosition, PricingTable,
+    UsageEvent,
+};
 use notify::{RecursiveMode, Watcher};
+use std::collections::HashSet;
 use std::net::SocketAddr;
 use std::time::Duration;
 
@@ -17,7 +21,11 @@ async fn main() -> anyhow::Result<()> {
     for err in &scan.errors {
         eprintln!("warning: {err}");
     }
-    let snapshot = build_snapshot(&scan.events, &pricing, Utc::now());
+    let mut events: Vec<UsageEvent> = scan.events;
+    let mut positions: Vec<FilePosition> = scan.positions;
+    let mut seen_uuids: HashSet<String> = events.iter().map(|e| e.uuid.clone()).collect();
+
+    let snapshot = build_snapshot(&events, &pricing, Utc::now());
 
     let state = ApiState::new(
         snapshot,
@@ -26,6 +34,8 @@ async fn main() -> anyhow::Result<()> {
     );
 
     // Background re-scan: react to file changes (notify) + 30-second periodic fallback.
+    // Uses scan_incremental so unchanged files are not re-read (ADR-011). Returned
+    // events are deduplicated by UUID to keep rotated files from double-counting.
     let (notify_tx, mut notify_rx) = tokio::sync::mpsc::unbounded_channel::<()>();
     let watcher_opt: Option<notify::RecommendedWatcher> = {
         let tx = notify_tx.clone();
@@ -67,13 +77,41 @@ async fn main() -> anyhow::Result<()> {
                 }
             }
             let dir = dir_bg.clone();
-            let scan = tokio::task::spawn_blocking(move || scan_all(&dir))
-                .await
-                .unwrap_or_default();
+            let positions_snapshot = positions.clone();
+            let scan = match tokio::task::spawn_blocking(move || {
+                scan_incremental(&dir, &positions_snapshot)
+            })
+            .await
+            {
+                Ok(r) => r,
+                Err(e) => {
+                    eprintln!("scanner task panicked: {e}");
+                    continue; // keep last good snapshot, retry on next tick
+                }
+            };
             for err in &scan.errors {
                 eprintln!("warning: {err}");
             }
-            let snap = build_snapshot(&scan.events, &pricing_bg, Utc::now());
+
+            let mut added = 0usize;
+            for ev in scan.events {
+                if seen_uuids.insert(ev.uuid.clone()) {
+                    events.push(ev);
+                    added += 1;
+                }
+            }
+            positions = scan.positions;
+
+            if added == 0 && scan.errors.is_empty() {
+                // Nothing changed — keep current snapshot, just refresh the plan
+                // limit in case the user mutated it.
+                if let Ok(cfg) = Config::load() {
+                    state_bg.update_plan_token_limit(cfg.plan.token_limit());
+                }
+                continue;
+            }
+
+            let snap = build_snapshot(&events, &pricing_bg, Utc::now());
             state_bg.update_snapshot(snap);
             if let Ok(cfg) = Config::load() {
                 state_bg.update_plan_token_limit(cfg.plan.token_limit());
