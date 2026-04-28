@@ -52,7 +52,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 - **Aufwand:** M
 - **Reihenfolge:** Nach A1 (unabhängig, aber höchste Wirkung).
 
-### [ ] A3 — Auto-Updater pubkey ist ein Platzhalter
+### [!] A3 — Auto-Updater pubkey ist ein Platzhalter (blocked: User-Aktion)
 
 - **Bereich:** Bug · Release-Kette
 - **Datei:** `tray/src-tauri/tauri.conf.json:39`
@@ -69,8 +69,15 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
   `v2.0.1-rc2` Update-Pfad verifizieren.
 - **Aufwand:** S (Generation) + M (Verifikations-Test)
 - **Reihenfolge:** Vor nächstem Tag, kann parallel zu A1/A2.
+- **Status (2026-04-28):** Blocked. Schlüsselgenerierung mit
+  Passphrase ist eine User-Aktion (Private-Key darf nie durch den
+  Agent erzeugt werden). `docs/release.md` (Z. 23-34) beschreibt den
+  Workflow vollständig: `cargo tauri signer generate -w
+  ~/.tauri/ignis.key` → Pubkey in `tauri.conf.json:39` eintragen →
+  GitHub-Secrets `TAURI_SIGNING_PRIVATE_KEY` /
+  `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` setzen → Test-Tag.
 
-### [ ] A4 — Versions-Drift über vier Manifeste
+### [x] A4 — Versions-Drift über vier Manifeste
 
 - **Bereich:** Projektstruktur · Release
 - **Dateien:**

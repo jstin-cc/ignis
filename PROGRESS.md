@@ -519,6 +519,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   expliziter Freigabe.
 
 #### Fixed
+- **A4 (2026-04-28)** — Versions-Drift behoben: `ignis-core`
+  (`Cargo.toml`), `ignis-tray` (`tray/src-tauri/Cargo.toml` und
+  `tray/package.json`) sowie `tray/src-tauri/tauri.conf.json` jetzt
+  alle auf `2.0.0`. `tray/package.json#name` von `winusage-tray` auf
+  `ignis-tray` umbenannt; gleiche Korrektur in
+  `tray/package-lock.json`. Lock-Files via `cargo build` /
+  `cargo check` regeneriert. **A3 (Updater-Pubkey) bleibt blocked** —
+  Schlüsselgenerierung ist eine User-Aktion, der Workflow ist in
+  `docs/release.md` Z. 23-34 dokumentiert.
+
 - **A2 + B8 (2026-04-28)** — `ignis-api`-Hintergrund-Loop nutzt jetzt
   `scan_incremental` statt `scan_all`. ADR-011-konform: unveränderte
   Files werden nicht mehr ab Byte 0 neu eingelesen. Rotations-sichere

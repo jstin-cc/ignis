@@ -239,3 +239,4 @@ Reihenfolge der Fixes (Empfehlung aus Review):
 2026-04-24 · #27 · ignis-api als externalBin + beforeBuildCommand; ignis-watch entfernt (ADR-015) · (pending)
 2026-04-28 · A1+C5 · Tray-Config-Pfad winusage→ignis vereinheitlicht, mutate_config_json/mutate_plan-Helper, Migration für Legacy-winusage-config.json · (siehe Commit)
 2026-04-28 · A2+B8 · ignis-api: scan_incremental statt scan_all (ADR-011 erfüllt), UUID-Dedup für Rotationen, spawn_blocking-Fehler werden geloggt + alter Snapshot bleibt erhalten · (siehe Commit)
+2026-04-28 · A4 · Versions-Drift: ignis-core, ignis-tray (Cargo + npm) und tauri.conf.json alle auf 2.0.0; package.json#name winusage-tray→ignis-tray · (siehe Commit)
