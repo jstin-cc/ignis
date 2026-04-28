@@ -9,9 +9,13 @@ session status — entirely local, no cloud, no account.
 
 ---
 
-<!-- Screenshot: tray panel open, Today-tab visible -->
-> **Screenshot coming soon** — run `npm run tauri dev` in `tray/` to see the
-> live UI.
+<p align="center">
+  <img src="docs/screenshots/tray-today.png" width="360" alt="Today tab — tokens, cost, burn-rate sparkline" />
+  &nbsp;
+  <img src="docs/screenshots/tray-heatmap.png" width="360" alt="Heatmap tab — 7×24 h week view" />
+  &nbsp;
+  <img src="docs/screenshots/tray-settings.png" width="360" alt="Settings tab — budget caps and alert thresholds" />
+</p>
 
 ---
 
