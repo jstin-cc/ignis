@@ -49,7 +49,7 @@ an individual is officially representing the community in public spaces.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the project maintainer at **jayjay.com2004@gmail.com**. All
+reported to the project maintainer. All
 complaints will be reviewed and investigated promptly and fairly.
 
 ## Attribution
