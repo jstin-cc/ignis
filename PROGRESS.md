@@ -349,8 +349,10 @@ Vollständiger Scope und Akzeptanzkriterien siehe Roadmap-Abschnitt oben.
 - [x] **#1 Repo public schalten (2026-04-28)** — Repo `jstin-cc/ignis` war bereits
       public. Issue-Templates Bug/Feature/Question unter `.github/ISSUE_TEMPLATE/`
       angelegt. Discussions: manuell in GitHub-Repo-Settings aktivierbar (UI-Only).
-- [ ] **#6 Stabilitäts-Audit** — manueller Test-Run aller Features auf
-      frischer Win11-VM; keine offenen P0/P1. Braucht User-Aktion.
+- [x] **#6 Stabilitäts-Audit (2026-04-28)** — manueller Test-Run aller Features
+      (First-Run-Wizard, alle Tray-Tabs, CLI daily/monthly/session/export,
+      HTTP API /health + /v1/summary, Auto-Update-Check, 5 min Dauerlauf):
+      keine Abstürze, keine offenen P0/P1.
 - [-] **#7 Authenticode-Signing** — kein Cert (Kosten nicht gerechtfertigt vor
       erstem Nutzer-Feedback). SmartScreen-Workaround „Weitere Infos → Trotzdem
       ausführen" ist in README und `docs/release.md` dokumentiert. ADR-016
@@ -506,6 +508,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### [Unreleased]
 
+---
+
+### [2.0.0] — 2026-04-28
+
 #### Added (v2.0.0 prep — 2026-04-28)
 - `LICENSE` — MIT, Copyright 2026 Justin Strittmatter. ADR-017 dokumentiert Wahl.
 - `CONTRIBUTING.md` — Branch-Strategie, PR-Prozess, Review-Checkliste, Build-Setup,
@@ -521,6 +527,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - ADR-017 — MIT-Lizenz (in `DECISIONS.md`).
 - `.github/ISSUE_TEMPLATE/`: Bug, Feature, Question — drei Templates für Public-Repo.
 - Repo `jstin-cc/ignis` war bereits public; Authenticode: won't fix (ADR-016 / kein Cert).
+- Stabilitäts-Audit bestanden: alle Features getestet, keine P0/P1.
 
 #### Added (v1.7.0)
 - `.github/workflows/release.yml`: Release-Workflow (triggt auf `v*`-Tags), baut
@@ -710,7 +717,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Initial scaffolding: Dokumentation, ADR-001–011, Single-Crate-Layout.
 
-[Unreleased]: https://github.com/jstin-cc/ignis/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/jstin-cc/ignis/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/jstin-cc/ignis/compare/v1.3.0...v2.0.0
 [1.3.0]: https://github.com/jstin-cc/ignis/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/jstin-cc/ignis/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/jstin-cc/ignis/compare/v1.0.0...v1.1.0
