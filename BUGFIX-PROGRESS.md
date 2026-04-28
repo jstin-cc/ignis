@@ -235,8 +235,27 @@ Reihenfolge der Fixes (Empfehlung aus Review):
 2026-04-20 · #13+#15+#22 · api: ALLOWED_ORIGINS, RwLock-Poison, is_active · bb2fdbf
 2026-04-20 · #17+#18+#23+#24 · Tray: AbortController, Notification-Baseline, BurnRate-Uhr, Sessions-Cap · 356527c
 2026-04-20 · #19+#20 · winusage: NO_COLOR-Spec, export --output · 0ee5b3d
-2026-04-20 · #16 · aggregate: sidechain_cost_usd + sidechain_event_count in Summary (ADR-012) · e3b8877
-2026-04-24 · #27 · ignis-api als externalBin + beforeBuildCommand; ignis-watch entfernt (ADR-015) · (pending)
+2026-04-20 · #16 · aggregate: sidechain_cost_usd + sidechain_event_count in Summary (ADR-018) · e3b8877
+2026-04-24 · #27 · ignis-api als externalBin + beforeBuildCommand; ignis-watch entfernt (ADR-015) · c40dce7 + b757fd7 + 5d26cdb
 2026-04-28 · A1+C5 · Tray-Config-Pfad winusage→ignis vereinheitlicht, mutate_config_json/mutate_plan-Helper, Migration für Legacy-winusage-config.json · (siehe Commit)
 2026-04-28 · A2+B8 · ignis-api: scan_incremental statt scan_all (ADR-011 erfüllt), UUID-Dedup für Rotationen, spawn_blocking-Fehler werden geloggt + alter Snapshot bleibt erhalten · (siehe Commit)
 2026-04-28 · A4 · Versions-Drift: ignis-core, ignis-tray (Cargo + npm) und tauri.conf.json alle auf 2.0.0; package.json#name winusage-tray→ignis-tray · (siehe Commit)
+2026-04-28 · B1+C6 · DECISIONS.md: zweite ADR-012 (Sidechain) → ADR-018, numerisch sortiert; ADR-005 Token-Pfad auf ignis/config.json aktualisiert · (siehe Commit)
+
+---
+
+## Pfad-Migrations-Hinweis
+
+Bugbeschreibungen bis #27 (Stand: 2026-04-24) verwenden Pfade und Binär-Namen, die
+inzwischen umbenannt wurden:
+
+| Alter Pfad / Name               | Neuer Pfad / Name                 |
+|---------------------------------|-----------------------------------|
+| `src/bin/winusage.rs`           | `src/bin/ignis.rs`                |
+| `src/bin/winusage-api.rs`       | `src/bin/ignis-api.rs`            |
+| `src/bin/winusage-watch.rs`     | entfernt (ADR-015, 2026-04-24)    |
+| `winusage daily/monthly`        | `ignis daily/monthly`             |
+| `%APPDATA%\winusage\`           | `%APPDATA%\ignis\`                |
+
+Alle Referenzen auf `winusage*`-Pfade in den Bugbeschreibungen (#5–#27) sind
+historisch korrekt für den Zeitpunkt der Erfassung (2026-04-20).

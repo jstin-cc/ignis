@@ -158,7 +158,7 @@ tray/
 └── src/                — React 18.3 + TypeScript frontend
 ```
 
-Key decisions: [`DECISIONS.md`](DECISIONS.md) (ADR-001 – ADR-016).
+Key decisions: [`DECISIONS.md`](DECISIONS.md) (ADR-001 – ADR-018).
 Full phase breakdown: [`PROGRESS.md`](PROGRESS.md).
 
 ---

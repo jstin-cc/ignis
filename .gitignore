@@ -8,8 +8,7 @@ node_modules/
 dist/
 dist-ssr/
 .vite/
-apps/tray-ui/node_modules/
-apps/tray-ui/dist/
+tray/src-tauri/binaries/*.exe
 src-tauri/target/
 
 # Tauri build artifacts
@@ -46,8 +45,7 @@ npm-debug.log*
 .env.local
 .env.*.local
 
-# winusage runtime data (must never be committed)
-/winusage-data/
+# runtime data (must never be committed)
 pricing.local.json
 auth-token.txt
 

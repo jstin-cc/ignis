@@ -32,7 +32,7 @@ updates without code changes). Anything touching Rust or TypeScript goes through
    ```
    And for the Tray UI:
    ```powershell
-   cd apps/tray-ui   # or: cd tray
+   cd tray
    npm ci
    npm run build
    npx tsc --noEmit

@@ -1,7 +1,7 @@
 # Ignis — Design Handoff
 
 > Diese Datei gehört in `CLAUDE.md` oder als `@file`-Referenz in Cursor-Sessions,
-> die an `apps/tray-ui/` arbeiten.
+> die an `tray/src/` arbeiten.
 
 ---
 
@@ -9,14 +9,14 @@
 
 | Datei | Zweck | Ziel im Repo |
 |---|---|---|
-| `handoff/tokens.css` | Alle CSS Custom Properties + Utility-Klassen | `apps/tray-ui/src/styles/tokens.css` |
-| `assets/ignis-icon.svg` | Quell-SVG für App-Icon | `apps/tray-ui/src/assets/` |
+| `handoff/tokens.css` | Alle CSS Custom Properties + Utility-Klassen | `tray/src/index.css` |
+| `assets/ignis-icon.svg` | Quell-SVG für App-Icon | `tray/src-tauri/icons/` |
 | `icons/32x32.png` … `icons/512x512.png` | Tauri-Bundle-Icons | `tray/src-tauri/icons/` |
 
 **Import einmalig im App-Root:**
 ```ts
-// apps/tray-ui/src/main.tsx
-import './styles/tokens.css';
+// tray/src/main.tsx
+import './index.css';
 ```
 
 ---

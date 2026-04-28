@@ -73,14 +73,16 @@ Nummerierung aufsteigend. Status: `Accepted` · `Superseded` · `Rejected` · `P
 
 - **Datum:** 2026-04-17
 - **Status:** Accepted
+- **Updated:** 2026-04-28 — Token-Speicherort geändert (kein separates auth-token.txt mehr).
 - **Kontext:** Die HTTP-API exponiert Usage-/Cost-Daten. Drei Maßnahmen sind
   in Kombination schlank und belastbar.
 - **Entscheidung:** **Alle drei:**
   1. Server bindet ausschließlich an `127.0.0.1:7337`, nie `0.0.0.0`.
   2. Origin-Header-Check gegen eine konfigurierbare Allowlist
      (Default: leer → nur Same-Origin/No-Origin-Requests, also CLI/Editor-Plugins).
-  3. Bearer-Token in Config-Datei unter `%APPDATA%\winusage\auth-token.txt` mit
-     restriktiven Windows-ACLs (nur der anlegende User hat Lese-Rechte).
+  3. Bearer-Token in `%APPDATA%\ignis\config.json` (Feld `api_token`) — kein
+     separates `auth-token.txt` mehr. Token wird beim ersten Start erzeugt
+     (via `getrandom`, 16 zufällige Bytes als Hex).
 - **Begründung:** Defense-in-Depth. Jede Schicht fängt eine eigene Angriffsklasse ab
   (lokale Netzwerk-Nachbarn, Browser-CSRF, andere User-Accounts auf demselben Host).
 - **Folgen:** Token-Erzeugung beim ersten Start; Rotation via CLI-Kommando. ACL-Setup
@@ -149,6 +151,23 @@ Nummerierung aufsteigend. Status: `Accepted` · `Superseded` · `Rejected` · `P
   `docs/jsonl-format.md` dokumentieren, wie Sessions/Blocks aus dem JSONL ableitbar sind.
 - **Folgen:** Das Feature ist in `PROGRESS.md` unter Phase 2 geparkt.
 
+## ADR-011 — Position-Tracking pro File als Design-Anforderung
+
+- **Datum:** 2026-04-17
+- **Status:** Accepted
+- **Kontext:** Mehrere parallele Claude-Code-Sessions schreiben in verschiedene
+  JSONL-Files. Ein naives "letztes-mtime"-Re-Scan verliert Zeilen, wenn zwei Files
+  zwischen Scans wachsen.
+- **Entscheidung:** Scanner hält pro-File-Position (Byte-Offset + inode/File-ID) **ab
+  Phase 1**. Re-Scan liest nur das Delta seit der letzten Position. Wird in
+  `docs/architecture.md` als explizite Design-Anforderung verankert.
+- **Begründung:** Nachrüsten nach einem naiven Design ist teurer als gleich richtig
+  anlegen. Das ist der Fall, wo "ein bisschen mehr Struktur vorne weg" Abgleich-Bugs
+  spart, die sonst schwer zu reproduzieren wären.
+- **Folgen:** Position-Map wird In-Memory gehalten (konsistent mit ADR-002). Bei Startup
+  wird die Map aus einem Full-Scan rekonstruiert; persistente Position-Maps sind optional
+  später (neuer ADR, falls Startup-Zeiten problematisch werden).
+
 ## ADR-012 — Provider-Trait als Erweiterungspunkt für künftige Datenquellen
 
 - **Datum:** 2026-04-20
@@ -175,45 +194,6 @@ Nummerierung aufsteigend. Status: `Accepted` · `Superseded` · `Rejected` · `P
   bleiben unverändert; sie arbeiten weiterhin direkt mit `UsageEvent`-Vektoren.
   Multi-Provider-Fusion (Summe über mehrere `collect()`-Ergebnisse) wird erst dann
   implementiert, wenn ein zweiter Provider real existiert (neuer ADR).
-
-## ADR-011 — Position-Tracking pro File als Design-Anforderung
-
-- **Datum:** 2026-04-17
-- **Status:** Accepted
-- **Kontext:** Mehrere parallele Claude-Code-Sessions schreiben in verschiedene
-  JSONL-Files. Ein naives "letztes-mtime"-Re-Scan verliert Zeilen, wenn zwei Files
-  zwischen Scans wachsen.
-- **Entscheidung:** Scanner hält pro-File-Position (Byte-Offset + inode/File-ID) **ab
-  Phase 1**. Re-Scan liest nur das Delta seit der letzten Position. Wird in
-  `docs/architecture.md` als explizite Design-Anforderung verankert.
-- **Begründung:** Nachrüsten nach einem naiven Design ist teurer als gleich richtig
-  anlegen. Das ist der Fall, wo "ein bisschen mehr Struktur vorne weg" Abgleich-Bugs
-  spart, die sonst schwer zu reproduzieren wären.
-- **Folgen:** Position-Map wird In-Memory gehalten (konsistent mit ADR-002). Bei Startup
-  wird die Map aus einem Full-Scan rekonstruiert; persistente Position-Maps sind optional
-  später (neuer ADR, falls Startup-Zeiten problematisch werden).
-
-## ADR-012 — Sidechain-Events einschließen, aber separat ausweisen
-
-- **Datum:** 2026-04-20
-- **Status:** Accepted
-- **Kontext:** Sub-Agent-Calls (Claude Code, das intern einen weiteren Agenten startet)
-  erzeugen JSONL-Events mit `isSidechain: true`. Diese fließen bisher ungefiltert in alle
-  Summaries, ohne als Sidechain kenntlich zu sein. User sieht höhere Kosten als erwartet.
-- **Alternativen:**
-  - (A) **Ausschließen** — nur Main-Thread-Events in Summaries. Bildet reale Billing-Kosten
-        nicht ab (Anthropic berechnet alle Events).
-  - (B) **Einschließen + separat ausweisen** — `Summary` bekommt `sidechain_cost_usd` und
-        `sidechain_event_count`. Totals bleiben vollständig, aber der Sidechain-Anteil ist
-        explizit sichtbar.
-  - (C) Status quo — Bug bleibt bestehen.
-- **Entscheidung:** (B).
-- **Begründung:** (A) verdeckt reale Kosten und divergiert vom tatsächlichen Billing. (B)
-  gibt dem User die volle Wahrheit plus Kontext. Wenn gewünscht, kann die UI den
-  Sidechain-Anteil hervorheben oder ausblenden — ohne Datenverlust.
-- **Folgen:** `Summary.sidechain_cost_usd` und `sidechain_event_count` werden in
-  `accumulate_summary` befüllt und im API-Response `/v1/summary` als neue Felder
-  serialisiert. Tray kann optional `(inkl. $X sub-agent)` darstellen.
 
 ## ADR-013 — Tray-App spawnt `winusage-api` als Child-Prozess
 
@@ -264,25 +244,24 @@ Nummerierung aufsteigend. Status: `Accepted` · `Superseded` · `Rejected` · `P
   (Sub-Agent-Calls verfälschen das Signal für den Haupt-Workflow). Route `/v1/burn-rate`
   in `src/api.rs`. Frontend-Hook `tray/src/dashboard/useBurnRate.ts` pollt 30s.
 
-## ADR-017 — MIT-Lizenz
+## ADR-015 — ignis-watch (TUI) entfernen
 
-- **Datum:** 2026-04-28
+- **Datum:** 2026-04-24
 - **Status:** Accepted
-- **Kontext:** Für den Public-Release (v2.0.0) wird eine OSI-anerkannte Lizenz
-  benötigt. Zur Wahl stehen MIT, Apache-2.0 und die GPL-Familie.
+- **Kontext:** `ignis-watch.exe` war das ratatui-TUI-Dashboard und wurde über den
+  Footer-Button "Open Dashboard" als externes Terminal gestartet. Mit dem eingebetteten
+  Dashboard (v1.2.0) übernimmt die Tray-UI alle Funktionen der TUI.
 - **Alternativen:**
-  - (A) **MIT** — kurz, permissiv, maximale Kompatibilität, kein Patent-Grant nötig.
-  - (B) Apache-2.0 — expliziter Patent-Grant, aber längerer Lizenztext; sinnvoll
-        wenn Patent-Risiken ein Thema sind.
-  - (C) GPL-3.0 — Copyleft; schränkt kommerzielle Einbettung ein, passt nicht
-        zum Ziel-Publikum (Entwickler, die das Tool scripten wollen).
-- **Entscheidung:** (A) MIT.
-- **Begründung:** Ignis ist ein lokales Entwickler-Werkzeug. Der Quellcode enthält
-  keine Patent-Risiken, die Apache-2.0 rechtfertigen würden. MIT ist die
-  Minimaliste-Lizenz, die Open-Source-Anforderungen erfüllt und jeden Use-Case
-  (Plugin-Integration, Forking, kommerzielle Einbettung) erlaubt.
-- **Folgen:** `LICENSE`-Datei mit MIT-Text und Copyright „2026 Justin Strittmatter"
-  im Repo-Root. Keine Lizenz-Header in Quell-Dateien erforderlich (MIT-Konvention).
+  - (A) TUI beibehalten als optionaler CLI-Zugang.
+  - (B) **Komplett entfernen** — Binary, Bin-Target, Tauri-Command, externalBin-Eintrag.
+  - (C) Footer-Button dual: embedded primär, TUI über Hotkey sekundär.
+- **Entscheidung:** (B).
+- **Begründung:** Redundanter Code bedeutet doppelter Wartungsaufwand. Der eingebettete
+  Ansatz ist funktional ein Superset: LIVE-Tab ersetzt alle TUI-Panels, HISTORY-Tab
+  fügt neue Insights hinzu. `ignis`-CLI bleibt für Headless-/Terminal-Nutzer erhalten.
+- **Folgen:** `src/bin/ignis-watch.rs` gelöscht, `[[bin]]`-Target aus `Cargo.toml` entfernt,
+  `open_cli_dashboard`-Command aus Tauri-Host und `tauri.conf.json` entfernt. Gleichzeitig
+  wird `ignis-api.exe` als `externalBin` ins Installer-Bundle aufgenommen (BUGFIX #27).
 
 ## ADR-016 — Authenticode-Signierung auf v2.0 vertagen
 
@@ -305,21 +284,44 @@ Nummerierung aufsteigend. Status: `Accepted` · `Superseded` · `Rejected` · `P
 - **Folgen:** Nutzer müssen beim Erstinstall „Weitere Infos → Trotzdem ausführen"
   klicken. In `docs/release.md` dokumentieren. Revisit bei v2.0-Planung.
 
-## ADR-015 — ignis-watch (TUI) entfernen
+## ADR-017 — MIT-Lizenz
 
-- **Datum:** 2026-04-24
+- **Datum:** 2026-04-28
 - **Status:** Accepted
-- **Kontext:** `ignis-watch.exe` war das ratatui-TUI-Dashboard und wurde über den
-  Footer-Button "Open Dashboard" als externes Terminal gestartet. Mit dem eingebetteten
-  Dashboard (v1.2.0) übernimmt die Tray-UI alle Funktionen der TUI.
+- **Kontext:** Für den Public-Release (v2.0.0) wird eine OSI-anerkannte Lizenz
+  benötigt. Zur Wahl stehen MIT, Apache-2.0 und die GPL-Familie.
 - **Alternativen:**
-  - (A) TUI beibehalten als optionaler CLI-Zugang.
-  - (B) **Komplett entfernen** — Binary, Bin-Target, Tauri-Command, externalBin-Eintrag.
-  - (C) Footer-Button dual: embedded primär, TUI über Hotkey sekundär.
+  - (A) **MIT** — kurz, permissiv, maximale Kompatibilität, kein Patent-Grant nötig.
+  - (B) Apache-2.0 — expliziter Patent-Grant, aber längerer Lizenztext; sinnvoll
+        wenn Patent-Risiken ein Thema sind.
+  - (C) GPL-3.0 — Copyleft; schränkt kommerzielle Einbettung ein, passt nicht
+        zum Ziel-Publikum (Entwickler, die das Tool scripten wollen).
+- **Entscheidung:** (A) MIT.
+- **Begründung:** Ignis ist ein lokales Entwickler-Werkzeug. Der Quellcode enthält
+  keine Patent-Risiken, die Apache-2.0 rechtfertigen würden. MIT ist die
+  Minimaliste-Lizenz, die Open-Source-Anforderungen erfüllt und jeden Use-Case
+  (Plugin-Integration, Forking, kommerzielle Einbettung) erlaubt.
+- **Folgen:** `LICENSE`-Datei mit MIT-Text und Copyright „2026 Justin Strittmatter"
+  im Repo-Root. Keine Lizenz-Header in Quell-Dateien erforderlich (MIT-Konvention).
+
+## ADR-018 — Sidechain-Events einschließen, aber separat ausweisen
+
+- **Datum:** 2026-04-20
+- **Status:** Accepted
+- **Kontext:** Sub-Agent-Calls (Claude Code, das intern einen weiteren Agenten startet)
+  erzeugen JSONL-Events mit `isSidechain: true`. Diese fließen bisher ungefiltert in alle
+  Summaries, ohne als Sidechain kenntlich zu sein. User sieht höhere Kosten als erwartet.
+- **Alternativen:**
+  - (A) **Ausschließen** — nur Main-Thread-Events in Summaries. Bildet reale Billing-Kosten
+        nicht ab (Anthropic berechnet alle Events).
+  - (B) **Einschließen + separat ausweisen** — `Summary` bekommt `sidechain_cost_usd` und
+        `sidechain_event_count`. Totals bleiben vollständig, aber der Sidechain-Anteil ist
+        explizit sichtbar.
+  - (C) Status quo — Bug bleibt bestehen.
 - **Entscheidung:** (B).
-- **Begründung:** Redundanter Code bedeutet doppelter Wartungsaufwand. Der eingebettete
-  Ansatz ist funktional ein Superset: LIVE-Tab ersetzt alle TUI-Panels, HISTORY-Tab
-  fügt neue Insights hinzu. `ignis`-CLI bleibt für Headless-/Terminal-Nutzer erhalten.
-- **Folgen:** `src/bin/ignis-watch.rs` gelöscht, `[[bin]]`-Target aus `Cargo.toml` entfernt,
-  `open_cli_dashboard`-Command aus Tauri-Host und `tauri.conf.json` entfernt. Gleichzeitig
-  wird `ignis-api.exe` als `externalBin` ins Installer-Bundle aufgenommen (BUGFIX #27).
+- **Begründung:** (A) verdeckt reale Kosten und divergiert vom tatsächlichen Billing. (B)
+  gibt dem User die volle Wahrheit plus Kontext. Wenn gewünscht, kann die UI den
+  Sidechain-Anteil hervorheben oder ausblenden — ohne Datenverlust.
+- **Folgen:** `Summary.sidechain_cost_usd` und `sidechain_event_count` werden in
+  `accumulate_summary` befüllt und im API-Response `/v1/summary` als neue Felder
+  serialisiert. Tray kann optional `(inkl. $X sub-agent)` darstellen.

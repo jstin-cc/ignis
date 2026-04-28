@@ -14,7 +14,7 @@ weil das Projekt dafür zu klein ist, pro Layer einen eigenen Agenten zu halten
 
 - Rust: `winusage-core` Lib (Scanner, Parser, Pricing, Aggregation, Config), später
   `winusage-cli`, `winusage-api`, `winusage-tray` (Tauri-Host).
-- TypeScript/React: `apps/tray-ui/` (React 18.3, strict TS, Vite).
+- TypeScript/React: `tray/src/` (React 18.3, strict TS, Vite).
 - Hält sich an `docs/architecture.md` und `docs/api.md`. Abweichungen nur nach
   Rücksprache mit `lead_engineer` und neuem ADR.
 - Führt `cargo fmt`, `cargo clippy -- -D warnings` und `cargo test` vor jedem Commit.
