@@ -4,7 +4,7 @@
   "identifier": "cc.jstin.ignis",
   "build": {
     "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build && cargo build --release --bin ignis-api --manifest-path ../Cargo.toml && copy ..\\target\\release\\ignis-api.exe src-tauri\\binaries\\ignis-api-x86_64-pc-windows-msvc.exe",
+    "beforeBuildCommand": "npm run build && cargo build --release --bin ignis-api --manifest-path ../Cargo.toml && node scripts/copy-sidecar.js",
     "devUrl": "http://localhost:1420",
     "frontendDist": "../dist"
   },
