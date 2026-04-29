@@ -73,6 +73,16 @@ pub enum ConfigError {
 /// Bumped when `StoredConfig` gains new required fields.
 const CURRENT_CONFIG_VERSION: u32 = 2;
 
+/// Allowed origins for cross-origin requests to the local HTTP API.
+fn default_allowed_origins() -> Vec<String> {
+    vec![
+        "tauri://localhost".into(),      // Tauri production WebView (Windows/macOS)
+        "http://tauri.localhost".into(), // Tauri production WebView (Linux)
+        "http://localhost:1420".into(),  // Vite dev-server (tauri dev default)
+        "http://localhost:5173".into(),  // Vite standalone dev-server default
+    ]
+}
+
 /// Runtime configuration for Ignis.
 #[derive(Clone, Debug)]
 pub struct Config {
@@ -82,6 +92,8 @@ pub struct Config {
     pub api_token: String,
     /// Claude plan — determines the token limit per 5-hour billing block.
     pub plan: PlanConfig,
+    /// Origins allowed for cross-origin requests; default covers all Tauri + Vite variants.
+    pub allowed_origins: Vec<String>,
 }
 
 impl Config {
@@ -99,6 +111,7 @@ impl Config {
                 claude_projects_dir: home_projects_dir()?,
                 api_token: generate_token(),
                 plan: PlanConfig::default(),
+                allowed_origins: default_allowed_origins(),
             };
             // Best-effort write — ignore failure (e.g. read-only filesystem).
             let _ = save_file(&c, &path);
@@ -124,6 +137,8 @@ struct StoredConfig {
     api_token: String,
     #[serde(default)]
     plan: PlanConfig,
+    #[serde(default = "default_allowed_origins")]
+    allowed_origins: Vec<String>,
 }
 
 fn config_file_path() -> Result<PathBuf, ConfigError> {
@@ -169,6 +184,7 @@ fn load_file(path: &Path) -> Result<Config, ConfigError> {
         claude_projects_dir: PathBuf::from(stored.claude_projects_dir),
         api_token: stored.api_token,
         plan: stored.plan,
+        allowed_origins: stored.allowed_origins,
     })
 }
 
@@ -199,6 +215,7 @@ fn save_file(cfg: &Config, path: &Path) -> Result<(), ConfigError> {
         claude_projects_dir: cfg.claude_projects_dir.to_string_lossy().into_owned(),
         api_token: cfg.api_token.clone(),
         plan: cfg.plan.clone(),
+        allowed_origins: cfg.allowed_origins.clone(),
     };
     save_file_stored(&stored, path)
 }

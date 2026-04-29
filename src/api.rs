@@ -23,16 +23,40 @@ pub struct ApiState {
     pub version: &'static str,
     /// Token limit per 5-hour billing block (from plan config); updated on each re-scan cycle.
     pub plan_token_limit: Arc<AtomicU64>,
+    /// Origins allowed for cross-origin requests (from config.json).
+    pub allowed_origins: Arc<Vec<String>>,
 }
 
 impl ApiState {
-    pub fn new(snapshot: Snapshot, api_token: String, plan_token_limit: u64) -> Self {
+    pub fn new(
+        snapshot: Snapshot,
+        api_token: String,
+        plan_token_limit: u64,
+        allowed_origins: Vec<String>,
+    ) -> Self {
         Self {
             snapshot: Arc::new(std::sync::RwLock::new(Arc::new(snapshot))),
             api_token,
             version: env!("CARGO_PKG_VERSION"),
             plan_token_limit: Arc::new(AtomicU64::new(plan_token_limit)),
+            allowed_origins: Arc::new(allowed_origins),
         }
+    }
+
+    /// Returns `Err(Response)` when the `Origin` header is present but not in the allowlist.
+    pub fn check_origin(&self, headers: &HeaderMap) -> Result<(), Box<Response>> {
+        let Some(origin) = headers.get("origin") else {
+            return Ok(());
+        };
+        let origin_str = origin.to_str().unwrap_or("");
+        if self.allowed_origins.iter().any(|o| o == origin_str) {
+            return Ok(());
+        }
+        Err(Box::new(error_response(
+            StatusCode::FORBIDDEN,
+            "origin_rejected",
+            "Origin not in allowlist.",
+        )))
     }
 
     /// Update the plan token limit (called after re-reading config.json).
@@ -60,7 +84,8 @@ impl ApiState {
 // ── Router ────────────────────────────────────────────────────────────────────
 
 pub fn router(state: ApiState) -> Router {
-    let allowed: Vec<HeaderValue> = ALLOWED_ORIGINS
+    let allowed: Vec<HeaderValue> = state
+        .allowed_origins
         .iter()
         .filter_map(|o| HeaderValue::from_str(o).ok())
         .collect();
@@ -126,32 +151,6 @@ fn check_auth(headers: &HeaderMap, token: &str) -> Result<(), Box<Response>> {
             "Bearer token missing or invalid.",
         ))),
     }
-}
-
-/// Allowed origins for cross-origin requests.
-const ALLOWED_ORIGINS: &[&str] = &[
-    "tauri://localhost",      // Tauri production WebView (Windows/macOS)
-    "http://tauri.localhost", // Tauri production WebView (Linux)
-    "http://localhost:1420",  // Vite dev-server (tauri dev default)
-    "http://localhost:5173",  // Vite standalone dev-server default
-];
-
-/// Returns `Err(Response)` when the `Origin` header is present but not in the allowlist.
-///
-/// Requests without an `Origin` header (CLI tools, editor plugins) are always allowed.
-fn check_origin(headers: &HeaderMap) -> Result<(), Box<Response>> {
-    let Some(origin) = headers.get("origin") else {
-        return Ok(());
-    };
-    let origin_str = origin.to_str().unwrap_or("");
-    if ALLOWED_ORIGINS.contains(&origin_str) {
-        return Ok(());
-    }
-    Err(Box::new(error_response(
-        StatusCode::FORBIDDEN,
-        "origin_rejected",
-        "Origin header not in allowlist.",
-    )))
 }
 
 // ── Handlers ──────────────────────────────────────────────────────────────────
@@ -262,7 +261,7 @@ async fn summary_handler(
     if let Err(r) = check_auth(&headers, &state.api_token) {
         return *r;
     }
-    if let Err(r) = check_origin(&headers) {
+    if let Err(r) = state.check_origin(&headers) {
         return *r;
     }
 
@@ -393,7 +392,7 @@ async fn sessions_handler(
     if let Err(r) = check_auth(&headers, &state.api_token) {
         return *r;
     }
-    if let Err(r) = check_origin(&headers) {
+    if let Err(r) = state.check_origin(&headers) {
         return *r;
     }
 
@@ -486,7 +485,7 @@ async fn heatmap_handler(
     if let Err(e) = check_auth(&headers, &state.api_token) {
         return *e;
     }
-    if let Err(e) = check_origin(&headers) {
+    if let Err(e) = state.check_origin(&headers) {
         return *e;
     }
     let snap = state.read_snapshot();
@@ -540,7 +539,7 @@ async fn burn_rate_handler(State(state): State<ApiState>, headers: HeaderMap) ->
     if let Err(r) = check_auth(&headers, &state.api_token) {
         return *r;
     }
-    if let Err(r) = check_origin(&headers) {
+    if let Err(r) = state.check_origin(&headers) {
         return *r;
     }
     let snap = state.read_snapshot();
@@ -593,7 +592,16 @@ mod tests {
     }
 
     fn make_state(token: &str) -> ApiState {
-        ApiState::new(empty_snapshot(), token.to_owned(), 88_000)
+        ApiState::new(
+            empty_snapshot(),
+            token.to_owned(),
+            88_000,
+            vec![
+                "tauri://localhost".into(),
+                "http://localhost:1420".into(),
+                "http://localhost:5173".into(),
+            ],
+        )
     }
 
     async fn get_json(app: Router, path: &str) -> (StatusCode, serde_json::Value) {

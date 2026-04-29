@@ -31,6 +31,7 @@ async fn main() -> anyhow::Result<()> {
         snapshot,
         config.api_token.clone(),
         config.plan.token_limit(),
+        config.allowed_origins.clone(),
     );
 
     // Background re-scan: react to file changes (notify) + 30-second periodic fallback.
@@ -136,8 +137,8 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn shutdown_signal() {
-    tokio::signal::ctrl_c()
-        .await
-        .expect("failed to install Ctrl+C handler");
+    if let Err(e) = tokio::signal::ctrl_c().await {
+        eprintln!("Ctrl+C handler error: {e}");
+    }
     eprintln!("\nshutting down");
 }
