@@ -167,7 +167,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 - **Aufwand:** S
 - **Reihenfolge:** Nach B3.
 
-### [ ] B5 — Tote Dependencies in `Cargo.toml`
+### [x] B5 — Tote Dependencies in `Cargo.toml`
 
 - **Bereich:** Code-Qualität
 - **Datei:** `Cargo.toml:40-41`
@@ -180,7 +180,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 - **Aufwand:** S
 - **Reihenfolge:** Nach B4.
 
-### [ ] B6 — `ignis-api`-Pfad-Bin-Output-Ort hardcoded auf Windows
+### [x] B6 — `ignis-api`-Pfad-Bin-Output-Ort hardcoded auf Windows
 
 - **Bereich:** Build · Cross-Platform
 - **Datei:** `tray/src-tauri/tauri.conf.json:7`
@@ -199,7 +199,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 - **Aufwand:** S
 - **Reihenfolge:** Optional, kann nach B5.
 
-### [ ] B7 — Panic-Pfade in Produktions-Code
+### [x] B7 — Panic-Pfade in Produktions-Code
 
 - **Bereich:** Code-Qualität · Robustheit
 - **Dateien:**
@@ -234,7 +234,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 - **Aufwand:** S
 - **Reihenfolge:** Im selben Commit wie A2.
 
-### [ ] B9 — `ALLOWED_ORIGINS` weiterhin hardcoded
+### [x] B9 — `ALLOWED_ORIGINS` weiterhin hardcoded
 
 - **Bereich:** Architektur · ADR-Konformität
 - **Datei:** `src/api.rs:131-137`

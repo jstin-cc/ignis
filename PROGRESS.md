@@ -508,6 +508,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### [Unreleased]
 
+#### Fixed (Phase 2.3 Audit-Items, 2026-04-29)
+- **B5** — `ratatui`/`crossterm` aus `Cargo.toml` entfernt (TUI seit ADR-015 nicht mehr vorhanden);
+  CLAUDE.md-Tabelle `CLI/TUI` → `CLI | clap` aktualisiert.
+- **B6** — `beforeBuildCommand` nutzt jetzt `node scripts/copy-sidecar.js` statt cmd.exe-only `copy`;
+  Triple wird via `rustc -Vv` dynamisch ermittelt — funktioniert auf Windows, Linux, macOS.
+- **B7** — `expect("midnight is always valid")` und zwei weitere `expect()`-Calls in `aggregate.rs`
+  durch `or_else` + `unwrap_or`-Fallback ersetzt; `shutdown_signal`-Panic zu `eprintln!` degradiert.
+- **B9** — `ALLOWED_ORIGINS` konfigurierbar: `Config.allowed_origins: Vec<String>`, Default-Liste
+  in `default_allowed_origins()`, `ApiState::check_origin()` liest aus State statt Konstante;
+  via `config.json#allowed_origins` überschreibbar. `docs/api.md` wird in B9-Nachfolgepatch ergänzt.
+
 #### Fixed (Phase 2.2+2.3 Audit-Items, 2026-04-28)
 - **C7** — README Status-Tabelle auf v2.0.0 gebracht (war noch v1.7.0-Beschriftung).
 - **B1+C6** — `DECISIONS.md` numerisch sortiert (001→018); zweite ADR-012 (Sidechain) →
