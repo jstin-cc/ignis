@@ -261,9 +261,15 @@ fn find_api_binary() -> Option<PathBuf> {
     let exe = std::env::current_exe().ok()?;
     let dir = exe.parent()?;
 
-    let same_dir = dir.join("ignis-api.exe");
-    if same_dir.exists() {
-        return Some(same_dir);
+    // Tauri installs externalBin with the target-triple suffix; plain name is used in dev.
+    for name in [
+        "ignis-api-x86_64-pc-windows-msvc.exe",
+        "ignis-api.exe",
+    ] {
+        let p = dir.join(name);
+        if p.exists() {
+            return Some(p);
+        }
     }
 
     for rel in [
