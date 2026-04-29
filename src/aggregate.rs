@@ -283,19 +283,17 @@ pub fn build_hourly_heatmap(
     let local_now = now.with_timezone(&Local);
     let days_since_monday = local_now.weekday().num_days_from_monday() as i64;
 
-    // Monday 00:00 local → UTC.
-    let week_start_local = Local
-        .with_ymd_and_hms(
-            local_now.year(),
-            local_now.month(),
-            local_now.day(),
-            0,
-            0,
-            0,
-        )
+    // Monday 00:00 local → UTC. Fall back to 01:00 on DST-skip days.
+    let today_local = Local
+        .with_ymd_and_hms(local_now.year(), local_now.month(), local_now.day(), 0, 0, 0)
         .single()
-        .expect("midnight is always valid")
-        - Duration::days(days_since_monday);
+        .or_else(|| {
+            Local
+                .with_ymd_and_hms(local_now.year(), local_now.month(), local_now.day(), 1, 0, 0)
+                .single()
+        })
+        .unwrap_or(local_now);
+    let week_start_local = today_local - Duration::days(days_since_monday);
     let week_start = week_start_local.to_utc();
     let week_end = week_start + Duration::days(7);
 
@@ -381,7 +379,12 @@ impl Windows {
         let today_start = Local
             .with_ymd_and_hms(local.year(), local.month(), local.day(), 0, 0, 0)
             .single()
-            .expect("midnight always exists")
+            .or_else(|| {
+                Local
+                    .with_ymd_and_hms(local.year(), local.month(), local.day(), 1, 0, 0)
+                    .single()
+            })
+            .unwrap_or(local)
             .to_utc();
 
         // ISO week: Monday = day 0. chrono weekday().num_days_from_monday() gives 0=Mon..6=Sun.
@@ -391,7 +394,12 @@ impl Windows {
         let month_start = Local
             .with_ymd_and_hms(local.year(), local.month(), 1, 0, 0, 0)
             .single()
-            .expect("first of month always exists")
+            .or_else(|| {
+                Local
+                    .with_ymd_and_hms(local.year(), local.month(), 1, 1, 0, 0)
+                    .single()
+            })
+            .unwrap_or(local)
             .to_utc();
 
         // Rolling 30 days: today plus the 29 preceding days (midnight-aligned).
