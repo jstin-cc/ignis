@@ -17,6 +17,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4.2.2
 
+      # Single source of truth for toolchain version.
+      # MSRV is declared in Cargo.toml (rust-version = "1.75").
       - name: Install stable toolchain with components
         uses: dtolnay/rust-toolchain@stable
         with:
