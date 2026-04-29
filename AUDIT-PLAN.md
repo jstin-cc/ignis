@@ -252,7 +252,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 
 ## P2 — Cleanup, Konsistenz, Future-Proofing
 
-### [ ] C1 — `archive/INITIAL_PROMPT.md` und `PLAN-UEBERARBEITUNG.md`
+### [x] C1 — `archive/INITIAL_PROMPT.md` und `PLAN-UEBERARBEITUNG.md`
 
 - **Bereich:** Projektstruktur · Doku-Hygiene
 - **Dateien:** `archive/INITIAL_PROMPT.md` (20 kB), `PLAN-UEBERARBEITUNG.md`
@@ -264,7 +264,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 - **Aufwand:** S
 - **Reihenfolge:** Nach B-Kette.
 
-### [ ] C2 — `rust-toolchain.toml` (1.95.0) vs. CI-Action `@stable`
+### [x] C2 — `rust-toolchain.toml` (1.95.0) vs. CI-Action `@stable`
 
 - **Bereich:** CI · Reproducibility
 - **Datei:** `rust-toolchain.toml`, `.github/workflows/ci.yml:21`
@@ -292,7 +292,7 @@ Legende: `[ ]` offen · `[x]` erledigt · `[-]` won't fix.
 - **Aufwand:** S
 - **Reihenfolge:** Beliebig.
 
-### [ ] C4 — `Snapshot.sessions` und Polling-Interval als Config
+### [x] C4 — `Snapshot.sessions` und Polling-Interval als Config
 
 - **Bereich:** Performance · Konfigurierbarkeit
 - **Datei:** `src/aggregate.rs` (`Snapshot::sessions`), `src/api.rs`

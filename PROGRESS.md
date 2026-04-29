@@ -508,6 +508,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### [Unreleased]
 
+#### Fixed (Phase 2.4 Audit-Items, 2026-04-29)
+- **C1** — `archive/INITIAL_PROMPT.md` und `PLAN-UEBERARBEITUNG.md` gelöscht;
+  Inhalt vollständig in `PROGRESS.md`/`DECISIONS.md` gespiegelt.
+- **C2** — `rust-toolchain.toml` entfernt; CI `@stable` ist Single Source of Truth,
+  MSRV via `rust-version = "1.75"` in `Cargo.toml`.
+- **C4** — `scan_interval_secs: u32` (default 30, min 5) in `Config`/`StoredConfig`; `ignis-api`
+  Background-Tick liest Wert aus Config. `Snapshot.sessions` war bereits auf 500 gecappt
+  (`aggregate.rs:126 truncate(500)`) — kein weiterer Code-Change nötig.
+
 #### Fixed (Phase 2.3 Audit-Items, 2026-04-29)
 - **B5** — `ratatui`/`crossterm` aus `Cargo.toml` entfernt (TUI seit ADR-015 nicht mehr vorhanden);
   CLAUDE.md-Tabelle `CLI/TUI` → `CLI | clap` aktualisiert.
