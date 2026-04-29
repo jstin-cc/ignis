@@ -61,11 +61,12 @@ async fn main() -> anyhow::Result<()> {
     let state_bg = state.clone();
     let pricing_bg = pricing;
     let dir_bg = config.claude_projects_dir.clone();
+    let scan_interval = Duration::from_secs(config.scan_interval_secs.max(5).into());
     tokio::spawn(async move {
         let _watcher = watcher_opt; // keep alive so watch stays registered
         let _tx = notify_tx; // keep channel open for periodic-only mode
 
-        let mut tick = tokio::time::interval(Duration::from_secs(30));
+        let mut tick = tokio::time::interval(scan_interval);
         tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
         tick.tick().await; // skip first fire — boot scan already done above
 

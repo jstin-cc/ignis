@@ -73,6 +73,10 @@ pub enum ConfigError {
 /// Bumped when `StoredConfig` gains new required fields.
 const CURRENT_CONFIG_VERSION: u32 = 2;
 
+fn default_scan_interval_secs() -> u32 {
+    30
+}
+
 /// Allowed origins for cross-origin requests to the local HTTP API.
 fn default_allowed_origins() -> Vec<String> {
     vec![
@@ -94,6 +98,9 @@ pub struct Config {
     pub plan: PlanConfig,
     /// Origins allowed for cross-origin requests; default covers all Tauri + Vite variants.
     pub allowed_origins: Vec<String>,
+    /// How often (seconds) ignis-api re-scans the log directory as a periodic fallback.
+    /// File-watcher events trigger scans independently of this interval.
+    pub scan_interval_secs: u32,
 }
 
 impl Config {
@@ -112,6 +119,7 @@ impl Config {
                 api_token: generate_token(),
                 plan: PlanConfig::default(),
                 allowed_origins: default_allowed_origins(),
+                scan_interval_secs: 30,
             };
             // Best-effort write — ignore failure (e.g. read-only filesystem).
             let _ = save_file(&c, &path);
@@ -139,6 +147,8 @@ struct StoredConfig {
     plan: PlanConfig,
     #[serde(default = "default_allowed_origins")]
     allowed_origins: Vec<String>,
+    #[serde(default = "default_scan_interval_secs")]
+    scan_interval_secs: u32,
 }
 
 fn config_file_path() -> Result<PathBuf, ConfigError> {
@@ -185,6 +195,7 @@ fn load_file(path: &Path) -> Result<Config, ConfigError> {
         api_token: stored.api_token,
         plan: stored.plan,
         allowed_origins: stored.allowed_origins,
+        scan_interval_secs: stored.scan_interval_secs,
     })
 }
 
@@ -216,6 +227,7 @@ fn save_file(cfg: &Config, path: &Path) -> Result<(), ConfigError> {
         api_token: cfg.api_token.clone(),
         plan: cfg.plan.clone(),
         allowed_origins: cfg.allowed_origins.clone(),
+        scan_interval_secs: cfg.scan_interval_secs,
     };
     save_file_stored(&stored, path)
 }
