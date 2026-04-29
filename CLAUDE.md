@@ -33,7 +33,7 @@ liest JSONL-Logs aus `%USERPROFILE%\.claude\projects\`, zeigt Tokens/Kosten/Sess
 | Layer          | Wahl                                                        |
 |----------------|-------------------------------------------------------------|
 | Core           | Rust, Edition **2021** (→ ADR-008)                          |
-| CLI/TUI        | ratatui + crossterm + clap                                  |
+| CLI            | clap                                                        |
 | HTTP-API       | Axum auf `127.0.0.1:7337`, Bearer-Token-Auth (→ ADR-005)    |
 | Tray           | Tauri 2 + React **18.3** (→ ADR-003) + TypeScript + Vite    |
 | Persistenz     | In-Memory + Re-Scan-on-Change — **keine SQLite** (→ ADR-002) |

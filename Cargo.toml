@@ -37,8 +37,6 @@ axum = "0.8"
 tokio = { version = "1", features = ["full"] }
 tower = "0.5"
 tower-http = { version = "0.6", features = ["cors"] }
-ratatui = "0.29"
-crossterm = "0.28"
 notify = "6"
 
 [dev-dependencies]
